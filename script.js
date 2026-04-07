@@ -55,7 +55,7 @@ const THEMES = {
         color: '#ccffff'
     },
     rrlgreen: {
-        label: 'Really Really Light',
+        label: 'Really Really Light Green',
         color: '#ffffff'
     },
     hellotheme: {
