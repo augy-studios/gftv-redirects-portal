@@ -1,7 +1,5 @@
 // Ownership requests
-import {
-    getSupabase
-} from '../../lib/supabase.js';
+import supabase from '../../lib/supabase.js';
 import {
     getSessionUser
 } from '../../lib/auth.js';
@@ -17,7 +15,7 @@ export default async function handler(req) {
     const user = await getSessionUser(req);
     if (!user) return err('Unauthorized', 401);
 
-    const supabase = getSupabase();
+    
 
     // GET - get ownership requests for current user (as owner)
     if (req.method === 'GET') {

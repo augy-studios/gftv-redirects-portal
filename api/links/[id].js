@@ -1,7 +1,5 @@
 // Edit, delete, toggle a specific link
-import {
-    getSupabase
-} from '../../lib/supabase.js';
+import supabase from '../../lib/supabase.js';
 import {
     getSessionUser
 } from '../../lib/auth.js';
@@ -19,7 +17,7 @@ export default async function handler(req) {
 
     const url = new URL(req.url);
     const id = url.pathname.split('/').pop();
-    const supabase = getSupabase();
+    
 
     // Fetch the link
     const {

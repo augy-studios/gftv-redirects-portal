@@ -1,7 +1,5 @@
 // Approve or reject ownership request
-import {
-    getSupabase
-} from '../../lib/supabase.js';
+import supabase from '../../lib/supabase.js';
 import {
     getSessionUser
 } from '../../lib/auth.js';
@@ -26,7 +24,7 @@ export default async function handler(req) {
     } = await req.json(); // approve | reject
     if (!['approve', 'reject'].includes(action)) return err('Invalid action');
 
-    const supabase = getSupabase();
+    
 
     const {
         data: request

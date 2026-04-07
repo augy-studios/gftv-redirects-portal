@@ -1,7 +1,5 @@
 // Update profile (display name, password, social links)
-import {
-    getSupabase
-} from '../../lib/supabase.js';
+import supabase from '../../lib/supabase.js';
 import {
     getSessionUser
 } from '../../lib/auth.js';
@@ -19,7 +17,7 @@ export default async function handler(req) {
     const user = await getSessionUser(req);
     if (!user) return err('Unauthorized', 401);
 
-    const supabase = getSupabase();
+    
 
     try {
         const body = await req.json();
@@ -47,7 +45,7 @@ export default async function handler(req) {
             const valid = await bcrypt.compare(body.current_password, user.password_hash);
             if (!valid) return err('Current password is incorrect');
 
-            updates.password_hash = await bcrypt.hash(body.new_password, 12);
+            updates.password_hash = await bcrypt.hash(body.new_password, 10);
         }
 
         const {

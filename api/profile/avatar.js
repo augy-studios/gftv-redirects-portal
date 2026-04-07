@@ -1,7 +1,5 @@
 // Upload avatar (receives base64 webp from client)
-import {
-    getSupabase
-} from '../../lib/supabase.js';
+import supabase from '../../lib/supabase.js';
 import {
     getSessionUser
 } from '../../lib/auth.js';
@@ -30,7 +28,7 @@ export default async function handler(req) {
 
         if (buffer.length > 2 * 1024 * 1024) return err('Image too large (max 2MB)');
 
-        const supabase = getSupabase();
+        
         const filename = `${user.id}.webp`;
 
         const {

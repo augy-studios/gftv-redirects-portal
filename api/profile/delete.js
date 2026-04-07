@@ -1,7 +1,5 @@
 // Delete own account
-import {
-    getSupabase
-} from '../../lib/supabase.js';
+import supabase from '../../lib/supabase.js';
 import {
     getSessionUser
 } from '../../lib/auth.js';
@@ -29,7 +27,7 @@ export default async function handler(req) {
         const valid = await bcrypt.compare(password, user.password_hash);
         if (!valid) return err('Incorrect password');
 
-        const supabase = getSupabase();
+        
         await supabase.from('gftvlinks_users').delete().eq('id', user.id);
 
         return ok({

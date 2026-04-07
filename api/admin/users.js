@@ -1,7 +1,5 @@
 // Admin: list and approve users
-import {
-    getSupabase
-} from '../../lib/supabase.js';
+import supabase from '../../lib/supabase.js';
 import {
     getSessionUser
 } from '../../lib/auth.js';
@@ -18,7 +16,7 @@ export default async function handler(req) {
     if (!user) return err('Unauthorized', 401);
     if (!user.is_admin) return err('Forbidden', 403);
 
-    const supabase = getSupabase();
+    
 
     // GET - list all users
     if (req.method === 'GET') {

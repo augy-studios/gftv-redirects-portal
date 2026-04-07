@@ -1,7 +1,5 @@
 // List all links (directory) + create link
-import {
-    getSupabase
-} from '../../lib/supabase.js';
+import supabase from '../../lib/supabase.js';
 import {
     getSessionUser
 } from '../../lib/auth.js';
@@ -17,7 +15,7 @@ export default async function handler(req) {
     const user = await getSessionUser(req);
     if (!user) return err('Unauthorized', 401);
 
-    const supabase = getSupabase();
+    
 
     // GET - directory listing
     if (req.method === 'GET') {

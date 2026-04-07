@@ -1,7 +1,5 @@
 // Redirect short link to destination
-import {
-    getSupabase
-} from '../../lib/supabase.js';
+import supabase from '../../lib/supabase.js';
 
 const FALLBACK = 'https://globalfurrytv.news.blog';
 
@@ -12,7 +10,7 @@ export default async function handler(req) {
     if (!slug) return Response.redirect(FALLBACK, 302);
 
     try {
-        const supabase = getSupabase();
+        
 
         const {
             data: link

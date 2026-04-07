@@ -1,11 +1,5 @@
-import {
-    getSupabase
-} from '../../lib/supabase.js';
-import {
-    ok,
-    err,
-    optionsResponse
-} from '../../lib/response.js';
+import supabase from '../../lib/supabase.js';
+import { ok, err, optionsResponse } from '../../lib/response.js';
 import bcrypt from 'bcryptjs';
 
 export default async function handler(req) {
@@ -13,12 +7,7 @@ export default async function handler(req) {
     if (req.method !== 'POST') return err('Method not allowed', 405);
 
     try {
-        const {
-            username,
-            display_name,
-            email,
-            password
-        } = await req.json();
+        const { username, display_name, email, password } = await req.json();
 
         if (!username || !display_name || !email || !password)
             return err('All fields are required');
@@ -29,12 +18,7 @@ export default async function handler(req) {
         if (password.length < 8)
             return err('Password must be at least 8 characters');
 
-        const supabase = getSupabase();
-
-        // Check existing
-        const {
-            data: existing
-        } = await supabase
+        const { data: existing } = await supabase
             .from('gftvlinks_users')
             .select('id')
             .or(`username.eq.${username},email.eq.${email}`)
@@ -45,9 +29,7 @@ export default async function handler(req) {
 
         const password_hash = await bcrypt.hash(password, 10);
 
-        const {
-            error
-        } = await supabase
+        const { error } = await supabase
             .from('gftvlinks_users')
             .insert({
                 username: username.toLowerCase(),
@@ -60,9 +42,7 @@ export default async function handler(req) {
 
         if (error) return err('Failed to create account');
 
-        return ok({
-            message: 'Account created. Waiting for admin approval.'
-        }, 201);
+        return ok({ message: 'Account created. Waiting for admin approval.' }, 201);
     } catch (e) {
         console.error(e);
         return err('Server error', 500);
