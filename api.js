@@ -13,13 +13,22 @@ async function req(method, path, body = null) {
         },
     };
     if (body) opts.body = JSON.stringify(body);
-    const res = await fetch(BASE + path, opts);
-    const data = await res.json();
-    return {
-        ok: res.ok,
-        status: res.status,
-        data
-    };
+    try {
+        const res = await fetch(BASE + path, opts);
+        const data = await res.json();
+        return {
+            ok: res.ok,
+            status: res.status,
+            data
+        };
+    } catch (e) {
+        console.error(`API request failed [${method} ${path}]:`, e);
+        return {
+            ok: false,
+            status: 0,
+            data: { error: 'Network error. Please try again.' }
+        };
+    }
 }
 
 // Auth

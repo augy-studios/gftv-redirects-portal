@@ -43,7 +43,7 @@ export default async function handler(req) {
         if (existing && existing.length > 0)
             return err('Username or email already in use');
 
-        const password_hash = await bcrypt.hash(password, 12);
+        const password_hash = await bcrypt.hash(password, 10);
 
         const {
             error

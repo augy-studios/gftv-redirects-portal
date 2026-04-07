@@ -262,23 +262,25 @@ function setupRegisterPage() {
         btn.disabled = true;
         btn.textContent = 'Creating account…';
 
-        const res = await Auth.register({
-            username: document.getElementById('reg-username').value.trim(),
-            display_name: document.getElementById('reg-displayname').value.trim(),
-            email: document.getElementById('reg-email').value.trim(),
-            password,
-        });
+        try {
+            const res = await Auth.register({
+                username: document.getElementById('reg-username').value.trim(),
+                display_name: document.getElementById('reg-displayname').value.trim(),
+                email: document.getElementById('reg-email').value.trim(),
+                password,
+            });
 
-        if (res.ok) {
-            toast('Account created! Waiting for admin approval.', 'success');
-            navigate('pending');
-        } else {
-            errEl.textContent = res.data.error || 'Registration failed';
-            errEl.style.display = 'flex';
+            if (res.ok) {
+                toast('Account created! Waiting for admin approval.', 'success');
+                navigate('pending');
+            } else {
+                errEl.textContent = res.data.error || 'Registration failed';
+                errEl.style.display = 'flex';
+            }
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Create Account';
         }
-
-        btn.disabled = false;
-        btn.textContent = 'Create Account';
     });
 }
 
