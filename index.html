@@ -20,14 +20,14 @@
     <link rel="manifest" href="/manifest.json" />
 
     <meta charset="utf-8">
-    <title>Template | UwU Apps</title>
+    <title>Link Shortener | Global Furry Television</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="A simple template app; view live template at a glance!">
+    <meta name="description" content="GFTV Link Shortener — Official link management for gftv.asia">
 
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Template | UwU Apps" />
-    <meta property="og:site_name" content="UwU Apps" />
-    <meta property="og:description" content="A simple template app; view live template at a glance!" />
+    <meta property="og:title" content="Link Shortener | Global Furry Television" />
+    <meta property="og:site_name" content="Global Furry Television" />
+    <meta property="og:description" content="GFTV Link Shortener — Official link management for gftv.asia" />
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Jua">
     <link rel="stylesheet" href="/style.css">
@@ -46,16 +46,447 @@
 </head>
 
 <body>
-    Template
+    <!-- ===== NAVBAR ===== -->
+    <nav id="navbar">
+        <a class="nav-brand" href="/">
+            <span class="brand-dot"></span>
+            GFTV Links
+        </a>
+        <div id="nav-links" class="nav-links"></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <button class="nav-theme-btn" id="theme-picker-btn" title="Change theme">🎨</button>
+            <div id="nav-user"></div>
+            <button class="hamburger" id="hamburger-btn" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+    <div class="mobile-nav-drawer" id="mobile-nav"></div>
 
-    <script src="/script.js"></script>
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div id="toast-container"></div>
+
+    <!-- ===== MAIN APP ===== -->
+    <main id="app-container">
+
+        <!-- LOGIN PAGE -->
+        <div id="page-login" class="page">
+            <div class="auth-wrap">
+                <div class="auth-card glass-strong">
+                    <h2>Welcome back 👋</h2>
+                    <p class="subtitle">Log in to manage your GFTV short links</p>
+                    <div id="login-error" class="alert alert-error" style="display:none"></div>
+                    <form id="login-form" novalidate>
+                        <div class="form-group">
+                            <label for="login-username">Username or Email</label>
+                            <input class="form-control" id="login-username" type="text" placeholder="your_username"
+                                autocomplete="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input class="form-control" id="login-password" type="password" placeholder="••••••••"
+                                autocomplete="current-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full" id="login-btn">Log In</button>
+                    </form>
+                    <p class="auth-switch">Don't have an account? <a onclick="nav('register')">Register here</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- REGISTER PAGE -->
+        <div id="page-register" class="page">
+            <div class="auth-wrap">
+                <div class="auth-card glass-strong">
+                    <h2>Create Account ✨</h2>
+                    <p class="subtitle">Join GFTV Links — approval required before access</p>
+                    <div id="register-error" class="alert alert-error" style="display:none"></div>
+                    <form id="register-form" novalidate>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="reg-username">Username</label>
+                                <input class="form-control" id="reg-username" type="text" placeholder="cooluser123"
+                                    autocomplete="username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-displayname">Display Name</label>
+                                <input class="form-control" id="reg-displayname" type="text" placeholder="Cool User"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-email">Email</label>
+                            <input class="form-control" id="reg-email" type="email" placeholder="you@example.com"
+                                autocomplete="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-password">Password</label>
+                            <input class="form-control" id="reg-password" type="password"
+                                placeholder="Min. 8 characters" autocomplete="new-password" required>
+                            <div class="pwd-strength pwd-strength-0" id="pwd-strength-bar" style="margin-top:6px;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-confirm">Confirm Password</label>
+                            <input class="form-control" id="reg-confirm" type="password" placeholder="Repeat password"
+                                autocomplete="new-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full" id="register-btn">Create Account</button>
+                    </form>
+                    <p class="auth-switch">Already have an account? <a onclick="nav('login')">Log in</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PENDING APPROVAL PAGE -->
+        <div id="page-pending" class="page">
+            <div class="auth-wrap">
+                <div class="pending-card glass-strong">
+                    <div class="pending-icon">⏳</div>
+                    <h2>Waiting for Approval</h2>
+                    <p>Your account has been created and is pending admin approval. You'll be able to log in once an
+                        admin reviews your request.</p>
+                    <p style="font-size:0.85rem;color:var(--text-light);">Please check back later. If you believe this
+                        is taking too long, contact a GFTV admin.</p>
+                    <button class="btn btn-secondary" onclick="nav('login')" style="margin-top:8px;">← Back to
+                        Login</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DIRECTORY PAGE -->
+        <div id="page-directory" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">📋 Link Directory</h1>
+                    <p class="page-subtitle">All short links created on gftv.asia</p>
+                </div>
+            </div>
+
+            <div class="search-bar">
+                <div class="search-input-wrap">
+                    <span class="search-icon">🔍</span>
+                    <input class="search-input" id="dir-search" type="text" placeholder="Search links…">
+                </div>
+                <select class="search-type-select" id="dir-search-type">
+                    <option value="keyword">By Keyword</option>
+                    <option value="username">By Username</option>
+                    <option value="tag">By Tag</option>
+                </select>
+            </div>
+
+            <div id="directory-table-wrap">
+                <div class="loading-wrap">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD PAGE -->
+        <div id="page-dashboard" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">🏠 My Links</h1>
+                    <p class="page-subtitle">Manage and track your short links</p>
+                </div>
+                <button class="btn btn-primary" onclick="openModal('modal-create-link')">+ New Link</button>
+            </div>
+
+            <div class="stats-grid" id="dashboard-stats"></div>
+            <div id="dashboard-links-wrap">
+                <div class="loading-wrap">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OWNERSHIP REQUESTS PAGE -->
+        <div id="page-ownership" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">📨 Ownership Requests</h1>
+                    <p class="page-subtitle">People requesting ownership of your links</p>
+                </div>
+            </div>
+            <div id="ownership-list">
+                <div class="loading-wrap">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN PAGE -->
+        <div id="page-admin" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">⚙️ Admin Panel</h1>
+                    <p class="page-subtitle">Manage user accounts and approvals</p>
+                </div>
+                <button class="btn btn-secondary" onclick="loadAdmin()">🔄 Refresh</button>
+            </div>
+            <div id="admin-users-wrap">
+                <div class="loading-wrap">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE PAGE -->
+        <div id="page-profile" class="page">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">👤 My Profile</h1>
+                    <p class="page-subtitle">Manage your account settings</p>
+                </div>
+            </div>
+
+            <!-- Profile header card -->
+            <div class="glass profile-header" style="margin-bottom:24px;">
+                <div id="profile-avatar-wrap"></div>
+                <div class="profile-info">
+                    <div class="profile-display-name" id="profile-display-name"></div>
+                    <div class="profile-username" id="profile-username"></div>
+                    <div class="profile-social" id="profile-social-links"></div>
+                </div>
+            </div>
+
+            <input type="file" id="avatar-file-input" accept="image/*" style="display:none">
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchProfileTab('edit', this)">✏️ Edit Profile</button>
+                <button class="tab-btn" onclick="switchProfileTab('password', this)">🔒 Password</button>
+                <button class="tab-btn" onclick="switchProfileTab('danger', this)">⚠️ Danger Zone</button>
+            </div>
+
+            <!-- Edit profile tab -->
+            <div id="profile-tab-edit" class="glass" style="padding:28px;">
+                <form id="edit-profile-form">
+                    <div class="form-group">
+                        <label>Username <span style="font-size:0.78rem;color:var(--text-light)">(cannot be
+                                changed)</span></label>
+                        <input class="form-control" id="profile-username-display" type="text" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-displayname">Display Name</label>
+                        <input class="form-control" id="edit-displayname" type="text" placeholder="Your display name"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Social Links</label>
+                        <div id="social-links-editor" class="social-links-editor"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="addSocialLink()"
+                            style="margin-top:8px;">+ Add Social Link</button>
+                    </div>
+
+                    <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+                        <button type="submit" class="btn btn-primary" id="save-profile-btn">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Password tab -->
+            <div id="profile-tab-password" class="glass" style="padding:28px;display:none;">
+                <form id="change-password-form">
+                    <div class="form-group">
+                        <label for="current-password">Current Password</label>
+                        <input class="form-control" id="current-password" type="password"
+                            placeholder="Your current password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">New Password</label>
+                        <input class="form-control" id="new-password" type="password" placeholder="Min. 8 characters"
+                            required>
+                        <div class="pwd-strength pwd-strength-0" id="new-pwd-strength"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-new-password">Confirm New Password</label>
+                        <input class="form-control" id="confirm-new-password" type="password"
+                            placeholder="Repeat new password" required>
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;">
+                        <button type="submit" class="btn btn-primary" id="change-pwd-btn">Change Password</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Danger zone tab -->
+            <div id="profile-tab-danger" class="glass" style="padding:28px;display:none;" id="delete-account-section">
+                <h3 class="section-title" style="color:var(--danger);">⚠️ Danger Zone</h3>
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                    <div>
+                        <div style="font-weight:700;margin-bottom:4px;">Delete Account</div>
+                        <div style="font-size:0.88rem;color:var(--text-muted);">Permanently delete your account and all
+                            associated links. This cannot be undone.</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="startDeleteAccount()">Delete My Account</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ===== MODALS ===== -->
+
+    <!-- Theme Picker Modal -->
+    <div class="modal-overlay" id="modal-theme">
+        <div class="modal glass-strong">
+            <button class="modal-close" data-close-modal="modal-theme">✕</button>
+            <h3>🎨 Choose Theme</h3>
+            <p class="modal-subtitle">Pick a colour scheme for your experience</p>
+            <div class="theme-grid" id="theme-grid"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close-modal="modal-theme">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Link Modal -->
+    <div class="modal-overlay" id="modal-create-link">
+        <div class="modal glass-strong">
+            <button class="modal-close" data-close-modal="modal-create-link">✕</button>
+            <h3>🔗 New Short Link</h3>
+            <p class="modal-subtitle">Create a new gftv.asia short link</p>
+            <form id="create-link-form" novalidate>
+                <div class="form-group">
+                    <label for="create-slug">Slug <span
+                            style="color:var(--text-light);font-weight:400;font-size:0.78rem">—
+                            gftv.asia/r/<strong>slug</strong></span></label>
+                    <input class="form-control" id="create-slug" type="text" placeholder="my-cool-link"
+                        pattern="[a-zA-Z0-9_-]+" required>
+                    <div class="tags-hint">Alphanumeric, hyphens and underscores only. Max 60 characters.</div>
+                </div>
+                <div class="form-group">
+                    <label for="create-dest">Destination URL</label>
+                    <input class="form-control" id="create-dest" type="url"
+                        placeholder="https://example.com/very/long/url" required>
+                </div>
+                <div class="form-group">
+                    <label>Tags <span style="color:var(--text-light);font-weight:400;font-size:0.78rem">— up to
+                            5</span></label>
+                    <div id="create-tags-container">
+                        <div class="tags-input-wrap">
+                            <input class="tags-input" type="text" placeholder="Type a tag and press Enter…">
+                        </div>
+                    </div>
+                    <div class="tags-hint">Press Enter or comma to add a tag.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close-modal="modal-create-link">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="create-link-btn">Create Link</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Link Modal -->
+    <div class="modal-overlay" id="modal-edit-link">
+        <div class="modal glass-strong">
+            <button class="modal-close" data-close-modal="modal-edit-link">✕</button>
+            <h3>✏️ Edit Link</h3>
+            <p class="modal-subtitle">Update slug, destination, or tags</p>
+            <form id="edit-link-form" novalidate>
+                <div class="form-group">
+                    <label for="edit-slug">Slug <span
+                            style="color:var(--text-light);font-weight:400;font-size:0.78rem">—
+                            gftv.asia/r/<strong>slug</strong></span></label>
+                    <input class="form-control" id="edit-slug" type="text" placeholder="my-cool-link" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-dest">Destination URL</label>
+                    <input class="form-control" id="edit-dest" type="url" placeholder="https://example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Tags <span style="color:var(--text-light);font-weight:400;font-size:0.78rem">— up to
+                            5</span></label>
+                    <div id="edit-tags-container">
+                        <div class="tags-input-wrap">
+                            <input class="tags-input" type="text" placeholder="Type a tag and press Enter…">
+                        </div>
+                    </div>
+                    <div class="tags-hint">Press Enter or comma to add a tag.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close-modal="modal-edit-link">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="edit-link-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Account Step Modal -->
+    <div class="modal-overlay" id="modal-delete-account">
+        <div class="modal glass-strong">
+            <button class="modal-close" data-close-modal="modal-delete-account">✕</button>
+            <h3 style="color:var(--danger);">⚠️ Delete Account</h3>
+            <div class="confirm-steps" style="margin:16px 0;">
+                <div class="confirm-step-dot done"></div>
+                <div class="confirm-step-dot"></div>
+                <div class="confirm-step-dot"></div>
+            </div>
+            <p id="delete-step-text" style="margin-bottom:24px;line-height:1.6;"></p>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close-modal="modal-delete-account">Cancel</button>
+                <button class="btn btn-danger" onclick="nextDeleteStep()">Continue →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Final (password confirm) Modal -->
+    <div class="modal-overlay" id="modal-delete-final">
+        <div class="modal glass-strong">
+            <button class="modal-close" data-close-modal="modal-delete-final">✕</button>
+            <h3 style="color:var(--danger);">🔐 Confirm Deletion</h3>
+            <p class="modal-subtitle">Enter your password to permanently delete your account.</p>
+            <form id="delete-final-form" novalidate>
+                <div class="form-group">
+                    <label for="delete-confirm-password">Your Password</label>
+                    <input class="form-control" id="delete-confirm-password" type="password"
+                        placeholder="Enter your password" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        data-close-modal="modal-delete-final">Cancel</button>
+                    <button type="submit" class="btn btn-danger" id="delete-account-final-btn">Permanently Delete
+                        Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Tab switcher for profile page
+        function switchProfileTab(tab, btn) {
+            ['edit', 'password', 'danger'].forEach(t => {
+                document.getElementById('profile-tab-' + t).style.display = t === tab ? 'block' : 'none';
+            });
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Sync username display field
+            if (tab === 'edit' && window.state?.user) {
+                const f = document.getElementById('profile-username-display');
+                if (f) f.value = '@' + window.state.user.username;
+            }
+        }
+
+        // Expose state to window for tab switcher access
+        Object.defineProperty(window, 'state', {
+            get: () => window._appState,
+            set: (v) => {
+                window._appState = v;
+            }
+        });
+    </script>
+
+    <script type="module" src="/script.js"></script>
 
     <script>
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('/sw.js');
+            navigator.serviceWorker.register('/sw.js');
         }
     </script>
-    
+
 </body>
 
 </html>

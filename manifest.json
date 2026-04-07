@@ -1,7 +1,7 @@
 {
-    "name": "Template by UwU Apps",
-    "short_name": "UwU Template",
-    "description": "A simple template app; view live template at a glance!",
+    "name": "Link Shortener | Global Furry Television",
+    "short_name": "GFTV Short Links",
+    "description": "GFTV Link Shortener — Official link management for gftv.asia",
     "icons": [{
         "src": "templateicon1.png",
         "type": "image/png",
@@ -26,7 +26,7 @@
     "display": "standalone",
     "display_override": ["fullscreen", "minimal-ui", "window-controls-overlay"],
     "orientation": "portrait-primary",
-    "id": "template",
+    "id": "gftvlinks",
     "dir": "ltr",
     "scope": "/",
     "lang": "en",

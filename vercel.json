@@ -4,7 +4,64 @@
     "cleanUrls": true,
     "regions": ["sin1"],
     "rewrites": [{
-        "source": "/",
-        "destination": "/"
-    }]
+            "source": "/api/auth/register",
+            "destination": "/api/auth/register"
+        },
+        {
+            "source": "/api/auth/login",
+            "destination": "/api/auth/login"
+        },
+        {
+            "source": "/api/auth/logout",
+            "destination": "/api/auth/logout"
+        },
+        {
+            "source": "/api/auth/me",
+            "destination": "/api/auth/me"
+        },
+        {
+            "source": "/api/links/mine",
+            "destination": "/api/links/mine"
+        },
+        {
+            "source": "/api/links/:id",
+            "destination": "/api/links/[id]"
+        },
+        {
+            "source": "/api/links",
+            "destination": "/api/links/index"
+        },
+        {
+            "source": "/api/ownership/:id",
+            "destination": "/api/ownership/[id]"
+        },
+        {
+            "source": "/api/ownership",
+            "destination": "/api/ownership/index"
+        },
+        {
+            "source": "/api/admin/users",
+            "destination": "/api/admin/users"
+        },
+        {
+            "source": "/api/profile/update",
+            "destination": "/api/profile/update"
+        },
+        {
+            "source": "/api/profile/delete",
+            "destination": "/api/profile/delete"
+        },
+        {
+            "source": "/api/profile/avatar",
+            "destination": "/api/profile/avatar"
+        },
+        {
+            "source": "/r/:slug",
+            "destination": "/api/redirect/[slug]"
+        },
+        {
+            "source": "/((?!api/).*)",
+            "destination": "/index.html"
+        }
+    ]
 }
