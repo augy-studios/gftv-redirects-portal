@@ -3,12 +3,19 @@ import { ok, err, optionsResponse } from '../../lib/response.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
+const parseBody = (req) => new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', chunk => data += chunk);
+    req.on('end', () => { try { resolve(JSON.parse(data)); } catch (e) { reject(e); } });
+    req.on('error', reject);
+});
+
 export default async function handler(req) {
     if (req.method === 'OPTIONS') return optionsResponse();
     if (req.method !== 'POST') return err('Method not allowed', 405);
 
     try {
-        const { username, password } = await req.json();
+        const { username, password } = await parseBody(req);
         if (!username || !password) return err('Username and password required');
 
         const { data: user } = await supabase

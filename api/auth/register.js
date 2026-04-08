@@ -2,12 +2,19 @@ import supabase from '../../lib/supabase.js';
 import { ok, err, optionsResponse } from '../../lib/response.js';
 import bcrypt from 'bcryptjs';
 
+const parseBody = (req) => new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', chunk => data += chunk);
+    req.on('end', () => { try { resolve(JSON.parse(data)); } catch (e) { reject(e); } });
+    req.on('error', reject);
+});
+
 export default async function handler(req) {
     if (req.method === 'OPTIONS') return optionsResponse();
     if (req.method !== 'POST') return err('Method not allowed', 405);
 
     try {
-        const { username, display_name, email, password } = await req.json();
+        const { username, display_name, email, password } = await parseBody(req);
 
         if (!username || !display_name || !email || !password)
             return err('All fields are required');
