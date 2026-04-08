@@ -1,13 +1,9 @@
+export const config = { runtime: 'edge' };
+
 // Get logged in user's own links
 import supabase from '../../lib/supabase.js';
-import {
-    getSessionUser
-} from '../../lib/auth.js';
-import {
-    ok,
-    err,
-    optionsResponse
-} from '../../lib/response.js';
+import { getSessionUser } from '../../lib/auth.js';
+import { ok, err, optionsResponse } from '../../lib/response.js';
 
 export default async function handler(req) {
     if (req.method === 'OPTIONS') return optionsResponse();
@@ -16,20 +12,12 @@ export default async function handler(req) {
     const user = await getSessionUser(req);
     if (!user) return err('Unauthorized', 401);
 
-    
-    const {
-        data: links,
-        error
-    } = await supabase
+    const { data: links, error } = await supabase
         .from('gftvlinks_links')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', {
-            ascending: false
-        });
+        .order('created_at', { ascending: false });
 
     if (error) return err('Failed to fetch links');
-    return ok({
-        links: links || []
-    });
+    return ok({ links: links || [] });
 }

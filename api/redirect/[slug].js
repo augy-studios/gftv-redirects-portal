@@ -1,4 +1,5 @@
 // Redirect short link to destination
+export const config = { runtime: 'edge' };
 import supabase from '../../lib/supabase.js';
 
 const FALLBACK = 'https://globalfurrytv.news.blog';

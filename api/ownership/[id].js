@@ -1,4 +1,5 @@
 // Approve or reject ownership request
+export const config = { runtime: 'edge' };
 import supabase from '../../lib/supabase.js';
 import {
     getSessionUser

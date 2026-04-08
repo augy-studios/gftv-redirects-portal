@@ -1,4 +1,5 @@
 // Upload avatar (receives base64 webp from client)
+export const config = { runtime: 'edge' };
 import supabase from '../../lib/supabase.js';
 import {
     getSessionUser

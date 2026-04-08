@@ -1,13 +1,9 @@
+export const config = { runtime: 'edge' };
+
 // Edit, delete, toggle a specific link
 import supabase from '../../lib/supabase.js';
-import {
-    getSessionUser
-} from '../../lib/auth.js';
-import {
-    ok,
-    err,
-    optionsResponse
-} from '../../lib/response.js';
+import { getSessionUser } from '../../lib/auth.js';
+import { ok, err, optionsResponse } from '../../lib/response.js';
 
 export default async function handler(req) {
     if (req.method === 'OPTIONS') return optionsResponse();
@@ -17,12 +13,9 @@ export default async function handler(req) {
 
     const url = new URL(req.url);
     const id = url.pathname.split('/').pop();
-    
 
     // Fetch the link
-    const {
-        data: link
-    } = await supabase
+    const { data: link } = await supabase
         .from('gftvlinks_links')
         .select('*')
         .eq('id', id)
@@ -38,26 +31,15 @@ export default async function handler(req) {
         if (!canEdit) return err('Forbidden', 403);
 
         try {
-            const {
-                slug,
-                destination,
-                is_active,
-                tags
-            } = await req.json();
-            const updates = {
-                updated_at: new Date().toISOString()
-            };
+            const { slug, destination, is_active, tags } = await req.json();
+            const updates = { updated_at: new Date().toISOString() };
 
             if (slug !== undefined) {
                 if (!/^[a-zA-Z0-9_-]{1,60}$/.test(slug)) return err('Invalid slug');
                 updates.slug = slug;
             }
             if (destination !== undefined) {
-                try {
-                    new URL(destination);
-                } catch {
-                    return err('Invalid URL');
-                }
+                try { new URL(destination); } catch { return err('Invalid URL'); }
                 updates.destination = destination;
             }
             if (is_active !== undefined) updates.is_active = is_active;
@@ -66,9 +48,7 @@ export default async function handler(req) {
                 updates.tags = tags;
             }
 
-            const {
-                error
-            } = await supabase
+            const { error } = await supabase
                 .from('gftvlinks_links')
                 .update(updates)
                 .eq('id', id);
@@ -78,9 +58,7 @@ export default async function handler(req) {
                 return err('Failed to update link');
             }
 
-            return ok({
-                message: 'Link updated'
-            });
+            return ok({ message: 'Link updated' });
         } catch (e) {
             return err('Server error', 500);
         }
@@ -91,9 +69,7 @@ export default async function handler(req) {
         if (!canEdit) return err('Forbidden', 403);
 
         await supabase.from('gftvlinks_links').delete().eq('id', id);
-        return ok({
-            message: 'Link deleted'
-        });
+        return ok({ message: 'Link deleted' });
     }
 
     return err('Method not allowed', 405);

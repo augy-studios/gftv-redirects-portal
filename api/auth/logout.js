@@ -1,3 +1,5 @@
+export const config = { runtime: 'edge' };
+
 import supabase from '../../lib/supabase.js';
 import { ok, err, optionsResponse } from '../../lib/response.js';
 

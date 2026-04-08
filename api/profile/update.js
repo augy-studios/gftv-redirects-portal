@@ -1,4 +1,5 @@
 // Update profile (display name, password, social links)
+export const config = { runtime: 'edge' };
 import supabase from '../../lib/supabase.js';
 import {
     getSessionUser
