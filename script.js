@@ -629,6 +629,7 @@ async function loadAdmin() {
   `;
 }
 
+window.loadAdmin = loadAdmin;
 window.adminAction = async (user_id, action) => {
     const res = await Admin.updateUser(user_id, action);
     if (res.ok) {
