@@ -163,6 +163,7 @@ function updateNav() {
 }
 
 window.nav = navigate;
+window.openModal = openModal;
 
 // ===== AUTH =====
 async function init() {
