@@ -199,11 +199,10 @@ export function avatarHtml(user, size = 'sm') {
 export function slugCopyHtml(slug) {
     const url = `https://gftv.asia/${slug}`;
     const linkIcon = icon('link');
-    const checkIcon = icon('check-circle');
     return `<button class="copy-btn" onclick="(async()=>{
     const btn=this;
     await navigator.clipboard.writeText('${url}');
-    const orig=btn.innerHTML; btn.innerHTML='${checkIcon.replace(/'/g, "\\'")} Copied!'; btn.classList.add('copied');
+    const orig=btn.innerHTML; btn.innerHTML='Copied!'; btn.classList.add('copied');
     setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove('copied');},1800);
   })()" title="${url}">${linkIcon} ${slug}</button>`;
 }
