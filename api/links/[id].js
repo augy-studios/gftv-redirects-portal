@@ -1,18 +1,15 @@
-export const config = { runtime: 'edge' };
-
-// Edit, delete, toggle a specific link
+// Edit, delete a specific link
 import supabase from '../../lib/supabase.js';
 import { getSessionUser } from '../../lib/auth.js';
-import { ok, err, optionsResponse } from '../../lib/response.js';
+import { ok, err, optionsResponse, parseBody } from '../../lib/response.js';
 
-export default async function handler(req) {
-    if (req.method === 'OPTIONS') return optionsResponse();
+export default async function handler(req, res) {
+    if (req.method === 'OPTIONS') return optionsResponse(res);
 
     const user = await getSessionUser(req);
-    if (!user) return err('Unauthorized', 401);
+    if (!user) return err(res, 'Unauthorized', 401);
 
-    const url = new URL(req.url);
-    const id = url.pathname.split('/').pop();
+    const id = new URL(req.url, 'http://localhost').pathname.split('/').pop();
 
     // Fetch the link
     const { data: link } = await supabase
@@ -21,30 +18,29 @@ export default async function handler(req) {
         .eq('id', id)
         .single();
 
-    if (!link) return err('Link not found', 404);
+    if (!link) return err(res, 'Link not found', 404);
 
-    // Only owner or admin can modify
     const canEdit = link.user_id === user.id || user.is_admin;
 
     // PUT - edit link
     if (req.method === 'PUT') {
-        if (!canEdit) return err('Forbidden', 403);
+        if (!canEdit) return err(res, 'Forbidden', 403);
 
         try {
-            const { slug, destination, is_active, tags } = await req.json();
+            const { slug, destination, is_active, tags } = await parseBody(req);
             const updates = { updated_at: new Date().toISOString() };
 
             if (slug !== undefined) {
-                if (!/^[a-zA-Z0-9_-]{1,60}$/.test(slug)) return err('Invalid slug');
+                if (!/^[a-zA-Z0-9_-]{1,60}$/.test(slug)) return err(res, 'Invalid slug');
                 updates.slug = slug;
             }
             if (destination !== undefined) {
-                try { new URL(destination); } catch { return err('Invalid URL'); }
+                try { new URL(destination); } catch { return err(res, 'Invalid URL'); }
                 updates.destination = destination;
             }
             if (is_active !== undefined) updates.is_active = is_active;
             if (tags !== undefined) {
-                if (tags.length > 5) return err('Maximum 5 tags allowed');
+                if (tags.length > 5) return err(res, 'Maximum 5 tags allowed');
                 updates.tags = tags;
             }
 
@@ -54,23 +50,23 @@ export default async function handler(req) {
                 .eq('id', id);
 
             if (error) {
-                if (error.code === '23505') return err('Slug already taken');
-                return err('Failed to update link');
+                if (error.code === '23505') return err(res, 'Slug already taken');
+                return err(res, 'Failed to update link');
             }
 
-            return ok({ message: 'Link updated' });
+            return ok(res, { message: 'Link updated' });
         } catch (e) {
-            return err('Server error', 500);
+            return err(res, 'Server error', 500);
         }
     }
 
     // DELETE - remove link
     if (req.method === 'DELETE') {
-        if (!canEdit) return err('Forbidden', 403);
+        if (!canEdit) return err(res, 'Forbidden', 403);
 
         await supabase.from('gftvlinks_links').delete().eq('id', id);
-        return ok({ message: 'Link deleted' });
+        return ok(res, { message: 'Link deleted' });
     }
 
-    return err('Method not allowed', 405);
+    return err(res, 'Method not allowed', 405);
 }

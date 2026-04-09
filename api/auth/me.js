@@ -1,19 +1,17 @@
-export const config = { runtime: 'edge' };
-
 import { getSessionUser } from '../../lib/auth.js';
 import { ok, err, optionsResponse } from '../../lib/response.js';
 
-export default async function handler(req) {
-    if (req.method === 'OPTIONS') return optionsResponse();
-    if (req.method !== 'GET') return err('Method not allowed', 405);
+export default async function handler(req, res) {
+    if (req.method === 'OPTIONS') return optionsResponse(res);
+    if (req.method !== 'GET') return err(res, 'Method not allowed', 405);
 
     try {
         const user = await getSessionUser(req);
-        if (!user) return err('Unauthorized', 401);
+        if (!user) return err(res, 'Unauthorized', 401);
 
         const { password_hash, ...safeUser } = user;
-        return ok({ user: safeUser });
+        return ok(res, { user: safeUser });
     } catch (e) {
-        return err('Server error', 500);
+        return err(res, 'Server error', 500);
     }
 }

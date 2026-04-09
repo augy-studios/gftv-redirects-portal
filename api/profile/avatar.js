@@ -1,69 +1,47 @@
 // Upload avatar (receives base64 webp from client)
-export const config = { runtime: 'edge' };
 import supabase from '../../lib/supabase.js';
-import {
-    getSessionUser
-} from '../../lib/auth.js';
-import {
-    ok,
-    err,
-    optionsResponse
-} from '../../lib/response.js';
+import { getSessionUser } from '../../lib/auth.js';
+import { ok, err, optionsResponse, parseBody } from '../../lib/response.js';
 
-export default async function handler(req) {
-    if (req.method === 'OPTIONS') return optionsResponse();
-    if (req.method !== 'POST') return err('Method not allowed', 405);
+export default async function handler(req, res) {
+    if (req.method === 'OPTIONS') return optionsResponse(res);
+    if (req.method !== 'POST') return err(res, 'Method not allowed', 405);
 
     const user = await getSessionUser(req);
-    if (!user) return err('Unauthorized', 401);
+    if (!user) return err(res, 'Unauthorized', 401);
 
     try {
-        const {
-            image_base64
-        } = await req.json();
-        if (!image_base64) return err('No image provided');
+        const { image_base64 } = await parseBody(req);
+        if (!image_base64) return err(res, 'No image provided');
 
-        // Strip data URL prefix if present
         const base64Data = image_base64.replace(/^data:image\/webp;base64,/, '');
         const buffer = Buffer.from(base64Data, 'base64');
 
-        if (buffer.length > 2 * 1024 * 1024) return err('Image too large (max 2MB)');
+        if (buffer.length > 2 * 1024 * 1024) return err(res, 'Image too large (max 2MB)');
 
-        
         const filename = `${user.id}.webp`;
 
-        const {
-            error: uploadError
-        } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
             .from('gftvlinks_avatars')
             .upload(filename, buffer, {
                 contentType: 'image/webp',
                 upsert: true,
             });
 
-        if (uploadError) return err('Failed to upload avatar');
+        if (uploadError) return err(res, 'Failed to upload avatar');
 
-        const {
-            data: {
-                publicUrl
-            }
-        } = supabase.storage
+        const { data: { publicUrl } } = supabase.storage
             .from('gftvlinks_avatars')
             .getPublicUrl(filename);
 
         await supabase
             .from('gftvlinks_users')
-            .update({
-                avatar_url: publicUrl,
-                updated_at: new Date().toISOString()
-            })
+            .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
             .eq('id', user.id);
 
-        return ok({
-            avatar_url: publicUrl
-        });
+        return ok(res, { avatar_url: publicUrl });
     } catch (e) {
         console.error(e);
-        return err('Server error', 500);
+        return err(res, 'Server error', 500);
     }
 }

@@ -1,20 +1,18 @@
-export const config = { runtime: 'edge' };
-
 // List all links (directory) + create link
 import supabase from '../../lib/supabase.js';
 import { getSessionUser } from '../../lib/auth.js';
-import { ok, err, optionsResponse } from '../../lib/response.js';
+import { ok, err, optionsResponse, parseBody } from '../../lib/response.js';
 
-export default async function handler(req) {
-    if (req.method === 'OPTIONS') return optionsResponse();
+export default async function handler(req, res) {
+    if (req.method === 'OPTIONS') return optionsResponse(res);
 
     const user = await getSessionUser(req);
-    if (!user) return err('Unauthorized', 401);
+    if (!user) return err(res, 'Unauthorized', 401);
 
     // GET - directory listing
     if (req.method === 'GET') {
         try {
-            const url = new URL(req.url);
+            const url = new URL(req.url, 'http://localhost');
             const search = url.searchParams.get('q') || '';
             const searchType = url.searchParams.get('type') || 'keyword';
 
@@ -35,7 +33,7 @@ export default async function handler(req) {
             }
 
             const { data: links, error } = await query;
-            if (error) return err('Failed to fetch links');
+            if (error) return err(res, 'Failed to fetch links');
 
             let result = links || [];
 
@@ -46,39 +44,39 @@ export default async function handler(req) {
                 );
             }
 
-            return ok({ links: result });
+            return ok(res, { links: result });
         } catch (e) {
             console.error(e);
-            return err('Server error', 500);
+            return err(res, 'Server error', 500);
         }
     }
 
     // POST - create link
     if (req.method === 'POST') {
         try {
-            const { slug, destination, tags = [] } = await req.json();
+            const { slug, destination, tags = [] } = await parseBody(req);
 
-            if (!slug || !destination) return err('Slug and destination required');
-            if (!/^[a-zA-Z0-9_-]{1,60}$/.test(slug)) return err('Slug must be alphanumeric, hyphens or underscores, max 60 chars');
-            if (tags.length > 5) return err('Maximum 5 tags allowed');
+            if (!slug || !destination) return err(res, 'Slug and destination required');
+            if (!/^[a-zA-Z0-9_-]{1,60}$/.test(slug)) return err(res, 'Slug must be alphanumeric, hyphens or underscores, max 60 chars');
+            if (tags.length > 5) return err(res, 'Maximum 5 tags allowed');
 
-            try { new URL(destination); } catch { return err('Invalid destination URL'); }
+            try { new URL(destination); } catch { return err(res, 'Invalid destination URL'); }
 
             const { error } = await supabase
                 .from('gftvlinks_links')
                 .insert({ slug, destination, user_id: user.id, tags });
 
             if (error) {
-                if (error.code === '23505') return err('Slug already taken');
-                return err('Failed to create link');
+                if (error.code === '23505') return err(res, 'Slug already taken');
+                return err(res, 'Failed to create link');
             }
 
-            return ok({ message: 'Link created' }, 201);
+            return ok(res, { message: 'Link created' }, 201);
         } catch (e) {
             console.error(e);
-            return err('Server error', 500);
+            return err(res, 'Server error', 500);
         }
     }
 
-    return err('Method not allowed', 405);
+    return err(res, 'Method not allowed', 405);
 }

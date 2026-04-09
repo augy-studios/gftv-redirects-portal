@@ -1,4 +1,4 @@
-// Redirect short link to destination
+// Redirect short link to destination — kept on Edge for low-latency redirects
 export const config = { runtime: 'edge' };
 import supabase from '../../lib/supabase.js';
 
@@ -11,11 +11,7 @@ export default async function handler(req) {
     if (!slug) return Response.redirect(FALLBACK, 302);
 
     try {
-        
-
-        const {
-            data: link
-        } = await supabase
+        const { data: link } = await supabase
             .from('gftvlinks_links')
             .select('id, destination, is_active')
             .eq('slug', slug)
@@ -25,19 +21,8 @@ export default async function handler(req) {
             return Response.redirect(FALLBACK, 302);
         }
 
-        // Increment access count (fire and forget)
-        supabase
-            .from('gftvlinks_links')
-            .update({
-                access_count: link.access_count + 1
-            }) // use rpc for atomic
-            .eq('id', link.id)
-            .then(() => {});
-
-        // Use RPC for atomic increment instead
-        supabase.rpc('increment_link_count', {
-            link_id: link.id
-        }).then(() => {});
+        // Atomic increment via RPC
+        supabase.rpc('increment_link_count', { link_id: link.id }).then(() => {});
 
         return Response.redirect(link.destination, 302);
     } catch (e) {

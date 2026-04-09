@@ -1,33 +1,22 @@
 // Update profile (display name, password, social links)
-export const config = { runtime: 'edge' };
 import supabase from '../../lib/supabase.js';
-import {
-    getSessionUser
-} from '../../lib/auth.js';
-import {
-    ok,
-    err,
-    optionsResponse
-} from '../../lib/response.js';
+import { getSessionUser } from '../../lib/auth.js';
+import { ok, err, optionsResponse, parseBody } from '../../lib/response.js';
 import bcrypt from 'bcryptjs';
 
-export default async function handler(req) {
-    if (req.method === 'OPTIONS') return optionsResponse();
-    if (req.method !== 'PUT') return err('Method not allowed', 405);
+export default async function handler(req, res) {
+    if (req.method === 'OPTIONS') return optionsResponse(res);
+    if (req.method !== 'PUT') return err(res, 'Method not allowed', 405);
 
     const user = await getSessionUser(req);
-    if (!user) return err('Unauthorized', 401);
-
-    
+    if (!user) return err(res, 'Unauthorized', 401);
 
     try {
-        const body = await req.json();
-        const updates = {
-            updated_at: new Date().toISOString()
-        };
+        const body = await parseBody(req);
+        const updates = { updated_at: new Date().toISOString() };
 
         if (body.display_name !== undefined) {
-            if (!body.display_name.trim()) return err('Display name cannot be empty');
+            if (!body.display_name.trim()) return err(res, 'Display name cannot be empty');
             updates.display_name = body.display_name.trim();
         }
 
@@ -40,28 +29,24 @@ export default async function handler(req) {
         }
 
         if (body.new_password !== undefined) {
-            if (body.new_password.length < 8) return err('Password must be at least 8 characters');
-            if (!body.current_password) return err('Current password required');
+            if (body.new_password.length < 8) return err(res, 'Password must be at least 8 characters');
+            if (!body.current_password) return err(res, 'Current password required');
 
             const valid = await bcrypt.compare(body.current_password, user.password_hash);
-            if (!valid) return err('Current password is incorrect');
+            if (!valid) return err(res, 'Current password is incorrect');
 
             updates.password_hash = await bcrypt.hash(body.new_password, 10);
         }
 
-        const {
-            error
-        } = await supabase
+        const { error } = await supabase
             .from('gftvlinks_users')
             .update(updates)
             .eq('id', user.id);
 
-        if (error) return err('Failed to update profile');
-        return ok({
-            message: 'Profile updated'
-        });
+        if (error) return err(res, 'Failed to update profile');
+        return ok(res, { message: 'Profile updated' });
     } catch (e) {
         console.error(e);
-        return err('Server error', 500);
+        return err(res, 'Server error', 500);
     }
 }
