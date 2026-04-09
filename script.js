@@ -324,7 +324,7 @@ function renderDirectoryTable() {
       <td class="access-count">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
       <td>${fmtDate(link.created_at)}</td>
-      <td>
+      <td style="white-space:nowrap;vertical-align:middle;text-align:center">
         ${!isOwner
           ? `<button class="btn btn-sm btn-secondary" onclick="requestOwnership('${link.id}')">Request Ownership</button>`
           : `<span style="color:var(--text-light);font-size:0.8rem">You own this</span>`
@@ -484,7 +484,8 @@ function setupCreateLinkModal() {
         btn.disabled = true;
         btn.textContent = 'Creating…';
 
-        const slug = document.getElementById('create-slug').value.trim();
+        const slugInput = document.getElementById('create-slug');
+        const slug = slugInput.value.trim() || Array.from(crypto.getRandomValues(new Uint8Array(8)), b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[b % 62]).join('');
         const destination = document.getElementById('create-dest').value.trim();
 
         const res = await Links.create({
