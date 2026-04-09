@@ -1532,6 +1532,28 @@ td {
   outline-offset: 2px;
 }
 
+/* ===== INLINE COPY BUTTON ===== */
+.btn-copy-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-copy-inline:hover {
+  background: var(--brand);
+  color: var(--text);
+  border-color: var(--brand-darker);
+}
+
 /* ===== COPY BUTTON ===== */
 .copy-btn {
   display: inline-flex;

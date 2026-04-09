@@ -620,13 +620,16 @@ async function loadAdmin() {
         const isSelf = u.id === state.user?.id;
         return `<tr>
       <td class="td-user">${avatarHtml(u)}<div><div style="font-weight:700">${u.display_name}</div><div style="font-size:0.8rem;color:var(--text-muted)">@${u.username}</div></div></td>
-      <td style="font-size:0.85rem;color:var(--text-muted)">${u.email}</td>
+      <td style="white-space:nowrap">
+        <span style="font-size:0.85rem;color:var(--text-muted)">${u.email}</span>
+        <button class="btn-copy-inline" data-copy="${u.email}" onclick="copyInline(this)" title="Copy email">${icon('copy')}</button>
+      </td>
       <td>${u.is_admin ? '<span class="badge badge-admin">Admin</span>' : '<span class="badge">User</span>'}</td>
       <td>${u.is_approved ? '<span class="badge badge-active">Approved</span>' : '<span class="badge badge-pending">Pending</span>'}</td>
       <td>${fmtDate(u.created_at)}</td>
       <td>
         <div class="action-btns">
-          ${!u.is_approved ? `<button class="btn btn-sm btn-success" onclick="adminAction('${u.id}','approve')">Approve</button>` : `<button class="btn btn-sm btn-danger" onclick="adminAction('${u.id}','reject')">Revoke</button>`}
+          ${!u.is_approved ? `<button class="btn btn-sm btn-success" onclick="adminAction('${u.id}','approve')">Approve</button>` : (!isSelf ? `<button class="btn btn-sm btn-danger" onclick="adminAction('${u.id}','reject')">Revoke</button>` : '')}
           ${!isSelf ? `<button class="btn btn-sm btn-secondary" onclick="adminAction('${u.id}','toggle_admin')">${u.is_admin ? 'Remove Admin' : 'Make Admin'}</button>` : ''}
           ${!isSelf ? `<button class="btn btn-sm btn-danger" onclick="adminDeleteUser('${u.id}','${u.display_name}')">${icon('trash')}</button>` : ''}
         </div>
@@ -652,6 +655,13 @@ async function loadAdmin() {
 }
 
 window.loadAdmin = loadAdmin;
+window.copyInline = (btn) => {
+    const text = btn.dataset.copy;
+    navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.innerHTML = icon('copy'); }, 1500);
+    });
+};
 window.adminAction = async (user_id, action) => {
     const res = await Admin.updateUser(user_id, action);
     if (res.ok) {

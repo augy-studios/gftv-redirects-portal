@@ -25,6 +25,7 @@ export default async function handler(req, res) {
     if (req.method === 'PUT') {
         const { user_id, action } = await parseBody(req);
         if (!user_id || !action) return err(res, 'user_id and action required');
+        if (user_id === user.id && action === 'reject') return err(res, 'You cannot revoke your own approval', 403);
 
         const updates = { updated_at: new Date().toISOString() };
 
