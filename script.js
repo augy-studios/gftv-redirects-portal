@@ -10,14 +10,14 @@ import {
     openModal,
     closeModal,
     closeAllModals,
-    copyText,
     initTagsInput,
     compressToWebp,
     fmtDate,
     avatarHtml,
     slugCopyHtml,
     tagsHtml,
-    pwdStrength
+    pwdStrength,
+    icon
 } from './ui.js';
 
 // ===== STATE =====
@@ -107,27 +107,27 @@ function updateNav() {
 
     const links = state.user ? [{
             id: 'directory',
-            icon: '📋',
+            icon: icon('list'),
             label: 'Directory'
         },
         {
             id: 'dashboard',
-            icon: '🏠',
+            icon: icon('home'),
             label: 'My Links'
         },
         {
             id: 'ownership',
-            icon: '📨',
+            icon: icon('inbox'),
             label: 'Requests'
         },
         ...(state.user.is_admin ? [{
             id: 'admin',
-            icon: '⚙️',
+            icon: icon('settings'),
             label: 'Admin'
         }] : []),
         {
             id: 'profile',
-            icon: '👤',
+            icon: icon('user'),
             label: 'Profile'
         },
     ] : [];
@@ -141,7 +141,7 @@ function updateNav() {
         } else {
             container.innerHTML = links.map(l =>
                 `<button class="nav-btn ${state.currentPage===l.id?'active':''}" onclick="nav('${l.id}')"><span class="nav-btn-icon">${l.icon}</span>${l.label}</button>`
-            ).join('') + `<button class="nav-btn" onclick="handleLogout()">🚪 Logout</button>`;
+            ).join('') + `<button class="nav-btn" onclick="handleLogout()">${icon('logout')} Logout</button>`;
         }
     };
 
@@ -309,7 +309,7 @@ function renderDirectoryTable() {
     const data = directoryData;
 
     if (data.length === 0) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-icon">🔗</div><h3>No links found</h3><p>Try a different search, or add some links!</p></div>`;
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('link', 32)}</div><h3>No links found</h3><p>Try a different search, or add some links!</p></div>`;
         return;
     }
 
@@ -321,7 +321,7 @@ function renderDirectoryTable() {
       <td class="td-dest"><a href="${link.destination}" target="_blank" rel="noopener" title="${link.destination}">${link.destination}</a></td>
       <td class="td-user">${avatarHtml(user)}<span>${user.display_name || user.username || '—'}</span></td>
       <td><span class="badge ${link.is_active ? 'badge-active' : 'badge-inactive'}">${link.is_active ? '● Active' : '● Inactive'}</span></td>
-      <td class="access-count">👁 ${link.access_count ?? 0}</td>
+      <td class="access-count">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
       <td>${fmtDate(link.created_at)}</td>
       <td>
@@ -389,9 +389,9 @@ async function loadDashboard() {
     const totalViews = dashboardLinks.reduce((a, l) => a + (l.access_count || 0), 0);
     const activeCount = dashboardLinks.filter(l => l.is_active).length;
     statsEl.innerHTML = `
-    <div class="stat-card glass"><div class="stat-icon">🔗</div><div class="stat-label">Total Links</div><div class="stat-value">${dashboardLinks.length}</div></div>
-    <div class="stat-card glass"><div class="stat-icon">✅</div><div class="stat-label">Active</div><div class="stat-value">${activeCount}</div></div>
-    <div class="stat-card glass"><div class="stat-icon">👁</div><div class="stat-label">Total Views</div><div class="stat-value">${totalViews}</div></div>
+    <div class="stat-card glass"><div class="stat-icon">${icon('link', 20)}</div><div class="stat-label">Total Links</div><div class="stat-value">${dashboardLinks.length}</div></div>
+    <div class="stat-card glass"><div class="stat-icon">${icon('check-circle', 20)}</div><div class="stat-label">Active</div><div class="stat-value">${activeCount}</div></div>
+    <div class="stat-card glass"><div class="stat-icon">${icon('eye', 20)}</div><div class="stat-label">Total Views</div><div class="stat-value">${totalViews}</div></div>
   `;
 
     renderDashboardTable();
@@ -400,7 +400,7 @@ async function loadDashboard() {
 function renderDashboardTable() {
     const container = document.getElementById('dashboard-links-wrap');
     if (dashboardLinks.length === 0) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-icon">✨</div><h3>No links yet</h3><p>Create your first short link!</p></div>`;
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('link', 32)}</div><h3>No links yet</h3><p>Create your first short link!</p></div>`;
         return;
     }
 
@@ -414,13 +414,13 @@ function renderDashboardTable() {
           <span class="toggle-slider"></span>
         </label>
       </td>
-      <td class="access-count">👁 ${link.access_count ?? 0}</td>
+      <td class="access-count">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
       <td>${fmtDate(link.created_at)}</td>
       <td>
         <div style="display:flex;gap:6px;">
-          <button class="btn btn-sm btn-secondary" onclick="openEditLink('${link.id}')">✏️ Edit</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteLink('${link.id}')">🗑️</button>
+          <button class="btn btn-sm btn-secondary" onclick="openEditLink('${link.id}')">${icon('edit')} Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteLink('${link.id}')">${icon('trash')}</button>
         </div>
       </td>
     </tr>
@@ -551,21 +551,21 @@ async function loadOwnershipRequests() {
 
     const requests = res.data.requests || [];
     if (requests.length === 0) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>No ownership requests</h3><p>When someone requests ownership of your links, they'll appear here.</p></div>`;
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('mail-open', 32)}</div><h3>No ownership requests</h3><p>When someone requests ownership of your links, they'll appear here.</p></div>`;
         return;
     }
 
     container.innerHTML = requests.map(r => `
     <div class="glass" style="padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
       <div style="flex:1;min-width:200px;">
-        <div style="font-weight:700;margin-bottom:2px;">🔗 gftv.asia/${r.gftvlinks_links?.slug || '—'}</div>
+        <div style="font-weight:700;margin-bottom:2px;">${icon('link')} gftv.asia/${r.gftvlinks_links?.slug || '—'}</div>
         <div style="font-size:0.85rem;color:var(--text-muted);">Requested by <strong>${r.requester?.display_name || r.requester?.username || '?'}</strong> (@${r.requester?.username || '?'})</div>
         <div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">${fmtDate(r.created_at)}</div>
       </div>
       <div style="display:flex;gap:8px;">
         ${r.status === 'pending' ? `
-          <button class="btn btn-sm btn-success" onclick="respondOwnership('${r.id}','approve')">✅ Approve</button>
-          <button class="btn btn-sm btn-danger" onclick="respondOwnership('${r.id}','reject')">❌ Reject</button>
+          <button class="btn btn-sm btn-success" onclick="respondOwnership('${r.id}','approve')">${icon('check-circle')} Approve</button>
+          <button class="btn btn-sm btn-danger" onclick="respondOwnership('${r.id}','reject')">${icon('x-circle')} Reject</button>
         ` : `<span class="badge ${r.status === 'approved' ? 'badge-active' : 'badge-inactive'}">${r.status}</span>`}
       </div>
     </div>
@@ -607,22 +607,22 @@ async function loadAdmin() {
         <div class="action-btns">
           ${!u.is_approved ? `<button class="btn btn-sm btn-success" onclick="adminAction('${u.id}','approve')">Approve</button>` : `<button class="btn btn-sm btn-danger" onclick="adminAction('${u.id}','reject')">Revoke</button>`}
           ${!isSelf ? `<button class="btn btn-sm btn-secondary" onclick="adminAction('${u.id}','toggle_admin')">${u.is_admin ? 'Remove Admin' : 'Make Admin'}</button>` : ''}
-          ${!isSelf ? `<button class="btn btn-sm btn-danger" onclick="adminDeleteUser('${u.id}','${u.display_name}')">🗑️</button>` : ''}
+          ${!isSelf ? `<button class="btn btn-sm btn-danger" onclick="adminDeleteUser('${u.id}','${u.display_name}')">${icon('trash')}</button>` : ''}
         </div>
       </td>
     </tr>`;
     }
 
     container.innerHTML = `
-    <h3 class="section-title">⏳ Pending Approval (${pending.length})</h3>
+    <h3 class="section-title">${icon('clock')} Pending Approval (${pending.length})</h3>
     ${pending.length > 0
       ? `<div class="table-wrap glass" style="margin-bottom:28px;"><table>
           <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
           <tbody>${pending.map(userRow).join('')}</tbody>
         </table></div>`
-      : `<div class="empty-state" style="padding:24px"><p>No pending accounts 🎉</p></div>`
+      : `<div class="empty-state" style="padding:24px"><p>No pending accounts</p></div>`
     }
-    <h3 class="section-title">✅ All Users (${approved.length})</h3>
+    <h3 class="section-title">${icon('check-circle')} All Users (${approved.length})</h3>
     <div class="table-wrap glass"><table>
       <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
       <tbody>${approved.map(userRow).join('')}</tbody>
@@ -660,7 +660,7 @@ function renderProfile() {
         ? `<img src="${u.avatar_url}" class="profile-avatar" alt="${u.display_name}">`
         : `<div class="profile-avatar-ph">${(u.display_name || u.username)[0].toUpperCase()}</div>`
       }
-      <div class="profile-avatar-edit" onclick="document.getElementById('avatar-file-input').click()" title="Change photo">✏️</div>
+      <div class="profile-avatar-edit" onclick="document.getElementById('avatar-file-input').click()" title="Change photo">${icon('camera')}</div>
     </div>`;
 
     document.getElementById('profile-display-name').textContent = u.display_name;
@@ -668,7 +668,7 @@ function renderProfile() {
 
     const socials = u.social_links || [];
     document.getElementById('profile-social-links').innerHTML = socials.length > 0 ?
-        socials.map(s => `<a class="social-link" href="${s.url}" target="_blank" rel="noopener">🔗 ${s.label}</a>`).join('') :
+        socials.map(s => `<a class="social-link" href="${s.url}" target="_blank" rel="noopener">${icon('external-link')} ${s.label}</a>`).join('') :
         '<span style="color:var(--text-light);font-size:0.85rem">No social links added</span>';
 
     // Fill edit form
@@ -869,7 +869,7 @@ function setupDeleteAccount() {
             state.user = null;
             state.token = null;
             closeAllModals();
-            toast('Account deleted. Goodbye! 👋', 'info', 5000);
+            toast('Account deleted. Goodbye!', 'info', 5000);
             navigate('login');
         } else {
             toast(res.data.error || 'Failed to delete account', 'error');
@@ -885,17 +885,17 @@ function setupThemePicker() {
     grid.innerHTML = Object.entries(THEMES).map(([key, t]) => `
     <div class="theme-swatch ${state.theme === key ? 'active' : ''}"
       style="background:${t.color};"
-      onclick="selectTheme('${key}')">
+      onclick="selectTheme('${key}', this)">
       <div class="theme-swatch-dot" style="background:${t.color};border:2px solid rgba(0,0,0,0.15)"></div>
       <div class="theme-swatch-name">${t.label}</div>
     </div>
   `).join('');
 }
 
-window.selectTheme = (key) => {
+window.selectTheme = (key, el) => {
     applyTheme(key);
     document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    el.classList.add('active');
     toast(`Theme changed to ${THEMES[key].label}`, 'success');
 };
 
