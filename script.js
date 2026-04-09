@@ -321,7 +321,7 @@ function renderDirectoryTable() {
       <td class="td-dest"><a href="${link.destination}" target="_blank" rel="noopener" title="${link.destination}">${link.destination}</a></td>
       <td class="td-user td-user-clickable" onclick="viewUserProfile('${user.id}')" title="View profile">${avatarHtml(user)}<span>${user.display_name || user.username || '—'}</span></td>
       <td><span class="badge ${link.is_active ? 'badge-active' : 'badge-inactive'}">${link.is_active ? '● Active' : '● Inactive'}</span></td>
-      <td class="access-count" style="text-align:center;white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
+      <td class="access-count" style="white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
       <td style="white-space:nowrap">${fmtDate(link.created_at)}</td>
       <td style="white-space:nowrap">
@@ -442,7 +442,7 @@ function renderDashboardTable() {
       <td>
         <input class="active-check" type="checkbox" ${link.is_active ? 'checked' : ''} onchange="toggleLink('${link.id}', this.checked)" title="${link.is_active ? 'Disable' : 'Enable'}">
       </td>
-      <td class="access-count" style="text-align:center;white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
+      <td class="access-count" style="white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
       <td>${fmtDate(link.created_at)}</td>
       <td style="white-space:nowrap">
