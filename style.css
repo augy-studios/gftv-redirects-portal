@@ -1,3 +1,6 @@
+/* --- Google Fonts --- */
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
 * {
   padding: 0;
   margin: 0;
@@ -27,9 +30,6 @@
 :visited {
   color: #66f;
 }
-
-/* --- Google Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
 
 /* ===== THEME VARIABLES ===== */
 :root {
