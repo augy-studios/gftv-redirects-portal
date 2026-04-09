@@ -21,8 +21,8 @@ export default async function handler(req) {
             return Response.redirect(FALLBACK, 302);
         }
 
-        // Atomic increment via RPC
-        supabase.rpc('increment_link_count', { link_id: link.id }).then(() => {});
+        // Atomic increment via RPC — must await before returning so the edge runtime doesn't terminate early
+        await supabase.rpc('increment_link_count', { link_id: link.id });
 
         return Response.redirect(link.destination, 302);
     } catch (e) {
