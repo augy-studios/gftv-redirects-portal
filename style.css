@@ -945,6 +945,13 @@ td {
   align-items: center;
   gap: 8px;
 }
+.td-user-clickable {
+  cursor: pointer;
+}
+.td-user-clickable:hover {
+  text-decoration: underline;
+  color: var(--brand-darker);
+}
 
 .td-avatar {
   width: 26px;

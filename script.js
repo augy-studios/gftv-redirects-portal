@@ -319,7 +319,7 @@ function renderDirectoryTable() {
         return `<tr>
       <td class="td-slug">${slugCopyHtml(link.slug)}</td>
       <td class="td-dest"><a href="${link.destination}" target="_blank" rel="noopener" title="${link.destination}">${link.destination}</a></td>
-      <td class="td-user">${avatarHtml(user)}<span>${user.display_name || user.username || '—'}</span></td>
+      <td class="td-user td-user-clickable" onclick="viewUserProfile('${user.id}')" title="View profile">${avatarHtml(user)}<span>${user.display_name || user.username || '—'}</span></td>
       <td><span class="badge ${link.is_active ? 'badge-active' : 'badge-inactive'}">${link.is_active ? '● Active' : '● Inactive'}</span></td>
       <td class="access-count" style="text-align:center;white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
@@ -360,6 +360,29 @@ function setupDirectoryPage() {
         if (directorySearch) loadDirectory();
     });
 }
+
+window.viewUserProfile = (userId) => {
+    const user = directoryData.map(l => l.gftvlinks_users).find(u => u?.id === userId);
+    if (!user) return;
+
+    const userLinks = directoryData.filter(l => l.gftvlinks_users?.id === userId);
+    const totalViews = userLinks.reduce((a, l) => a + (l.access_count || 0), 0);
+    const letter = (user.display_name || user.username || '?')[0].toUpperCase();
+    const avatarHtml = user.avatar_url
+        ? `<img src="${user.avatar_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;margin-bottom:10px;" alt="${letter}">`
+        : `<div style="width:72px;height:72px;border-radius:50%;background:var(--brand);color:var(--brand-text,#fff);font-size:1.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">${letter}</div>`;
+
+    document.getElementById('view-profile-content').innerHTML = `
+        ${avatarHtml}
+        <div style="font-size:1.15rem;font-weight:700;margin-bottom:2px;">${user.display_name || user.username}</div>
+        <div style="color:var(--text-muted);font-size:0.88rem;margin-bottom:16px;">@${user.username}</div>
+        <div style="display:flex;gap:24px;justify-content:center;">
+            <div><div style="font-size:1.4rem;font-weight:700;">${userLinks.length}</div><div style="font-size:0.78rem;color:var(--text-muted);">Links</div></div>
+            <div><div style="font-size:1.4rem;font-weight:700;">${totalViews}</div><div style="font-size:0.78rem;color:var(--text-muted);">Total Views</div></div>
+        </div>
+    `;
+    openModal('modal-view-profile');
+};
 
 window.requestOwnership = async (link_id) => {
     const res = await Ownership.request(link_id);
