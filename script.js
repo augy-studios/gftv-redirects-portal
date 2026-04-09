@@ -558,7 +558,7 @@ async function loadOwnershipRequests() {
     container.innerHTML = requests.map(r => `
     <div class="glass" style="padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
       <div style="flex:1;min-width:200px;">
-        <div style="font-weight:700;margin-bottom:2px;">🔗 gftv.asia/r/${r.gftvlinks_links?.slug || '—'}</div>
+        <div style="font-weight:700;margin-bottom:2px;">🔗 gftv.asia/${r.gftvlinks_links?.slug || '—'}</div>
         <div style="font-size:0.85rem;color:var(--text-muted);">Requested by <strong>${r.requester?.display_name || r.requester?.username || '?'}</strong> (@${r.requester?.username || '?'})</div>
         <div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">${fmtDate(r.created_at)}</div>
       </div>

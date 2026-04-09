@@ -36,6 +36,7 @@ export default async function handler(req, res) {
             }
             if (destination !== undefined) {
                 try { new URL(destination); } catch { return err(res, 'Invalid URL'); }
+                if (new URL(destination).hostname.endsWith('gftv.asia')) return err(res, 'Destination cannot point to gftv.asia');
                 updates.destination = destination;
             }
             if (is_active !== undefined) updates.is_active = is_active;

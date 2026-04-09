@@ -61,7 +61,7 @@
             "destination": "/api/profile/avatar"
         },
         {
-            "source": "/r/:slug",
+            "source": "/:slug",
             "destination": "/api/redirect/[slug]"
         },
         {
