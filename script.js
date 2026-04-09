@@ -372,6 +372,13 @@ window.viewUserProfile = (userId) => {
         ? `<img src="${user.avatar_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;margin-bottom:10px;" alt="${letter}">`
         : `<div style="width:72px;height:72px;border-radius:50%;background:var(--brand);color:var(--brand-text,#fff);font-size:1.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">${letter}</div>`;
 
+    const socials = user.social_links || [];
+    const socialsHtml = socials.length > 0
+        ? `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;">
+            ${socials.map(s => `<a href="${s.url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-size:0.82rem;color:var(--text-muted);text-decoration:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">${icon('external-link')} ${s.label}</a>`).join('')}
+          </div>`
+        : '';
+
     document.getElementById('view-profile-content').innerHTML = `
         ${avatarHtml}
         <div style="font-size:1.15rem;font-weight:700;margin-bottom:2px;">${user.display_name || user.username}</div>
@@ -380,6 +387,7 @@ window.viewUserProfile = (userId) => {
             <div><div style="font-size:1.4rem;font-weight:700;">${userLinks.length}</div><div style="font-size:0.78rem;color:var(--text-muted);">Links</div></div>
             <div><div style="font-size:1.4rem;font-weight:700;">${totalViews}</div><div style="font-size:0.78rem;color:var(--text-muted);">Total Views</div></div>
         </div>
+        ${socialsHtml}
     `;
     openModal('modal-view-profile');
 };

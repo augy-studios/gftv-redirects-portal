@@ -20,7 +20,7 @@ export default async function handler(req, res) {
                 .from('gftvlinks_links')
                 .select(`
                     id, slug, destination, is_active, access_count, tags, created_at,
-                    gftvlinks_users(id, username, display_name, avatar_url)
+                    gftvlinks_users(id, username, display_name, avatar_url, social_links)
                 `)
                 .order('created_at', { ascending: false });
 
