@@ -382,7 +382,8 @@ window.viewUserProfile = (userId) => {
     document.getElementById('view-profile-content').innerHTML = `
         ${avatarHtml}
         <div style="font-size:1.15rem;font-weight:700;margin-bottom:2px;">${user.display_name || user.username}</div>
-        <div style="color:var(--text-muted);font-size:0.88rem;margin-bottom:16px;">@${user.username}</div>
+        <div style="color:var(--text-muted);font-size:0.88rem;margin-bottom:8px;">@${user.username}</div>
+        ${user.is_admin ? `<span class="badge badge-admin" style="margin-bottom:16px;display:inline-block;">Admin</span>` : '<div style="margin-bottom:16px"></div>'}
         <div style="display:flex;gap:24px;justify-content:center;">
             <div><div style="font-size:1.4rem;font-weight:700;">${userLinks.length}</div><div style="font-size:0.78rem;color:var(--text-muted);">Links</div></div>
             <div><div style="font-size:1.4rem;font-weight:700;">${totalViews}</div><div style="font-size:0.78rem;color:var(--text-muted);">Total Views</div></div>
