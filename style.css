@@ -917,9 +917,8 @@ td {
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
 .td-dest {
