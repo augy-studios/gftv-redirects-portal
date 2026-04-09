@@ -1,7 +1,7 @@
 {
-    "name": "Link Shortener | Global Furry Television",
+    "name": "GFTV Link Shortener | Global Furry Television",
     "short_name": "GFTV Short Links",
-    "description": "GFTV Link Shortener — The official link manager for gftv.asia",
+    "description": "GFTV Link Shortener — The official short link manager for GFTV",
     "icons": [{
             "src": "gsl-512.png",
             "type": "image/png",
