@@ -1490,6 +1490,42 @@ td {
   color: var(--text-muted);
 }
 
+/* ===== ACTIVE CHECKBOX ===== */
+.active-check {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 2px solid var(--border-strong);
+  background: transparent;
+  cursor: pointer;
+  display: block;
+  position: relative;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.active-check:checked {
+  background: var(--brand-darker);
+  border-color: var(--brand-darker);
+}
+.active-check:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 6px;
+  height: 10px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+.active-check:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
 /* ===== COPY BUTTON ===== */
 .copy-btn {
   display: inline-flex;

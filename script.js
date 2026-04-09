@@ -408,8 +408,8 @@ function renderDashboardTable() {
     <tr>
       <td class="td-slug">${slugCopyHtml(link.slug)}</td>
       <td class="td-dest"><a href="${link.destination}" target="_blank" rel="noopener">${link.destination}</a></td>
-      <td style="text-align:center">
-        <input type="checkbox" ${link.is_active ? 'checked' : ''} onchange="toggleLink('${link.id}', this.checked)" title="${link.is_active ? 'Disable' : 'Enable'}">
+      <td>
+        <input class="active-check" type="checkbox" ${link.is_active ? 'checked' : ''} onchange="toggleLink('${link.id}', this.checked)" title="${link.is_active ? 'Disable' : 'Enable'}">
       </td>
       <td class="access-count" style="text-align:center;white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
