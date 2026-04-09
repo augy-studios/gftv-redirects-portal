@@ -320,10 +320,10 @@ function renderDirectoryTable() {
       <td class="td-slug">${slugCopyHtml(link.slug)}</td>
       <td class="td-dest"><a href="${link.destination}" target="_blank" rel="noopener" title="${link.destination}">${link.destination}</a></td>
       <td class="td-user">${avatarHtml(user)}<span>${user.display_name || user.username || '—'}</span></td>
-      <td><span class="badge ${link.is_active ? 'badge-active' : 'badge-inactive'}">${link.is_active ? '● Active' : '● Inactive'}</span></td>
-      <td class="access-count">${icon('eye')} ${link.access_count ?? 0}</td>
+      <td style="text-align:center"><span class="badge ${link.is_active ? 'badge-active' : 'badge-inactive'}">${link.is_active ? '● Active' : '● Inactive'}</span></td>
+      <td class="access-count" style="text-align:center;white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
-      <td>${fmtDate(link.created_at)}</td>
+      <td style="white-space:nowrap">${fmtDate(link.created_at)}</td>
       <td style="white-space:nowrap;vertical-align:middle;text-align:center">
         ${!isOwner
           ? `<button class="btn btn-sm btn-secondary" onclick="requestOwnership('${link.id}')">Request Ownership</button>`
@@ -408,17 +408,17 @@ function renderDashboardTable() {
     <tr>
       <td class="td-slug">${slugCopyHtml(link.slug)}</td>
       <td class="td-dest"><a href="${link.destination}" target="_blank" rel="noopener">${link.destination}</a></td>
-      <td>
+      <td style="text-align:center">
         <label class="toggle" title="${link.is_active ? 'Disable' : 'Enable'}">
           <input type="checkbox" ${link.is_active ? 'checked' : ''} onchange="toggleLink('${link.id}', this.checked)">
           <span class="toggle-slider"></span>
         </label>
       </td>
-      <td class="access-count">${icon('eye')} ${link.access_count ?? 0}</td>
+      <td class="access-count" style="text-align:center;white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
       <td>${fmtDate(link.created_at)}</td>
-      <td>
-        <div style="display:flex;gap:6px;">
+      <td style="white-space:nowrap">
+        <div style="display:flex;gap:6px;align-items:center;justify-content:center">
           <button class="btn btn-sm btn-secondary" onclick="openEditLink('${link.id}')">${icon('edit')} Edit</button>
           <button class="btn btn-sm btn-danger" onclick="deleteLink('${link.id}')">${icon('trash')}</button>
         </div>
