@@ -408,17 +408,19 @@ function renderDashboardTable() {
     <tr>
       <td class="td-slug">${slugCopyHtml(link.slug)}</td>
       <td class="td-dest"><a href="${link.destination}" target="_blank" rel="noopener">${link.destination}</a></td>
-      <td style="text-align:center">
-        <label class="toggle" title="${link.is_active ? 'Disable' : 'Enable'}">
-          <input type="checkbox" ${link.is_active ? 'checked' : ''} onchange="toggleLink('${link.id}', this.checked)">
-          <span class="toggle-slider"></span>
-        </label>
+      <td style="display:table-cell;vertical-align:middle">
+        <div style="display:flex;justify-content:center;align-items:center">
+          <label class="toggle" title="${link.is_active ? 'Disable' : 'Enable'}">
+            <input type="checkbox" ${link.is_active ? 'checked' : ''} onchange="toggleLink('${link.id}', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
       </td>
       <td class="access-count" style="text-align:center;white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
       <td>${fmtDate(link.created_at)}</td>
       <td style="white-space:nowrap">
-        <div style="display:flex;gap:6px;align-items:center;justify-content:center">
+        <div style="display:flex;gap:6px;align-items:center">
           <button class="btn btn-sm btn-secondary" onclick="openEditLink('${link.id}')">${icon('edit')} Edit</button>
           <button class="btn btn-sm btn-danger" onclick="deleteLink('${link.id}')">${icon('trash')}</button>
         </div>
