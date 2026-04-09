@@ -320,11 +320,11 @@ function renderDirectoryTable() {
       <td class="td-slug">${slugCopyHtml(link.slug)}</td>
       <td class="td-dest"><a href="${link.destination}" target="_blank" rel="noopener" title="${link.destination}">${link.destination}</a></td>
       <td class="td-user">${avatarHtml(user)}<span>${user.display_name || user.username || '—'}</span></td>
-      <td style="text-align:center"><span class="badge ${link.is_active ? 'badge-active' : 'badge-inactive'}">${link.is_active ? '● Active' : '● Inactive'}</span></td>
+      <td><span class="badge ${link.is_active ? 'badge-active' : 'badge-inactive'}">${link.is_active ? '● Active' : '● Inactive'}</span></td>
       <td class="access-count" style="text-align:center;white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
       <td style="white-space:nowrap">${fmtDate(link.created_at)}</td>
-      <td style="white-space:nowrap;vertical-align:middle;text-align:center">
+      <td style="white-space:nowrap">
         ${!isOwner
           ? `<button class="btn btn-sm btn-secondary" onclick="requestOwnership('${link.id}')">Request Ownership</button>`
           : `<span style="color:var(--text-light);font-size:0.8rem">You own this</span>`
@@ -408,13 +408,8 @@ function renderDashboardTable() {
     <tr>
       <td class="td-slug">${slugCopyHtml(link.slug)}</td>
       <td class="td-dest"><a href="${link.destination}" target="_blank" rel="noopener">${link.destination}</a></td>
-      <td style="display:table-cell;vertical-align:middle">
-        <div style="display:flex;justify-content:center;align-items:center">
-          <label class="toggle" title="${link.is_active ? 'Disable' : 'Enable'}">
-            <input type="checkbox" ${link.is_active ? 'checked' : ''} onchange="toggleLink('${link.id}', this.checked)">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
+      <td style="text-align:center">
+        <input type="checkbox" ${link.is_active ? 'checked' : ''} onchange="toggleLink('${link.id}', this.checked)" title="${link.is_active ? 'Disable' : 'Enable'}">
       </td>
       <td class="access-count" style="text-align:center;white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
