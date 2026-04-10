@@ -21,18 +21,8 @@ export default async function handler(req) {
             return Response.redirect(FALLBACK, 302);
         }
 
-        // Run Supabase increment and GoatCounter ping in parallel
-        const gcUrl = new URL('https://augy.goatcounter.com/count');
-        gcUrl.searchParams.set('p', `/${slug}`);
-        gcUrl.searchParams.set('t', slug);
-        gcUrl.searchParams.set('r', req.headers.get('referer') || '');
-
-        await Promise.allSettled([
-            supabase.rpc('increment_link_count', { link_id: link.id }),
-            fetch(gcUrl.toString(), {
-                headers: { 'User-Agent': req.headers.get('user-agent') || '' }
-            })
-        ]);
+        // Record visit in gftvlinks_linkvisits and sync access_count in gftvlinks_links
+        await supabase.rpc('record_link_visit', { p_link_id: link.id, p_slug: slug });
 
         return Response.redirect(link.destination, 302);
     } catch (e) {
