@@ -62,10 +62,9 @@ export const Ownership = {
 // Admin
 export const Admin = {
     users: () => req('GET', '/admin/users'),
-    updateUser: (user_id, action) => req('PUT', '/admin/users', {
-        user_id,
-        action
-    }),
+    updateUser: (user_id, action) => req('PUT', '/admin/users', { user_id, action }),
+    updateUserDetails: (user_id, details) => req('PUT', '/admin/users', { user_id, action: 'update_details', ...details }),
+    resetPassword: (user_id) => req('PUT', '/admin/users', { user_id, action: 'reset_password' }),
     deleteUser: (user_id) => req('DELETE', `/admin/users?user_id=${user_id}`),
 };
 

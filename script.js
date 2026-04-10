@@ -674,6 +674,11 @@ window.respondOwnership = async (id, action) => {
 };
 
 // ===== ADMIN PAGE =====
+let adminUsers = [];
+let adminManageUserId = null;
+let adminManageUserData = null;
+let adminDeleteStep = 0;
+
 async function loadAdmin() {
     const container = document.getElementById('admin-users-wrap');
     container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
@@ -684,9 +689,9 @@ async function loadAdmin() {
         return;
     }
 
-    const users = res.data.users || [];
-    const pending = users.filter(u => !u.is_approved);
-    const approved = users.filter(u => u.is_approved);
+    adminUsers = res.data.users || [];
+    const pending = adminUsers.filter(u => !u.is_approved);
+    const approved = adminUsers.filter(u => u.is_approved);
 
     function userRoleBadge(u) {
         if (u.is_admin) return '<span class="badge badge-admin">Admin</span>';
@@ -696,24 +701,6 @@ async function loadAdmin() {
     }
 
     function userRow(u) {
-        const isSelf = u.id === state.user?.id;
-        const isEditor = u.is_editor || u.is_admin;
-
-        let actionBtns = '';
-        if (!u.is_approved) {
-            // Pending user — grant buttons
-            actionBtns = `
-                <button class="btn btn-sm btn-success" onclick="adminAction('${u.id}','grant_editor')">Grant Editor</button>
-                <button class="btn btn-sm btn-secondary" onclick="adminAction('${u.id}','grant_viewer')">Grant Viewer</button>
-            `;
-        } else if (!isSelf) {
-            // Approved user — revoke buttons
-            if (isEditor) {
-                actionBtns += `<button class="btn btn-sm btn-warning" onclick="adminAction('${u.id}','revoke_editor')">Revoke Editor</button>`;
-            }
-            actionBtns += `<button class="btn btn-sm btn-danger" onclick="adminAction('${u.id}','revoke_viewer')">Revoke Viewer</button>`;
-        }
-
         return `<tr>
       <td class="td-user">${avatarHtml(u)}<div><div style="font-weight:700">${u.display_name}</div><div style="font-size:0.8rem;color:var(--text-muted)">@${u.username}</div></div></td>
       <td style="white-space:nowrap">
@@ -725,9 +712,7 @@ async function loadAdmin() {
       <td>${fmtDate(u.created_at)}</td>
       <td>
         <div class="action-btns">
-          ${actionBtns}
-          ${!isSelf ? `<button class="btn btn-sm btn-secondary" onclick="adminAction('${u.id}','toggle_admin')">${u.is_admin ? 'Remove Admin' : 'Make Admin'}</button>` : ''}
-          ${!isSelf ? `<button class="btn btn-sm btn-danger" onclick="adminDeleteUser('${u.id}','${u.display_name}')">${icon('trash')}</button>` : ''}
+          <button class="btn btn-sm btn-secondary" onclick="openAdminManageModal('${u.id}')">${icon('edit')} Edit</button>
         </div>
       </td>
     </tr>`;
@@ -758,22 +743,150 @@ window.copyInline = (btn) => {
         setTimeout(() => { btn.innerHTML = icon('copy'); }, 1500);
     });
 };
-window.adminAction = async (user_id, action) => {
-    const res = await Admin.updateUser(user_id, action);
-    if (res.ok) {
-        toast('User updated', 'success');
-        loadAdmin();
-    } else toast(res.data.error || 'Failed', 'error');
+
+window.openAdminManageModal = (user_id) => {
+    const u = adminUsers.find(u => u.id === user_id);
+    if (!u) return;
+    adminManageUserId = user_id;
+    adminManageUserData = u;
+    const isSelf = u.id === state.user?.id;
+
+    // Subtitle
+    document.getElementById('admin-manage-subtitle').textContent = `@${u.username} · ${u.email}`;
+
+    // Permissions buttons
+    const permBtns = document.getElementById('admin-manage-perm-btns');
+    const editorClass = u.is_editor ? 'btn-warning' : 'btn-success';
+    const editorLabel = u.is_editor ? 'Revoke Editor' : 'Grant Editor';
+    const editorAction = u.is_editor ? 'revoke_editor' : 'grant_editor';
+    const viewerClass = u.is_approved ? 'btn-danger' : 'btn-success';
+    const viewerLabel = u.is_approved ? 'Revoke Viewer' : 'Grant Viewer';
+    const viewerAction = u.is_approved ? 'revoke_viewer' : 'grant_viewer';
+    const adminClass = u.is_admin ? 'btn-warning' : 'btn-secondary';
+    const adminLabel = u.is_admin ? 'Revoke Admin' : 'Grant Admin';
+
+    let permHtml = `
+        <button class="btn btn-sm ${editorClass}" onclick="adminModalAction('${editorAction}')">${editorLabel}</button>
+        <button class="btn btn-sm ${viewerClass}" onclick="adminModalAction('${viewerAction}')">${viewerLabel}</button>
+    `;
+    if (!isSelf) {
+        permHtml += `<button class="btn btn-sm ${adminClass}" onclick="adminModalAction('toggle_admin')">${adminLabel}</button>`;
+    }
+    permBtns.innerHTML = permHtml;
+
+    // Details fields
+    document.getElementById('admin-manage-username').value = u.username;
+    document.getElementById('admin-manage-displayname').value = u.display_name;
+    document.getElementById('admin-manage-email').value = u.email;
+
+    // Danger zone — delete row
+    const deleteRow = document.getElementById('admin-delete-user-row');
+    if (isSelf) {
+        deleteRow.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;margin:0;">You cannot delete your own account from here.</p>';
+    } else {
+        deleteRow.innerHTML = `
+            <div>
+                <div style="font-weight:700;margin-bottom:3px;">Delete Account</div>
+                <div class="admin-danger-desc">Permanently delete this user's account and all their links.</div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="adminStartDeleteUser()">Delete Account</button>
+        `;
+    }
+
+    openModal('modal-admin-manage');
 };
 
-window.adminDeleteUser = async (user_id, name) => {
-    if (!confirm(`Delete user "${name}"? This will also delete all their links.`)) return;
-    const res = await Admin.deleteUser(user_id);
+window.adminModalAction = async (action) => {
+    if (!adminManageUserId) return;
+    const res = await Admin.updateUser(adminManageUserId, action);
     if (res.ok) {
-        toast('User deleted', 'success');
-        loadAdmin();
-    } else toast(res.data.error || 'Failed', 'error');
+        toast('User updated', 'success');
+        await loadAdmin();
+        // Refresh modal with updated data
+        const updated = adminUsers.find(u => u.id === adminManageUserId);
+        if (updated) openAdminManageModal(adminManageUserId);
+    } else {
+        toast(res.data.error || 'Failed', 'error');
+    }
 };
+
+window.adminResetPassword = async () => {
+    if (!adminManageUserId) return;
+    const btn = document.querySelector('#modal-admin-manage .admin-danger-row button.btn-warning');
+    if (btn) { btn.disabled = true; btn.textContent = 'Resetting…'; }
+    const res = await Admin.resetPassword(adminManageUserId);
+    if (btn) { btn.disabled = false; btn.textContent = 'Reset Password'; }
+    if (res.ok) {
+        await navigator.clipboard.writeText(res.data.password);
+        toast('Password reset & copied to clipboard', 'success');
+    } else {
+        toast(res.data.error || 'Failed to reset password', 'error');
+    }
+};
+
+window.adminStartDeleteUser = () => {
+    adminDeleteStep = 0;
+    updateAdminDeleteStep();
+    openModal('modal-admin-delete-user');
+};
+
+window.adminNextDeleteStep = async () => {
+    adminDeleteStep++;
+    if (adminDeleteStep < 3) {
+        updateAdminDeleteStep();
+    } else {
+        const res = await Admin.deleteUser(adminManageUserId);
+        if (res.ok) {
+            toast('User deleted', 'success');
+            closeModal('modal-admin-delete-user');
+            closeModal('modal-admin-manage');
+            loadAdmin();
+        } else {
+            toast(res.data.error || 'Failed to delete user', 'error');
+            adminDeleteStep = 2;
+        }
+    }
+};
+
+function updateAdminDeleteStep() {
+    const dots = document.querySelectorAll('#modal-admin-delete-user .admin-delete-step-dot');
+    dots.forEach((d, i) => d.classList.toggle('done', i <= adminDeleteStep));
+    const name = adminManageUserData?.display_name || 'this user';
+    const texts = [
+        `Are you sure you want to delete ${name}'s account? All their links will also be deleted.`,
+        'This action is irreversible. Their account and all associated data will be permanently removed.',
+        'Last chance! Once deleted, you cannot recover this account.',
+    ];
+    document.getElementById('admin-delete-step-text').textContent = texts[adminDeleteStep];
+}
+
+function setupAdminModal() {
+    document.getElementById('admin-manage-details-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!adminManageUserId) return;
+        const username = document.getElementById('admin-manage-username').value.trim();
+        const display_name = document.getElementById('admin-manage-displayname').value.trim();
+        const email = document.getElementById('admin-manage-email').value.trim();
+        const btn = document.getElementById('admin-manage-details-btn');
+        btn.disabled = true;
+        btn.textContent = 'Saving…';
+        const res = await Admin.updateUserDetails(adminManageUserId, { username, display_name, email });
+        btn.disabled = false;
+        btn.textContent = 'Save Changes';
+        if (res.ok) {
+            toast('User details updated', 'success');
+            await loadAdmin();
+            // Refresh subtitle with new values
+            const updated = adminUsers.find(u => u.id === adminManageUserId);
+            if (updated) {
+                adminManageUserData = updated;
+                document.getElementById('admin-manage-subtitle').textContent = `@${updated.username} · ${updated.email}`;
+            }
+        } else {
+            toast(res.data.error || 'Failed to update details', 'error');
+        }
+    });
+}
 
 // ===== PROFILE PAGE =====
 function renderProfile() {
@@ -1170,6 +1283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDirectoryPage();
     setupCreateLinkModal();
     setupProfilePage();
+    setupAdminModal();
     setupThemePicker();
     setupHamburger();
 

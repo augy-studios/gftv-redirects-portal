@@ -2,6 +2,7 @@
 import supabase from '../../lib/supabase.js';
 import { getSessionUser } from '../../lib/auth.js';
 import { ok, err, optionsResponse, parseBody } from '../../lib/response.js';
+import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return optionsResponse(res);
@@ -21,9 +22,10 @@ export default async function handler(req, res) {
         return ok(res, { users: users || [] });
     }
 
-    // PUT - grant/revoke roles
+    // PUT - grant/revoke roles, update details, reset password
     if (req.method === 'PUT') {
-        const { user_id, action } = await parseBody(req);
+        const body = await parseBody(req);
+        const { user_id, action, username, display_name, email } = body;
         if (!user_id || !action) return err(res, 'user_id and action required');
         if (user_id === user.id && (action === 'revoke_viewer' || action === 'revoke_editor')) {
             return err(res, 'You cannot revoke your own access', 403);
@@ -53,6 +55,39 @@ export default async function handler(req, res) {
                 .eq('id', user_id)
                 .single();
             updates.is_admin = !target.is_admin;
+        } else if (action === 'update_details') {
+            if (username !== undefined) {
+                const trimmed = username.trim().toLowerCase();
+                if (!trimmed) return err(res, 'Username cannot be empty');
+                if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) return err(res, 'Username can only contain letters, numbers, hyphens and underscores');
+                const { data: existing } = await supabase
+                    .from('gftvlinks_users').select('id').eq('username', trimmed).single();
+                if (existing && existing.id !== user_id) return err(res, 'Username already taken');
+                updates.username = trimmed;
+            }
+            if (display_name !== undefined) {
+                if (!display_name.trim()) return err(res, 'Display name cannot be empty');
+                updates.display_name = display_name.trim();
+            }
+            if (email !== undefined) {
+                const trimmedEmail = email.trim().toLowerCase();
+                if (!trimmedEmail) return err(res, 'Email cannot be empty');
+                const { data: existing } = await supabase
+                    .from('gftvlinks_users').select('id').eq('email', trimmedEmail).single();
+                if (existing && existing.id !== user_id) return err(res, 'Email already in use');
+                updates.email = trimmedEmail;
+            }
+        } else if (action === 'reset_password') {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let newPassword = '';
+            for (let i = 0; i < 16; i++) {
+                newPassword += chars[Math.floor(Math.random() * chars.length)];
+            }
+            updates.password_hash = await bcrypt.hash(newPassword, 10);
+            const { error: pwErr } = await supabase
+                .from('gftvlinks_users').update(updates).eq('id', user_id);
+            if (pwErr) return err(res, 'Failed to reset password');
+            return ok(res, { message: 'Password reset', password: newPassword });
         } else {
             return err(res, 'Invalid action');
         }
