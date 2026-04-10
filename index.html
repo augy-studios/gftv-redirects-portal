@@ -47,7 +47,7 @@
 <body>
     <!-- ===== NAVBAR ===== -->
     <nav id="navbar">
-        <a class="nav-brand" href="/">
+        <a class="nav-brand" href="/" onclick="event.preventDefault(); nav(window._appState?.user ? (window._appState.user.is_editor || window._appState.user.is_admin ? 'dashboard' : 'directory') : 'home')">
             <span class="brand-dot"></span>
             GFTV Link Shortener
         </a>
@@ -67,6 +67,96 @@
 
     <!-- ===== MAIN APP ===== -->
     <main id="app-container">
+
+        <!-- HOME PAGE (public) -->
+        <div id="page-home" class="page">
+
+            <!-- Hero Section -->
+            <section class="home-hero">
+                <div class="home-hero-content">
+                    <h1 class="home-hero-title">Trusted short links from<br>GFTV Officers</h1>
+                    <p class="home-hero-subtitle">gftv.asia short links can only be created by GFTV officers, so you can be sure it's from a trustworthy source.</p>
+
+                    <div class="home-search-box glass-strong">
+                        <span class="home-search-prefix">gftv.asia/</span>
+                        <span class="home-search-slug" id="home-typing-slug"></span>
+                        <span class="home-typing-cursor">|</span>
+                    </div>
+
+                    <button class="btn btn-primary home-cta-btn" onclick="nav('login')">Shorten your links now!</button>
+                </div>
+            </section>
+
+            <!-- Section 1: Features -->
+            <section class="home-section">
+                <h2 class="home-section-title">Created for GFTV officers</h2>
+                <div class="home-features-grid">
+                    <div class="home-feature-card glass">
+                        <div class="home-feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <h3>Anti-phishing</h3>
+                        <p>Shorten your links with a trustworthy gftv.asia domain, so your users know they are from a GFTV officer.</p>
+                    </div>
+                    <div class="home-feature-card glass">
+                        <div class="home-feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                        </div>
+                        <h3>Customised</h3>
+                        <p>Long URLs are hard to remember and take up space. Create and share short links instead.</p>
+                    </div>
+                    <div class="home-feature-card glass">
+                        <div class="home-feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg>
+                        </div>
+                        <h3>File sharing</h3>
+                        <p>Upload your file to share it with anyone, using a customised and trustworthy gftv.asia short link.</p>
+                    </div>
+                    <div class="home-feature-card glass">
+                        <div class="home-feature-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                        </div>
+                        <h3>Analytics</h3>
+                        <p>Want to know how popular your links are? Track each link's click rate through our web interface.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Stats -->
+            <section class="home-section home-stats-section">
+                <h2 class="home-section-title">The official link shortener for Global Furry Television</h2>
+                <div class="home-stats-grid" id="home-stats-grid">
+                    <div class="home-stat-card glass-strong">
+                        <div class="home-stat-number" id="home-stat-officers">—</div>
+                        <div class="home-stat-label">GFTV OFFICERS ONBOARD</div>
+                    </div>
+                    <div class="home-stat-card glass-strong">
+                        <div class="home-stat-number" id="home-stat-links">—</div>
+                        <div class="home-stat-label">SHORT LINKS CREATED</div>
+                    </div>
+                    <div class="home-stat-card glass-strong">
+                        <div class="home-stat-number" id="home-stat-clicks">—</div>
+                        <div class="home-stat-label">CLICKS</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="home-footer">
+                <div class="home-footer-inner">
+                    <div class="home-footer-left">Made with ❤️ by GFTV</div>
+                    <div class="home-footer-right">
+                        <div class="home-footer-links">
+                            <a href="#">FAQ</a>
+                            <a href="#">Help us improve</a>
+                            <a href="#">Privacy</a>
+                            <a href="#">Terms of Use</a>
+                        </div>
+                        <div class="home-footer-copy">&copy; 2026 Global Furry Television International</div>
+                    </div>
+                </div>
+            </footer>
+        </div>
 
         <!-- LOGIN PAGE -->
         <div id="page-login" class="page">

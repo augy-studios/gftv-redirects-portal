@@ -4,7 +4,8 @@ import {
     Ownership,
     Admin,
     Profile,
-    ProfileViews
+    ProfileViews,
+    Stats
 } from './api.js';
 import {
     toast,
@@ -26,8 +27,10 @@ let state = {
     user: null,
     token: localStorage.getItem('gftv_token') || null,
     theme: localStorage.getItem('gftv_theme') || 'classic',
-    currentPage: 'login',
+    currentPage: 'home',
 };
+
+let homeTypingInterval = null;
 
 // ===== THEME =====
 const THEMES = {
@@ -76,6 +79,12 @@ function applyTheme(key) {
 
 // ===== ROUTER =====
 function showPage(id) {
+    // Clean up typing animation when leaving home
+    if (state.currentPage === 'home' && id !== 'home' && homeTypingInterval) {
+        clearInterval(homeTypingInterval);
+        homeTypingInterval = null;
+    }
+
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     const page = document.getElementById('page-' + id);
     if (page) page.classList.add('active');
@@ -89,9 +98,9 @@ function isEditor() {
 
 function navigate(page) {
     // Auth guard
-    const publicPages = ['login', 'register', 'pending'];
+    const publicPages = ['home', 'login', 'register', 'pending'];
     if (!publicPages.includes(page) && !state.user) {
-        showPage('login');
+        showPage('home');
         return;
     }
 
@@ -107,6 +116,7 @@ function navigate(page) {
     showPage(page);
 
     // Load data for pages
+    if (page === 'home') initHomePage();
     if (page === 'directory') loadDirectory();
     if (page === 'dashboard') loadDashboard();
     if (page === 'ownership') loadOwnershipRequests();
@@ -133,6 +143,9 @@ function updateNav() {
     const renderLinks = (container) => {
         if (!state.user) {
             container.innerHTML = `
+        <button class="nav-btn-outline" onclick="window.open('https://form.gov.sg','_blank')">Send us feedback</button>
+        <button class="nav-btn-outline" onclick="window.open('https://guide.gftv.asia','_blank')">Guide</button>
+        <button class="nav-btn-outline" onclick="window.open('https://github.com/augy-studios/gftv-redirects-portal','_blank')">Contribute</button>
         <button class="nav-btn ${state.currentPage==='login'?'active':''}" onclick="nav('login')">Log In</button>
         <button class="nav-btn ${state.currentPage==='register'?'active':''}" onclick="nav('register')">Register</button>
       `;
@@ -175,10 +188,10 @@ async function init() {
         } else {
             localStorage.removeItem('gftv_token');
             state.token = null;
-            navigate('login');
+            navigate('home');
         }
     } else {
-        navigate('login');
+        navigate('home');
     }
 
     registerServiceWorker();
@@ -190,7 +203,7 @@ async function handleLogout() {
     state.user = null;
     state.token = null;
     closeAllModals();
-    navigate('login');
+    navigate('home');
     toast('Logged out successfully', 'success');
 }
 window.handleLogout = handleLogout;
@@ -1011,13 +1024,102 @@ function setupDeleteAccount() {
             state.token = null;
             closeAllModals();
             toast('Account deleted. Goodbye!', 'info', 5000);
-            navigate('login');
+            navigate('home');
         } else {
             toast(res.data.error || 'Failed to delete account', 'error');
             btn.disabled = false;
             btn.textContent = 'Permanently Delete Account';
         }
     });
+}
+
+// ===== HOME PAGE =====
+function initHomePage() {
+    startTypingAnimation();
+    loadHomeStats();
+}
+
+function startTypingAnimation() {
+    // Clear any existing animation
+    if (homeTypingInterval) {
+        clearInterval(homeTypingInterval);
+        homeTypingInterval = null;
+    }
+
+    const slugs = ['we-care', 'takagi', 'join', 'apac', 'telegram', 'discord', 'linkedin', 'youtube', 'policy', 'hello', 'furst'];
+    const el = document.getElementById('home-typing-slug');
+    if (!el) return;
+
+    let slugIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let pauseCounter = 0;
+
+    function tick() {
+        const currentSlug = slugs[slugIndex];
+
+        if (pauseCounter > 0) {
+            pauseCounter--;
+            return;
+        }
+
+        if (!isDeleting) {
+            // Typing
+            charIndex++;
+            el.textContent = currentSlug.slice(0, charIndex);
+            if (charIndex === currentSlug.length) {
+                isDeleting = true;
+                pauseCounter = 20; // Pause before deleting (~1.4s at 70ms interval)
+            }
+        } else {
+            // Deleting
+            charIndex--;
+            el.textContent = currentSlug.slice(0, charIndex);
+            if (charIndex === 0) {
+                isDeleting = false;
+                slugIndex = (slugIndex + 1) % slugs.length;
+                pauseCounter = 5; // Brief pause before next word
+            }
+        }
+    }
+
+    homeTypingInterval = setInterval(tick, 70);
+}
+
+async function loadHomeStats() {
+    const res = await Stats.get();
+    if (!res.ok) return;
+
+    const { officers, links, clicks } = res.data;
+
+    animateCounter('home-stat-officers', officers);
+    animateCounter('home-stat-links', links);
+    animateCounter('home-stat-clicks', clicks);
+}
+
+function animateCounter(elementId, target) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+
+    if (target === 0) {
+        el.textContent = '0';
+        return;
+    }
+
+    const duration = 1200;
+    const steps = 40;
+    const stepTime = duration / steps;
+    let current = 0;
+    const increment = target / steps;
+
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            current = target;
+            clearInterval(timer);
+        }
+        el.textContent = Math.round(current).toLocaleString();
+    }, stepTime);
 }
 
 // ===== THEME PICKER =====
