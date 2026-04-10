@@ -1356,6 +1356,58 @@ td {
   flex-wrap: wrap;
 }
 
+/* Admin manage modal sections */
+.admin-modal-section {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+
+.admin-modal-section:last-child {
+  margin-bottom: 0;
+}
+
+.admin-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin: 0 0 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-modal-danger {
+  border-color: var(--danger);
+}
+
+.admin-modal-danger .admin-section-title {
+  color: var(--danger);
+}
+
+.admin-danger-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-danger-row + .admin-danger-row {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.admin-danger-desc {
+  font-size: 0.83rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
 /* ===== TOAST ===== */
 #toast-container {
   position: fixed;
@@ -1753,6 +1805,18 @@ td {
 }
 
 .confirm-step-dot.done {
+  background: var(--danger);
+}
+
+.admin-delete-step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  transition: background 0.2s;
+}
+
+.admin-delete-step-dot.done {
   background: var(--danger);
 }
 
