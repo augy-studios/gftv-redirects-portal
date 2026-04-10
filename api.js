@@ -85,3 +85,8 @@ export const ProfileViews = {
     record: (viewed_id) => req('POST', '/profile/views', { viewed_id }),
     getViewers: (profile_id) => req('GET', `/profile/views?profile_id=${encodeURIComponent(profile_id)}`),
 };
+
+// Public Stats
+export const Stats = {
+    get: () => req('GET', '/stats'),
+};
