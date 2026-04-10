@@ -79,3 +79,9 @@ export const Profile = {
         image_base64
     }),
 };
+
+// Profile Views
+export const ProfileViews = {
+    record: (viewed_id) => req('POST', '/profile/views', { viewed_id }),
+    getViewers: (profile_id) => req('GET', `/profile/views?profile_id=${encodeURIComponent(profile_id)}`),
+};

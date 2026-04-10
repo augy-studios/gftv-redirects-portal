@@ -9,6 +9,7 @@ export default async function handler(req, res) {
 
     const user = await getSessionUser(req);
     if (!user) return err(res, 'Unauthorized', 401);
+    if (!user.is_editor && !user.is_admin) return err(res, 'Forbidden: Viewers cannot access this page', 403);
 
     const { data: links, error } = await supabase
         .from('gftvlinks_links')
