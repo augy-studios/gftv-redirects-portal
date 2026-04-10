@@ -263,6 +263,13 @@ function setupRegisterPage() {
         e.preventDefault();
         errEl.style.display = 'none';
 
+        const email = document.getElementById('reg-email').value.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            errEl.textContent = 'Please enter a valid email address';
+            errEl.style.display = 'flex';
+            return;
+        }
+
         const password = pwdInput.value;
         const confirm = document.getElementById('reg-confirm').value;
         if (password !== confirm) {
@@ -278,7 +285,7 @@ function setupRegisterPage() {
             const res = await Auth.register({
                 username: document.getElementById('reg-username').value.trim(),
                 display_name: document.getElementById('reg-displayname').value.trim(),
-                email: document.getElementById('reg-email').value.trim(),
+                email,
                 password,
             });
 
