@@ -1183,6 +1183,23 @@ function setupProfilePage() {
 
     // Delete account
     setupDeleteAccount();
+
+    // Log out all devices
+    window.startLogoutAll = () => openModal('modal-logout-all');
+    window.confirmLogoutAll = async () => {
+        const btn = document.getElementById('logout-all-confirm-btn');
+        btn.disabled = true;
+        btn.textContent = 'Signing out…';
+        const res = await Auth.logoutAll();
+        btn.disabled = false;
+        btn.textContent = 'Log Out All Devices';
+        closeModal('modal-logout-all');
+        if (res.ok) {
+            toast('All other devices have been signed out.', 'success');
+        } else {
+            toast(res.data.error || 'Failed to sign out other devices', 'error');
+        }
+    };
 }
 
 // ===== DELETE ACCOUNT =====

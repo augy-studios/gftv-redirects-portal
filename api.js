@@ -36,6 +36,7 @@ export const Auth = {
     register: (body) => req('POST', '/auth/register', body),
     login: (body) => req('POST', '/auth/login', body),
     logout: () => req('POST', '/auth/logout'),
+    logoutAll: () => req('POST', '/auth/logout-all'),
     me: () => req('GET', '/auth/me'),
 };
 

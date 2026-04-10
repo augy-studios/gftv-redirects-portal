@@ -403,6 +403,14 @@
             <!-- Danger zone tab -->
             <div id="profile-tab-danger" class="glass" style="padding:28px;display:none;" id="delete-account-section">
                 <h3 class="section-title" style="color:var(--danger);"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Danger Zone</h3>
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+                    <div>
+                        <div style="font-weight:700;margin-bottom:4px;">Log Out of All Devices</div>
+                        <div style="font-size:0.88rem;color:var(--text-muted);">Terminate all active sessions across every device. You will remain logged in here.</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="startLogoutAll()">Log Out All Devices</button>
+                </div>
+                <div style="border-top:1px solid var(--border);margin-bottom:16px;"></div>
                 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
                     <div>
                         <div style="font-weight:700;margin-bottom:4px;">Delete Account</div>
@@ -583,6 +591,19 @@
             <button class="modal-close" data-close-modal="modal-view-profile">✕</button>
             <div id="view-profile-content" style="text-align:center;padding:8px 0 16px;">
                 <div class="loading-wrap"><div class="spinner"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Out All Devices Confirm Modal -->
+    <div class="modal-overlay" id="modal-logout-all">
+        <div class="modal glass-strong">
+            <button class="modal-close" data-close-modal="modal-logout-all">✕</button>
+            <h3 style="color:var(--danger);"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Log Out of All Devices</h3>
+            <p style="margin:16px 0 24px;line-height:1.6;">This will immediately terminate all active sessions on every device except this one. Anyone else logged in as you will be signed out.</p>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close-modal="modal-logout-all">Cancel</button>
+                <button class="btn btn-danger" id="logout-all-confirm-btn" onclick="confirmLogoutAll()">Log Out All Devices</button>
             </div>
         </div>
     </div>
