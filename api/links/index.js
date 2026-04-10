@@ -53,6 +53,7 @@ export default async function handler(req, res) {
 
     // POST - create link
     if (req.method === 'POST') {
+        if (!user.is_editor && !user.is_admin) return err(res, 'Forbidden: Viewers cannot create links', 403);
         try {
             const { slug, destination, tags = [] } = await parseBody(req);
 

@@ -3,7 +3,8 @@ import {
     Links,
     Ownership,
     Admin,
-    Profile
+    Profile,
+    ProfileViews
 } from './api.js';
 import {
     toast,
@@ -82,6 +83,10 @@ function showPage(id) {
     updateNav();
 }
 
+function isEditor() {
+    return state.user && (state.user.is_editor || state.user.is_admin);
+}
+
 function navigate(page) {
     // Auth guard
     const publicPages = ['login', 'register', 'pending'];
@@ -89,6 +94,16 @@ function navigate(page) {
         showPage('login');
         return;
     }
+
+    // Viewer guard: Viewers can only access directory and profile
+    if (state.user && !isEditor()) {
+        const viewerPages = ['directory', 'profile'];
+        if (!viewerPages.includes(page)) {
+            showPage('directory');
+            return;
+        }
+    }
+
     showPage(page);
 
     // Load data for pages
@@ -105,31 +120,14 @@ function updateNav() {
     const mobileNav = document.getElementById('mobile-nav');
     if (!navLinks) return;
 
-    const links = state.user ? [{
-            id: 'directory',
-            icon: icon('list'),
-            label: 'Directory'
-        },
-        {
-            id: 'dashboard',
-            icon: icon('home'),
-            label: 'My Links'
-        },
-        {
-            id: 'ownership',
-            icon: icon('inbox'),
-            label: 'Requests'
-        },
-        ...(state.user.is_admin ? [{
-            id: 'admin',
-            icon: icon('settings'),
-            label: 'Admin'
-        }] : []),
-        {
-            id: 'profile',
-            icon: icon('user'),
-            label: 'Profile'
-        },
+    const links = state.user ? [
+        { id: 'directory', icon: icon('list'), label: 'Directory' },
+        ...(isEditor() ? [
+            { id: 'dashboard', icon: icon('home'), label: 'My Links' },
+            { id: 'ownership', icon: icon('inbox'), label: 'Requests' },
+        ] : []),
+        ...(state.user.is_admin ? [{ id: 'admin', icon: icon('settings'), label: 'Admin' }] : []),
+        { id: 'profile', icon: icon('user'), label: 'Profile' },
     ] : [];
 
     const renderLinks = (container) => {
@@ -173,7 +171,7 @@ async function init() {
         const res = await Auth.me();
         if (res.ok) {
             state.user = res.data.user;
-            navigate('dashboard');
+            navigate(isEditor() ? 'dashboard' : 'directory');
         } else {
             localStorage.removeItem('gftv_token');
             state.token = null;
@@ -222,7 +220,7 @@ function setupLoginPage() {
             state.user = res.data.user;
             localStorage.setItem('gftv_token', state.token);
             toast(`Welcome back, ${state.user.display_name}!`, 'success');
-            navigate('dashboard');
+            navigate(isEditor() ? 'dashboard' : 'directory');
         } else if (res.status === 403 && res.data.error === 'PENDING_APPROVAL') {
             navigate('pending');
         } else {
@@ -361,14 +359,10 @@ function setupDirectoryPage() {
     });
 }
 
-window.viewUserProfile = (userId) => {
-    const user = directoryData.map(l => l.gftvlinks_users).find(u => u?.id === userId);
-    if (!user) return;
-
-    const userLinks = directoryData.filter(l => l.gftvlinks_users?.id === userId);
+function buildProfileModalHtml(user, userLinks, viewers) {
     const totalViews = userLinks.reduce((a, l) => a + (l.access_count || 0), 0);
     const letter = (user.display_name || user.username || '?')[0].toUpperCase();
-    const avatarHtml = user.avatar_url
+    const avHtml = user.avatar_url
         ? `<img src="${user.avatar_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;margin-bottom:10px;" alt="${letter}">`
         : `<div style="width:72px;height:72px;border-radius:50%;background:var(--brand);color:var(--brand-text,#fff);font-size:1.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">${letter}</div>`;
 
@@ -379,18 +373,74 @@ window.viewUserProfile = (userId) => {
           </div>`
         : '';
 
-    document.getElementById('view-profile-content').innerHTML = `
-        ${avatarHtml}
+    const viewerPillsHtml = viewers && viewers.length > 0
+        ? `<div class="profile-viewers">
+            <div class="profile-viewers-label">Recent viewers</div>
+            <div class="profile-viewers-pills">
+              ${viewers.map(v => {
+                const vLetter = (v.display_name || v.username || '?')[0].toUpperCase();
+                const vAvatar = v.avatar_url
+                    ? `<img src="${v.avatar_url}" class="viewer-pill-avatar" alt="${vLetter}">`
+                    : `<span class="viewer-pill-avatar viewer-pill-avatar-ph">${vLetter}</span>`;
+                return `<button class="viewer-pill" onclick="viewUserProfileById('${v.id}')" title="@${v.username}">${vAvatar}<span>${v.display_name || v.username}</span></button>`;
+              }).join('')}
+            </div>
+          </div>`
+        : '';
+
+    const roleBadge = user.is_admin
+        ? `<span class="badge badge-admin" style="margin-bottom:16px;display:inline-block;">Admin</span>`
+        : `<div style="margin-bottom:16px"></div>`;
+
+    return `
+        ${avHtml}
         <div style="font-size:1.15rem;font-weight:700;margin-bottom:2px;">${user.display_name || user.username}</div>
         <div style="color:var(--text-muted);font-size:0.88rem;margin-bottom:8px;">@${user.username}</div>
-        ${user.is_admin ? `<span class="badge badge-admin" style="margin-bottom:16px;display:inline-block;">Admin</span>` : '<div style="margin-bottom:16px"></div>'}
+        ${roleBadge}
         <div style="display:flex;gap:24px;justify-content:center;">
             <div><div style="font-size:1.4rem;font-weight:700;">${userLinks.length}</div><div style="font-size:0.78rem;color:var(--text-muted);">Links</div></div>
             <div><div style="font-size:1.4rem;font-weight:700;">${totalViews}</div><div style="font-size:0.78rem;color:var(--text-muted);">Total Views</div></div>
         </div>
         ${socialsHtml}
+        ${viewerPillsHtml}
     `;
+}
+
+window.viewUserProfile = async (userId) => {
+    const user = directoryData.map(l => l.gftvlinks_users).find(u => u?.id === userId);
+    if (!user) return;
+
+    const userLinks = directoryData.filter(l => l.gftvlinks_users?.id === userId);
+
+    // Show modal immediately with loading viewers placeholder
+    document.getElementById('view-profile-content').innerHTML = buildProfileModalHtml(user, userLinks, []);
     openModal('modal-view-profile');
+
+    // Record the profile view (fire-and-forget, non-blocking)
+    ProfileViews.record(userId);
+
+    // Fetch recent viewers and update modal
+    const viewRes = await ProfileViews.getViewers(userId);
+    if (viewRes.ok && viewRes.data.viewers?.length > 0) {
+        document.getElementById('view-profile-content').innerHTML =
+            buildProfileModalHtml(user, userLinks, viewRes.data.viewers);
+    }
+};
+
+// View a profile by ID — used by viewer pills (looks up user from directoryData or fetches from API)
+window.viewUserProfileById = async (userId) => {
+    // Try to find user in already-loaded directory data first
+    const fromDir = directoryData.map(l => l.gftvlinks_users).find(u => u?.id === userId);
+    if (fromDir) {
+        await window.viewUserProfile(userId);
+        return;
+    }
+    // Fallback: fetch from directory (reload)
+    const res = await Links.list('', 'keyword');
+    if (res.ok) {
+        directoryData = res.data.links || [];
+    }
+    await window.viewUserProfile(userId);
 };
 
 window.requestOwnership = async (link_id) => {
@@ -625,20 +675,44 @@ async function loadAdmin() {
     const pending = users.filter(u => !u.is_approved);
     const approved = users.filter(u => u.is_approved);
 
+    function userRoleBadge(u) {
+        if (u.is_admin) return '<span class="badge badge-admin">Admin</span>';
+        if (!u.is_approved) return '<span class="badge badge-pending">Pending</span>';
+        if (u.is_editor) return '<span class="badge badge-editor">Editor</span>';
+        return '<span class="badge badge-viewer">Viewer</span>';
+    }
+
     function userRow(u) {
         const isSelf = u.id === state.user?.id;
+        const isEditor = u.is_editor || u.is_admin;
+
+        let actionBtns = '';
+        if (!u.is_approved) {
+            // Pending user — grant buttons
+            actionBtns = `
+                <button class="btn btn-sm btn-success" onclick="adminAction('${u.id}','grant_editor')">Grant Editor</button>
+                <button class="btn btn-sm btn-secondary" onclick="adminAction('${u.id}','grant_viewer')">Grant Viewer</button>
+            `;
+        } else if (!isSelf) {
+            // Approved user — revoke buttons
+            if (isEditor) {
+                actionBtns += `<button class="btn btn-sm btn-warning" onclick="adminAction('${u.id}','revoke_editor')">Revoke Editor</button>`;
+            }
+            actionBtns += `<button class="btn btn-sm btn-danger" onclick="adminAction('${u.id}','revoke_viewer')">Revoke Viewer</button>`;
+        }
+
         return `<tr>
       <td class="td-user">${avatarHtml(u)}<div><div style="font-weight:700">${u.display_name}</div><div style="font-size:0.8rem;color:var(--text-muted)">@${u.username}</div></div></td>
       <td style="white-space:nowrap">
         <span style="font-size:0.85rem;color:var(--text-muted)">${u.email}</span>
         <button class="btn-copy-inline" data-copy="${u.email}" onclick="copyInline(this)" title="Copy email">${icon('copy')}</button>
       </td>
-      <td>${u.is_admin ? '<span class="badge badge-admin">Admin</span>' : '<span class="badge">User</span>'}</td>
+      <td>${userRoleBadge(u)}</td>
       <td>${u.is_approved ? '<span class="badge badge-active">Approved</span>' : '<span class="badge badge-pending">Pending</span>'}</td>
       <td>${fmtDate(u.created_at)}</td>
       <td>
         <div class="action-btns">
-          ${!u.is_approved ? `<button class="btn btn-sm btn-success" onclick="adminAction('${u.id}','approve')">Approve</button>` : (!isSelf ? `<button class="btn btn-sm btn-danger" onclick="adminAction('${u.id}','reject')">Revoke</button>` : '')}
+          ${actionBtns}
           ${!isSelf ? `<button class="btn btn-sm btn-secondary" onclick="adminAction('${u.id}','toggle_admin')">${u.is_admin ? 'Remove Admin' : 'Make Admin'}</button>` : ''}
           ${!isSelf ? `<button class="btn btn-sm btn-danger" onclick="adminDeleteUser('${u.id}','${u.display_name}')">${icon('trash')}</button>` : ''}
         </div>
@@ -655,7 +729,7 @@ async function loadAdmin() {
         </table></div>`
       : `<div class="empty-state" style="padding:24px"><p>No pending accounts</p></div>`
     }
-    <h3 class="section-title">${icon('check-circle')} All Users (${approved.length})</h3>
+    <h3 class="section-title">${icon('check-circle')} Approved Users (${approved.length})</h3>
     <div class="table-wrap glass"><table>
       <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
       <tbody>${approved.map(userRow).join('')}</tbody>
@@ -711,11 +785,38 @@ function renderProfile() {
         socials.map(s => `<a class="social-link" href="${s.url}" target="_blank" rel="noopener">${icon('external-link')} ${s.label}</a>`).join('') :
         '<span style="color:var(--text-light);font-size:0.85rem">No social links added</span>';
 
+    // Load recent profile viewers
+    loadProfilePageViewers(u.id);
+
     // Fill edit form
     document.getElementById('edit-displayname').value = u.display_name;
 
     // Social links editor
     renderSocialLinksEditor(socials);
+}
+
+async function loadProfilePageViewers(profileId) {
+    const wrap = document.getElementById('profile-viewers-wrap');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+
+    const res = await ProfileViews.getViewers(profileId);
+    if (!res.ok || !res.data.viewers?.length) return;
+
+    const viewers = res.data.viewers;
+    wrap.innerHTML = `
+        <div class="profile-viewers">
+            <div class="profile-viewers-label">Recent viewers</div>
+            <div class="profile-viewers-pills">
+              ${viewers.map(v => {
+                const vLetter = (v.display_name || v.username || '?')[0].toUpperCase();
+                const vAvatar = v.avatar_url
+                    ? `<img src="${v.avatar_url}" class="viewer-pill-avatar" alt="${vLetter}">`
+                    : `<span class="viewer-pill-avatar viewer-pill-avatar-ph">${vLetter}</span>`;
+                return `<button class="viewer-pill" onclick="viewUserProfileById('${v.id}')" title="@${v.username}">${vAvatar}<span>${v.display_name || v.username}</span></button>`;
+              }).join('')}
+            </div>
+        </div>`;
 }
 
 function renderSocialLinksEditor(socials) {

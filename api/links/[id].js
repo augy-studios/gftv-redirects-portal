@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
     if (!link) return err(res, 'Link not found', 404);
 
-    const canEdit = link.user_id === user.id || user.is_admin;
+    const canEdit = (link.user_id === user.id && (user.is_editor || user.is_admin)) || user.is_admin;
 
     // PUT - edit link
     if (req.method === 'PUT') {
