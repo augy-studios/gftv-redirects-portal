@@ -27,7 +27,7 @@ export default async function handler(req, res) {
         if (!canEdit) return err(res, 'Forbidden', 403);
 
         try {
-            const { slug, destination, is_active, tags } = await parseBody(req);
+            const { slug, destination, is_active, tags, new_owner_username } = await parseBody(req);
             const updates = { updated_at: new Date().toISOString() };
 
             if (slug !== undefined) {
@@ -43,6 +43,18 @@ export default async function handler(req, res) {
             if (tags !== undefined) {
                 if (tags.length > 5) return err(res, 'Maximum 5 tags allowed');
                 updates.tags = tags;
+            }
+            if (new_owner_username !== undefined && new_owner_username !== '') {
+                const canTransfer = link.user_id === user.id || user.is_admin;
+                if (!canTransfer) return err(res, 'Only the link owner or an admin can transfer ownership', 403);
+                const trimmedUsername = new_owner_username.trim().toLowerCase();
+                const { data: newOwner } = await supabase
+                    .from('gftvlinks_users')
+                    .select('id')
+                    .eq('username', trimmedUsername)
+                    .single();
+                if (!newOwner) return err(res, 'User not found');
+                updates.user_id = newOwner.id;
             }
 
             const { error } = await supabase

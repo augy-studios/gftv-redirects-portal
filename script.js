@@ -336,10 +336,13 @@ function renderDirectoryTable() {
       <td>${tagsHtml(link.tags)}</td>
       <td style="white-space:nowrap">${fmtDate(link.created_at)}</td>
       <td style="white-space:nowrap">
-        ${!isOwner
-          ? `<button class="btn btn-sm btn-secondary" onclick="requestOwnership('${link.id}')">Request Ownership</button>`
-          : `<span style="color:var(--text-light);font-size:0.8rem">You own this</span>`
-        }
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          ${state.user?.is_admin ? `<button class="btn btn-sm btn-secondary" onclick="openAdminManageLink('${link.id}')">${icon('edit')} Edit</button>` : ''}
+          ${!isOwner
+            ? `<button class="btn btn-sm btn-secondary" onclick="requestOwnership('${link.id}')">Request Ownership</button>`
+            : `<span style="color:var(--text-light);font-size:0.8rem">You own this</span>`
+          }
+        </div>
       </td>
     </tr>`;
     }).join('');
@@ -462,6 +465,95 @@ window.requestOwnership = async (link_id) => {
     else toast(res.data.error || 'Failed to send request', 'error');
 };
 
+// ===== ADMIN MANAGE SHORT LINK MODAL =====
+let adminManageLinkId = null;
+let adminLinkTagsManager = null;
+
+window.openAdminManageLink = (id) => {
+    const link = directoryData.find(l => l.id === id);
+    if (!link) return;
+    adminManageLinkId = id;
+
+    document.getElementById('admin-manage-link-subtitle').textContent = `gftv.asia/${link.slug}`;
+    document.getElementById('admin-link-slug').value = link.slug;
+    document.getElementById('admin-link-dest').value = link.destination;
+    document.getElementById('admin-link-status').value = String(link.is_active);
+    document.getElementById('admin-link-new-owner').value = '';
+    if (adminLinkTagsManager) adminLinkTagsManager.setTags(link.tags || []);
+
+    openModal('modal-admin-manage-link');
+};
+
+window.adminDeleteLink = async () => {
+    if (!adminManageLinkId) return;
+    const link = directoryData.find(l => l.id === adminManageLinkId);
+    const slug = link?.slug || adminManageLinkId;
+    if (!confirm(`Delete gftv.asia/${slug}? This cannot be undone.`)) return;
+
+    const res = await Links.delete(adminManageLinkId);
+    if (res.ok) {
+        toast('Link deleted', 'success');
+        closeModal('modal-admin-manage-link');
+        loadDirectory();
+    } else {
+        toast(res.data.error || 'Failed to delete link', 'error');
+    }
+};
+
+function setupAdminManageLinkModal() {
+    const tagsContainer = document.getElementById('admin-link-tags-container');
+    let adminLinkTags = [];
+    adminLinkTagsManager = initTagsInput(tagsContainer, (t) => {
+        adminLinkTags = t;
+    });
+
+    document.getElementById('admin-manage-link-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!adminManageLinkId) return;
+        const btn = document.getElementById('admin-manage-link-save-btn');
+        btn.disabled = true;
+        btn.textContent = 'Saving…';
+
+        const slug = document.getElementById('admin-link-slug').value.trim();
+        const destination = document.getElementById('admin-link-dest').value.trim();
+        const is_active = document.getElementById('admin-link-status').value === 'true';
+
+        const res = await Links.update(adminManageLinkId, { slug, destination, is_active, tags: adminLinkTags });
+        if (res.ok) {
+            toast('Link updated!', 'success');
+            closeModal('modal-admin-manage-link');
+            loadDirectory();
+        } else {
+            toast(res.data.error || 'Failed to update link', 'error');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Save Changes';
+    });
+
+    document.getElementById('admin-transfer-link-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!adminManageLinkId) return;
+        const btn = document.getElementById('admin-transfer-link-btn');
+        const new_owner_username = document.getElementById('admin-link-new-owner').value.trim();
+        if (!new_owner_username) { toast('Enter a username to transfer to', 'error'); return; }
+
+        btn.disabled = true;
+        btn.textContent = 'Transferring…';
+
+        const res = await Links.update(adminManageLinkId, { new_owner_username });
+        if (res.ok) {
+            toast(`Ownership transferred to @${new_owner_username}`, 'success');
+            document.getElementById('admin-link-new-owner').value = '';
+            closeModal('modal-admin-manage-link');
+            loadDirectory();
+        } else {
+            toast(res.data.error || 'Failed to transfer ownership', 'error');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Transfer Ownership';
+    });
+}
+
 // ===== DASHBOARD PAGE =====
 let dashboardLinks = [];
 let dashTagsManager = null;
@@ -557,6 +649,7 @@ window.openEditLink = (id) => {
 
     document.getElementById('edit-slug').value = link.slug;
     document.getElementById('edit-dest').value = link.destination;
+    document.getElementById('edit-transfer-owner').value = '';
     if (dashTagsManager) dashTagsManager.setTags(link.tags || []);
 
     openModal('modal-edit-link');
@@ -613,12 +706,12 @@ function setupCreateLinkModal() {
 
         const slug = document.getElementById('edit-slug').value.trim();
         const destination = document.getElementById('edit-dest').value.trim();
+        const new_owner_username = document.getElementById('edit-transfer-owner').value.trim();
 
-        const res = await Links.update(editingLinkId, {
-            slug,
-            destination,
-            tags: editTags
-        });
+        const body = { slug, destination, tags: editTags };
+        if (new_owner_username) body.new_owner_username = new_owner_username;
+
+        const res = await Links.update(editingLinkId, body);
         if (res.ok) {
             toast('Link updated!', 'success');
             closeModal('modal-edit-link');
@@ -1282,6 +1375,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupRegisterPage();
     setupDirectoryPage();
     setupCreateLinkModal();
+    setupAdminManageLinkModal();
     setupProfilePage();
     setupAdminModal();
     setupThemePicker();
