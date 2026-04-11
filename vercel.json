@@ -25,6 +25,26 @@
             "destination": "/api/auth/me"
         },
         {
+            "source": "/api/auth/logout-all",
+            "destination": "/api/auth/logout-all"
+        },
+        {
+            "source": "/api/auth/totp-setup",
+            "destination": "/api/auth/totp-setup"
+        },
+        {
+            "source": "/api/auth/totp-enable",
+            "destination": "/api/auth/totp-enable"
+        },
+        {
+            "source": "/api/auth/totp-disable",
+            "destination": "/api/auth/totp-disable"
+        },
+        {
+            "source": "/api/auth/totp-verify",
+            "destination": "/api/auth/totp-verify"
+        },
+        {
             "source": "/api/links/mine",
             "destination": "/api/links/mine"
         },

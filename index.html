@@ -345,6 +345,7 @@
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchProfileTab('edit', this)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg> Edit Profile</button>
                 <button class="tab-btn" onclick="switchProfileTab('password', this)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Password</button>
+                <button class="tab-btn" onclick="switchProfileTab('2fa', this)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> 2FA</button>
                 <button class="tab-btn" onclick="switchProfileTab('danger', this)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Danger Zone</button>
             </div>
 
@@ -400,6 +401,60 @@
                 </form>
             </div>
 
+            <!-- 2FA tab -->
+            <div id="profile-tab-2fa" class="glass" style="padding:28px;display:none;">
+                <!-- Enabled state (rendered by JS) -->
+                <div id="totp-enabled-view" style="display:none;">
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+                        <div class="totp-status-badge totp-status-on"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><polyline points="20 6 9 17 4 12"/></svg> 2FA Active</div>
+                    </div>
+                    <p style="color:var(--text-muted);margin-bottom:24px;font-size:0.92rem;">Your account is protected with an authenticator app. Every login requires a 6-digit code unless you choose to trust a device for 30 days.</p>
+                    <div style="display:flex;justify-content:flex-end;">
+                        <button class="btn btn-danger" onclick="startDisable2FA()">Disable 2FA</button>
+                    </div>
+                </div>
+
+                <!-- Disabled state (rendered by JS) -->
+                <div id="totp-disabled-view" style="display:none;">
+                    <h3 class="section-title" style="margin-bottom:8px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Two-Factor Authentication</h3>
+                    <p style="color:var(--text-muted);margin-bottom:24px;font-size:0.92rem;">Add an extra layer of security. After enabling, every login will require a 6-digit code from your authenticator app (Google Authenticator, Authy, etc.).</p>
+                    <button class="btn btn-primary" onclick="startEnable2FA()">Set Up 2FA</button>
+                </div>
+
+                <!-- Setup wizard (step 1: scan QR) -->
+                <div id="totp-setup-step1" style="display:none;">
+                    <h3 class="section-title" style="margin-bottom:8px;">Step 1 — Scan with your authenticator app</h3>
+                    <p style="color:var(--text-muted);margin-bottom:20px;font-size:0.92rem;">Open Google Authenticator, Authy, or any TOTP-compatible app and scan the QR code below.</p>
+                    <div class="totp-qr-wrap">
+                        <img id="totp-qr-img" src="" alt="2FA QR Code" class="totp-qr-img">
+                        <div class="totp-spinner" id="totp-qr-spinner"><div class="spinner"></div></div>
+                    </div>
+                    <div style="margin:16px 0;">
+                        <div style="font-size:0.82rem;color:var(--text-light);margin-bottom:6px;">Or enter the key manually:</div>
+                        <div class="totp-manual-key" id="totp-manual-key" onclick="copyTotpKey()" title="Click to copy"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;gap:10px;margin-top:8px;">
+                        <button class="btn btn-secondary" onclick="cancelEnable2FA()">Cancel</button>
+                        <button class="btn btn-primary" id="totp-next-btn" onclick="show2FAStep2()">Next: Verify</button>
+                    </div>
+                </div>
+
+                <!-- Setup wizard (step 2: verify code) -->
+                <div id="totp-setup-step2" style="display:none;">
+                    <h3 class="section-title" style="margin-bottom:8px;">Step 2 — Verify the code</h3>
+                    <p style="color:var(--text-muted);margin-bottom:20px;font-size:0.92rem;">Enter the 6-digit code from your authenticator app to confirm it's working correctly.</p>
+                    <div class="form-group">
+                        <label for="totp-verify-code">Verification Code</label>
+                        <input class="form-control totp-code-input" id="totp-verify-code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+                    </div>
+                    <div id="totp-enable-error" class="alert alert-error" style="display:none;margin-bottom:12px;"></div>
+                    <div style="display:flex;justify-content:space-between;gap:10px;margin-top:8px;">
+                        <button class="btn btn-secondary" onclick="show2FAStep1()">Back</button>
+                        <button class="btn btn-primary" id="totp-enable-btn" onclick="confirmEnable2FA()">Enable 2FA</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Danger zone tab -->
             <div id="profile-tab-danger" class="glass" style="padding:28px;display:none;" id="delete-account-section">
                 <h3 class="section-title" style="color:var(--danger);"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Danger Zone</h3>
@@ -436,6 +491,47 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-close-modal="modal-theme">Done</button>
             </div>
+        </div>
+    </div>
+
+    <!-- TOTP 2FA Login Modal -->
+    <div class="modal-overlay" id="modal-totp-login">
+        <div class="modal glass-strong">
+            <h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Two-Factor Authentication</h3>
+            <p class="modal-subtitle">Enter the 6-digit code from your authenticator app to continue.</p>
+            <div class="form-group" style="margin-bottom:12px;">
+                <label for="totp-login-code">Verification Code</label>
+                <input class="form-control totp-code-input" id="totp-login-code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+            </div>
+            <label class="totp-trust-label">
+                <input type="checkbox" id="totp-trust-device">
+                <span>Don't ask on this device for 30 days</span>
+            </label>
+            <div id="totp-login-error" class="alert alert-error" style="display:none;margin-top:12px;"></div>
+            <div class="modal-footer" style="margin-top:16px;">
+                <button class="btn btn-secondary" onclick="cancelTotpLogin()">Cancel</button>
+                <button class="btn btn-primary" id="totp-login-btn" onclick="submitTotpLogin()">Verify</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disable 2FA Modal -->
+    <div class="modal-overlay" id="modal-disable-2fa">
+        <div class="modal glass-strong">
+            <button class="modal-close" data-close-modal="modal-disable-2fa">✕</button>
+            <h3 style="color:var(--danger);"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Disable 2FA</h3>
+            <p class="modal-subtitle">Enter your password to confirm. This will remove 2FA protection from your account and clear all trusted devices.</p>
+            <form id="disable-2fa-form" novalidate>
+                <div class="form-group">
+                    <label for="disable-2fa-password">Your Password</label>
+                    <input class="form-control" id="disable-2fa-password" type="password" placeholder="Enter your password" required>
+                </div>
+                <div id="disable-2fa-error" class="alert alert-error" style="display:none;margin-bottom:12px;"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-close-modal="modal-disable-2fa">Cancel</button>
+                    <button type="submit" class="btn btn-danger" id="disable-2fa-btn">Disable 2FA</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -719,7 +815,7 @@
     <script>
         // Tab switcher for profile page
         function switchProfileTab(tab, btn) {
-            ['edit', 'password', 'danger'].forEach(t => {
+            ['edit', 'password', '2fa', 'danger'].forEach(t => {
                 document.getElementById('profile-tab-' + t).style.display = t === tab ? 'block' : 'none';
             });
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));

@@ -9,7 +9,8 @@ export default async function handler(req, res) {
         const user = await getSessionUser(req);
         if (!user) return err(res, 'Unauthorized', 401);
 
-        const { password_hash, ...safeUser } = user;
+        const { password_hash, totp_secret, ...safeUser } = user;
+        safeUser.totp_enabled = !!totp_secret;
         return ok(res, { user: safeUser });
     } catch (e) {
         return err(res, 'Server error', 500);

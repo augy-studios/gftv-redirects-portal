@@ -2223,3 +2223,92 @@ td {
     justify-content: center;
   }
 }
+/* ===== TOTP 2FA ===== */
+.totp-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.totp-status-on {
+  background: var(--success-light);
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+
+.totp-qr-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 208px;
+  height: 208px;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: #fff;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.totp-qr-img {
+  width: 200px;
+  height: 200px;
+  display: block;
+}
+
+.totp-spinner {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  inset: 0;
+}
+
+.totp-manual-key {
+  font-family: monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+  background: var(--bg2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  word-break: break-all;
+  cursor: pointer;
+  transition: background var(--transition);
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.totp-manual-key:hover {
+  background: var(--brand);
+}
+
+.totp-code-input {
+  font-size: 1.6rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+  font-family: monospace;
+}
+
+.totp-trust-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.totp-trust-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--brand-darker);
+  cursor: pointer;
+  flex-shrink: 0;
+}
