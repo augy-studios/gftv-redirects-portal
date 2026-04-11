@@ -40,6 +40,14 @@ export const Auth = {
     me: () => req('GET', '/auth/me'),
 };
 
+// TOTP 2FA
+export const Totp = {
+    setup: () => req('GET', '/auth/totp-setup'),
+    enable: (secret, code) => req('POST', '/auth/totp-enable', { secret, code }),
+    disable: (password) => req('POST', '/auth/totp-disable', { password }),
+    verify: (challenge_token, code, trust_device) => req('POST', '/auth/totp-verify', { challenge_token, code, trust_device }),
+};
+
 // Links
 export const Links = {
     list: (q = '', type = 'keyword') => req('GET', `/links?q=${encodeURIComponent(q)}&type=${type}`),

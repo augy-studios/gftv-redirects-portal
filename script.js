@@ -1,5 +1,6 @@
 import {
     Auth,
+    Totp,
     Links,
     Ownership,
     Admin,
@@ -209,10 +210,19 @@ async function handleLogout() {
 window.handleLogout = handleLogout;
 
 // ===== LOGIN PAGE =====
+// Holds state during the 2FA challenge flow
+let _totpChallengeToken = null;
+let _totpLoginUsername = null;
+
 function setupLoginPage() {
     const form = document.getElementById('login-form');
     const errEl = document.getElementById('login-error');
     const btn = document.getElementById('login-btn');
+
+    // Allow Enter key in TOTP modal code input to submit
+    document.getElementById('totp-login-code')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); window.submitTotpLogin(); }
+    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -223,17 +233,23 @@ function setupLoginPage() {
         const username = document.getElementById('login-username').value.trim();
         const password = document.getElementById('login-password').value;
 
-        const res = await Auth.login({
-            username,
-            password
-        });
+        // Send stored device token so trusted devices skip 2FA
+        const device_token = localStorage.getItem(`gftv_device_${username.toLowerCase()}`) || undefined;
 
-        if (res.ok) {
-            state.token = res.data.token;
-            state.user = res.data.user;
-            localStorage.setItem('gftv_token', state.token);
-            toast(`Welcome back, ${state.user.display_name}!`, 'success');
-            navigate(isEditor() ? 'dashboard' : 'directory');
+        const res = await Auth.login({ username, password, device_token });
+
+        if (res.ok && res.data.requires_2fa) {
+            // Server issued a TOTP challenge — show the 2FA modal
+            _totpChallengeToken = res.data.challenge_token;
+            _totpLoginUsername = res.data.username || username.toLowerCase();
+            document.getElementById('totp-login-code').value = '';
+            document.getElementById('totp-trust-device').checked = false;
+            document.getElementById('totp-login-error').style.display = 'none';
+            openModal('modal-totp-login');
+            setTimeout(() => document.getElementById('totp-login-code').focus(), 100);
+        } else if (res.ok) {
+            finishLogin(res.data.token, res.data.user);
+            toast(`Welcome back, ${res.data.user.display_name}!`, 'success');
         } else if (res.status === 403 && res.data.error === 'PENDING_APPROVAL') {
             navigate('pending');
         } else {
@@ -245,6 +261,53 @@ function setupLoginPage() {
         btn.textContent = 'Log In';
     });
 }
+
+function finishLogin(token, user) {
+    state.token = token;
+    state.user = user;
+    localStorage.setItem('gftv_token', token);
+    closeAllModals();
+    navigate(isEditor() ? 'dashboard' : 'directory');
+}
+
+window.cancelTotpLogin = () => {
+    _totpChallengeToken = null;
+    _totpLoginUsername = null;
+    closeModal('modal-totp-login');
+};
+
+window.submitTotpLogin = async () => {
+    const code = document.getElementById('totp-login-code').value.trim();
+    const trust = document.getElementById('totp-trust-device').checked;
+    const errEl = document.getElementById('totp-login-error');
+    const btn = document.getElementById('totp-login-btn');
+
+    if (!code || code.length !== 6) {
+        errEl.textContent = 'Please enter the 6-digit code';
+        errEl.style.display = 'flex';
+        return;
+    }
+
+    errEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Verifying…';
+
+    const res = await Totp.verify(_totpChallengeToken, code, trust);
+
+    btn.disabled = false;
+    btn.textContent = 'Verify';
+
+    if (res.ok) {
+        if (trust && res.data.device_token && _totpLoginUsername) {
+            localStorage.setItem(`gftv_device_${_totpLoginUsername}`, res.data.device_token);
+        }
+        finishLogin(res.data.token, res.data.user);
+        toast(`Welcome back, ${res.data.user.display_name}!`, 'success');
+    } else {
+        errEl.textContent = res.data.error || 'Verification failed';
+        errEl.style.display = 'flex';
+    }
+};
 
 // ===== REGISTER PAGE =====
 function setupRegisterPage() {
@@ -1016,6 +1079,9 @@ function renderProfile() {
     // Load recent profile viewers
     loadProfilePageViewers(u.id);
 
+    // Render 2FA tab state
+    render2FATab();
+
     // Fill edit form
     document.getElementById('edit-displayname').value = u.display_name;
 
@@ -1202,6 +1268,138 @@ function setupProfilePage() {
             toast(res.data.error || 'Failed to sign out other devices', 'error');
         }
     };
+}
+
+// ===== PROFILE 2FA TAB =====
+let _totpSetupSecret = null;
+
+function render2FATab() {
+    const u = state.user;
+    const enabled = u?.totp_enabled;
+    document.getElementById('totp-enabled-view').style.display = enabled ? 'block' : 'none';
+    document.getElementById('totp-disabled-view').style.display = enabled ? 'none' : 'block';
+    document.getElementById('totp-setup-step1').style.display = 'none';
+    document.getElementById('totp-setup-step2').style.display = 'none';
+}
+
+window.startEnable2FA = async () => {
+    document.getElementById('totp-disabled-view').style.display = 'none';
+    document.getElementById('totp-setup-step1').style.display = 'block';
+
+    const qrImg = document.getElementById('totp-qr-img');
+    const spinner = document.getElementById('totp-qr-spinner');
+    const keyEl = document.getElementById('totp-manual-key');
+    const nextBtn = document.getElementById('totp-next-btn');
+
+    qrImg.style.display = 'none';
+    spinner.style.display = 'flex';
+    nextBtn.disabled = true;
+    keyEl.textContent = '';
+    _totpSetupSecret = null;
+
+    const res = await Totp.setup();
+    spinner.style.display = 'none';
+
+    if (res.ok) {
+        _totpSetupSecret = res.data.secret;
+        qrImg.src = res.data.qr_data_url;
+        qrImg.style.display = 'block';
+        keyEl.textContent = res.data.secret;
+        nextBtn.disabled = false;
+    } else {
+        toast(res.data.error || 'Failed to generate 2FA setup', 'error');
+        cancelEnable2FA();
+    }
+};
+
+window.cancelEnable2FA = () => {
+    _totpSetupSecret = null;
+    render2FATab();
+};
+
+window.show2FAStep1 = () => {
+    document.getElementById('totp-setup-step2').style.display = 'none';
+    document.getElementById('totp-setup-step1').style.display = 'block';
+};
+
+window.show2FAStep2 = () => {
+    if (!_totpSetupSecret) return;
+    document.getElementById('totp-setup-step1').style.display = 'none';
+    document.getElementById('totp-setup-step2').style.display = 'block';
+    document.getElementById('totp-verify-code').value = '';
+    document.getElementById('totp-enable-error').style.display = 'none';
+    setTimeout(() => document.getElementById('totp-verify-code').focus(), 50);
+};
+
+window.confirmEnable2FA = async () => {
+    const code = document.getElementById('totp-verify-code').value.trim();
+    const errEl = document.getElementById('totp-enable-error');
+    const btn = document.getElementById('totp-enable-btn');
+
+    if (!code || code.length !== 6) {
+        errEl.textContent = 'Please enter the 6-digit code';
+        errEl.style.display = 'flex';
+        return;
+    }
+
+    errEl.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Enabling…';
+
+    const res = await Totp.enable(_totpSetupSecret, code);
+
+    btn.disabled = false;
+    btn.textContent = 'Enable 2FA';
+
+    if (res.ok) {
+        state.user.totp_enabled = true;
+        _totpSetupSecret = null;
+        toast('2FA enabled successfully!', 'success');
+        render2FATab();
+    } else {
+        errEl.textContent = res.data.error || 'Failed to enable 2FA';
+        errEl.style.display = 'flex';
+    }
+};
+
+window.copyTotpKey = () => {
+    const key = document.getElementById('totp-manual-key').textContent;
+    if (!key) return;
+    navigator.clipboard.writeText(key).then(() => toast('Key copied!', 'success')).catch(() => {});
+};
+
+window.startDisable2FA = () => {
+    document.getElementById('disable-2fa-password').value = '';
+    document.getElementById('disable-2fa-error').style.display = 'none';
+    openModal('modal-disable-2fa');
+};
+
+function setupDisable2FAModal() {
+    document.getElementById('disable-2fa-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const password = document.getElementById('disable-2fa-password').value;
+        const errEl = document.getElementById('disable-2fa-error');
+        const btn = document.getElementById('disable-2fa-btn');
+
+        errEl.style.display = 'none';
+        btn.disabled = true;
+        btn.textContent = 'Disabling…';
+
+        const res = await Totp.disable(password);
+
+        btn.disabled = false;
+        btn.textContent = 'Disable 2FA';
+
+        if (res.ok) {
+            state.user.totp_enabled = false;
+            closeModal('modal-disable-2fa');
+            toast('2FA has been disabled.', 'success');
+            render2FATab();
+        } else {
+            errEl.textContent = res.data.error || 'Failed to disable 2FA';
+            errEl.style.display = 'flex';
+        }
+    });
 }
 
 // ===== DELETE ACCOUNT =====
@@ -1403,6 +1601,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupCreateLinkModal();
     setupAdminManageLinkModal();
     setupProfilePage();
+    setupDisable2FAModal();
     setupAdminModal();
     setupThemePicker();
     setupHamburger();
