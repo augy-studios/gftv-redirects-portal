@@ -3,13 +3,17 @@ import { ok, err, optionsResponse, parseBody } from '../../lib/response.js';
 import { authenticator } from 'otplib';
 import crypto from 'crypto';
 
+function hashCode(code) {
+    return crypto.createHash('sha256').update(code.replace('-', '')).digest('hex');
+}
+
 export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return optionsResponse(res);
     if (req.method !== 'POST') return err(res, 'Method not allowed', 405);
 
     try {
-        const { challenge_token, code, trust_device } = await parseBody(req);
-        if (!challenge_token || !code) return err(res, 'Challenge token and code required');
+        const { challenge_token, code, backup_code, trust_device } = await parseBody(req);
+        if (!challenge_token || (!code && !backup_code)) return err(res, 'Challenge token and a verification code required');
 
         // Look up the challenge (join to user)
         const { data: challenge } = await supabase
@@ -27,14 +31,32 @@ export default async function handler(req, res) {
         const user = challenge.gftvlinks_users;
         if (!user?.totp_secret) return err(res, 'TOTP not configured for this account', 400);
 
-        // Verify the TOTP code
-        let isValid = false;
-        try {
-            isValid = authenticator.verify({ token: code, secret: user.totp_secret });
-        } catch {
-            return err(res, 'Invalid code', 400);
+        if (backup_code) {
+            // Verify a backup code instead of a TOTP code
+            const normalized = backup_code.trim().toUpperCase().replace(/\s/g, '');
+            const hash = hashCode(normalized);
+
+            const { data: storedCode } = await supabase
+                .from('gftvlinks_backup_codes')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('code_hash', hash)
+                .single();
+
+            if (!storedCode) return err(res, 'Invalid backup code', 401);
+
+            // Consume the backup code — single use
+            await supabase.from('gftvlinks_backup_codes').delete().eq('id', storedCode.id);
+        } else {
+            // Verify the TOTP code
+            let isValid = false;
+            try {
+                isValid = authenticator.verify({ token: code, secret: user.totp_secret });
+            } catch {
+                return err(res, 'Invalid code', 400);
+            }
+            if (!isValid) return err(res, 'Invalid verification code', 401);
         }
-        if (!isValid) return err(res, 'Invalid verification code', 401);
 
         // Create the real session
         const token = crypto.randomBytes(48).toString('hex');
