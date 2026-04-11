@@ -117,6 +117,11 @@ export function initTagsInput(container, onChange) {
 
     wrap.addEventListener('click', () => input.focus());
 
+    input.addEventListener('input', () => {
+        const lower = input.value.toLowerCase();
+        if (input.value !== lower) input.value = lower;
+    });
+
     input.addEventListener('keydown', (e) => {
         if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
             e.preventDefault();
