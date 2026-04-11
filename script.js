@@ -1420,11 +1420,17 @@ async function createQrCompositeImage(url) {
     const totalWidth = qrSize + paddingX * 2;
     const totalHeight = paddingTop + qrSize + paddingGap + textBlockHeight + paddingBottom;
 
-    // Generate QR code as data URL
-    const dataUrl = await window.QRCode.toDataURL(url, {
-        width: qrSize,
-        margin: 0,
-        color: { dark: '#000000', light: '#ffffff' }
+    // Generate QR code as data URL (library exposes as window.qrcode or window.QRCode)
+    const qrLib = window.qrcode || window.QRCode;
+    if (!qrLib || typeof qrLib.toDataURL !== 'function') throw new Error('QR library not loaded');
+    const dataUrl = await new Promise((resolve, reject) => {
+        qrLib.toDataURL(url, {
+            width: qrSize,
+            margin: 0,
+            color: { dark: '#000000', light: '#ffffff' }
+        }, (err, url) => {
+            if (err) reject(err); else resolve(url);
+        });
     });
     const qrImg = new Image();
     qrImg.src = dataUrl;
