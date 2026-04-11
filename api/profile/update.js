@@ -3,6 +3,7 @@ import supabase from '../../lib/supabase.js';
 import { getSessionUser } from '../../lib/auth.js';
 import { ok, err, optionsResponse, parseBody } from '../../lib/response.js';
 import bcrypt from 'bcryptjs';
+import passwordEntropy from 'fast-password-entropy';
 
 export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return optionsResponse(res);
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
         }
 
         if (body.new_password !== undefined) {
-            if (body.new_password.length < 8) return err(res, 'Password must be at least 8 characters');
+            if (passwordEntropy(body.new_password) < 36) return err(res, 'Password is too weak. Use a longer password with a mix of uppercase, lowercase, numbers, and symbols.');
             if (!body.current_password) return err(res, 'Current password required');
 
             const valid = await bcrypt.compare(body.current_password, user.password_hash);
