@@ -45,6 +45,10 @@
             "destination": "/api/auth/totp-verify"
         },
         {
+            "source": "/api/auth/backup-codes-regenerate",
+            "destination": "/api/auth/backup-codes-regenerate"
+        },
+        {
             "source": "/api/links/mine",
             "destination": "/api/links/mine"
         },

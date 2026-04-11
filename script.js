@@ -219,8 +219,11 @@ function setupLoginPage() {
     const errEl = document.getElementById('login-error');
     const btn = document.getElementById('login-btn');
 
-    // Allow Enter key in TOTP modal code input to submit
+    // Allow Enter key in TOTP modal code inputs to submit
     document.getElementById('totp-login-code')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); window.submitTotpLogin(); }
+    });
+    document.getElementById('totp-login-backup-code')?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') { e.preventDefault(); window.submitTotpLogin(); }
     });
 
@@ -273,26 +276,60 @@ function finishLogin(token, user) {
 window.cancelTotpLogin = () => {
     _totpChallengeToken = null;
     _totpLoginUsername = null;
+    // Reset to TOTP view for next open
+    document.getElementById('totp-login-totp-section').style.display = 'block';
+    document.getElementById('totp-login-backup-section').style.display = 'none';
     closeModal('modal-totp-login');
 };
 
+window.switchToBackupLogin = () => {
+    document.getElementById('totp-login-totp-section').style.display = 'none';
+    document.getElementById('totp-login-backup-section').style.display = 'block';
+    document.getElementById('totp-login-error').style.display = 'none';
+    document.getElementById('totp-login-backup-code').value = '';
+    setTimeout(() => document.getElementById('totp-login-backup-code').focus(), 50);
+};
+
+window.switchToTotpLogin = () => {
+    document.getElementById('totp-login-backup-section').style.display = 'none';
+    document.getElementById('totp-login-totp-section').style.display = 'block';
+    document.getElementById('totp-login-error').style.display = 'none';
+    document.getElementById('totp-login-code').value = '';
+    setTimeout(() => document.getElementById('totp-login-code').focus(), 50);
+};
+
 window.submitTotpLogin = async () => {
-    const code = document.getElementById('totp-login-code').value.trim();
     const trust = document.getElementById('totp-trust-device').checked;
     const errEl = document.getElementById('totp-login-error');
     const btn = document.getElementById('totp-login-btn');
-
-    if (!code || code.length !== 6) {
-        errEl.textContent = 'Please enter the 6-digit code';
-        errEl.style.display = 'flex';
-        return;
-    }
+    const isBackupMode = document.getElementById('totp-login-backup-section').style.display !== 'none';
 
     errEl.style.display = 'none';
     btn.disabled = true;
     btn.textContent = 'Verifying…';
 
-    const res = await Totp.verify(_totpChallengeToken, code, trust);
+    let res;
+    if (isBackupMode) {
+        const backupCode = document.getElementById('totp-login-backup-code').value.trim();
+        if (!backupCode) {
+            errEl.textContent = 'Please enter a backup code';
+            errEl.style.display = 'flex';
+            btn.disabled = false;
+            btn.textContent = 'Verify';
+            return;
+        }
+        res = await Totp.verifyBackup(_totpChallengeToken, backupCode, trust);
+    } else {
+        const code = document.getElementById('totp-login-code').value.trim();
+        if (!code || code.length !== 6) {
+            errEl.textContent = 'Please enter the 6-digit code';
+            errEl.style.display = 'flex';
+            btn.disabled = false;
+            btn.textContent = 'Verify';
+            return;
+        }
+        res = await Totp.verify(_totpChallengeToken, code, trust);
+    }
 
     btn.disabled = false;
     btn.textContent = 'Verify';
@@ -1272,6 +1309,7 @@ function setupProfilePage() {
 
 // ===== PROFILE 2FA TAB =====
 let _totpSetupSecret = null;
+let _backupCodes = null; // plaintext codes shown after enable/regenerate
 
 function render2FATab() {
     const u = state.user;
@@ -1280,6 +1318,7 @@ function render2FATab() {
     document.getElementById('totp-disabled-view').style.display = enabled ? 'none' : 'block';
     document.getElementById('totp-setup-step1').style.display = 'none';
     document.getElementById('totp-setup-step2').style.display = 'none';
+    document.getElementById('totp-setup-step3').style.display = 'none';
 }
 
 window.startEnable2FA = async () => {
@@ -1354,12 +1393,45 @@ window.confirmEnable2FA = async () => {
     if (res.ok) {
         state.user.totp_enabled = true;
         _totpSetupSecret = null;
-        toast('2FA enabled successfully!', 'success');
-        render2FATab();
+        _backupCodes = res.data.backup_codes || [];
+        // Show step 3: backup codes
+        document.getElementById('totp-setup-step2').style.display = 'none';
+        document.getElementById('totp-setup-step3').style.display = 'block';
+        renderBackupCodesGrid('backup-codes-grid', _backupCodes);
     } else {
         errEl.textContent = res.data.error || 'Failed to enable 2FA';
         errEl.style.display = 'flex';
     }
+};
+
+function renderBackupCodesGrid(gridId, codes) {
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+    grid.innerHTML = codes.map(c =>
+        `<div class="backup-code-item"><code>${c}</code></div>`
+    ).join('');
+}
+
+window.copyBackupCodes = () => {
+    const text = _backupCodes?.join('\n') || '';
+    navigator.clipboard.writeText(text).then(() => toast('Backup codes copied!', 'success')).catch(() => {});
+};
+
+window.downloadBackupCodes = () => {
+    const text = (_backupCodes || []).join('\n');
+    const blob = new Blob([`GFTV Links Portal — 2FA Backup Codes\nGenerated: ${new Date().toUTCString()}\n\n${text}\n\nEach code can only be used once. Keep these safe.`], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gftv-backup-codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+};
+
+window.finishEnable2FA = () => {
+    _backupCodes = null;
+    render2FATab();
+    toast('2FA enabled successfully!', 'success');
 };
 
 window.copyTotpKey = () => {
@@ -1401,6 +1473,59 @@ function setupDisable2FAModal() {
         }
     });
 }
+
+// ===== REGENERATE BACKUP CODES =====
+let _modalBackupCodes = null;
+
+window.startRegenBackupCodes = () => {
+    document.getElementById('regen-backup-password').value = '';
+    document.getElementById('regen-backup-error').style.display = 'none';
+    openModal('modal-regen-backup-codes');
+};
+
+function setupRegenBackupCodesModal() {
+    document.getElementById('regen-backup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const password = document.getElementById('regen-backup-password').value;
+        const errEl = document.getElementById('regen-backup-error');
+        const btn = document.getElementById('regen-backup-btn');
+
+        errEl.style.display = 'none';
+        btn.disabled = true;
+        btn.textContent = 'Generating…';
+
+        const res = await Totp.regenerateCodes(password);
+
+        btn.disabled = false;
+        btn.textContent = 'Generate New Codes';
+
+        if (res.ok) {
+            _modalBackupCodes = res.data.backup_codes || [];
+            closeModal('modal-regen-backup-codes');
+            renderBackupCodesGrid('modal-backup-codes-grid', _modalBackupCodes);
+            openModal('modal-backup-codes-display');
+        } else {
+            errEl.textContent = res.data.error || 'Failed to regenerate backup codes';
+            errEl.style.display = 'flex';
+        }
+    });
+}
+
+window.copyModalBackupCodes = () => {
+    const text = _modalBackupCodes?.join('\n') || '';
+    navigator.clipboard.writeText(text).then(() => toast('Backup codes copied!', 'success')).catch(() => {});
+};
+
+window.downloadModalBackupCodes = () => {
+    const text = (_modalBackupCodes || []).join('\n');
+    const blob = new Blob([`GFTV Links Portal — 2FA Backup Codes\nGenerated: ${new Date().toUTCString()}\n\n${text}\n\nEach code can only be used once. Keep these safe.`], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gftv-backup-codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+};
 
 // ===== DELETE ACCOUNT =====
 function setupDeleteAccount() {
@@ -1732,6 +1857,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAdminManageLinkModal();
     setupProfilePage();
     setupDisable2FAModal();
+    setupRegenBackupCodesModal();
     setupAdminModal();
     setupThemePicker();
     setupHamburger();

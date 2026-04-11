@@ -46,6 +46,8 @@ export const Totp = {
     enable: (secret, code) => req('POST', '/auth/totp-enable', { secret, code }),
     disable: (password) => req('POST', '/auth/totp-disable', { password }),
     verify: (challenge_token, code, trust_device) => req('POST', '/auth/totp-verify', { challenge_token, code, trust_device }),
+    verifyBackup: (challenge_token, backup_code, trust_device) => req('POST', '/auth/totp-verify', { challenge_token, backup_code, trust_device }),
+    regenerateCodes: (password) => req('POST', '/auth/backup-codes-regenerate', { password }),
 };
 
 // Links
