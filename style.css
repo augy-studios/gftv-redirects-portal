@@ -1659,6 +1659,26 @@ td {
   color: var(--success);
 }
 
+/* ===== QR BUTTON ===== */
+.qr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 7px;
+  border-radius: 7px;
+  background: rgba(var(--brand-rgb), 0.35);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.qr-btn:hover {
+  background: var(--brand);
+  border-color: var(--brand-darker);
+}
+
 /* ===== SECTION TITLE ===== */
 .section-title {
   font-family: var(--font-head);
