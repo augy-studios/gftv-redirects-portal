@@ -1388,6 +1388,134 @@ function setupHamburger() {
     });
 }
 
+// ===== QR CODE MODAL =====
+async function createQrCompositeImage(url) {
+    const qrSize = 280;
+    const paddingX = 24;
+    const paddingTop = 24;
+    const paddingGap = 14;
+    const paddingBottom = 20;
+    const fontSize = 13;
+    const lineHeight = Math.ceil(fontSize * 1.5);
+
+    // Measure and word-wrap the URL on a temp canvas
+    const measureCanvas = document.createElement('canvas');
+    const mCtx = measureCanvas.getContext('2d');
+    mCtx.font = `bold ${fontSize}px 'Courier New', monospace`;
+    const maxTextWidth = qrSize;
+    const lines = [];
+    let currentLine = '';
+    for (const char of url) {
+        const testLine = currentLine + char;
+        if (mCtx.measureText(testLine).width > maxTextWidth) {
+            lines.push(currentLine);
+            currentLine = char;
+        } else {
+            currentLine = testLine;
+        }
+    }
+    if (currentLine) lines.push(currentLine);
+
+    const textBlockHeight = lines.length * lineHeight;
+    const totalWidth = qrSize + paddingX * 2;
+    const totalHeight = paddingTop + qrSize + paddingGap + textBlockHeight + paddingBottom;
+
+    // Generate QR code as data URL
+    const dataUrl = await window.QRCode.toDataURL(url, {
+        width: qrSize,
+        margin: 0,
+        color: { dark: '#000000', light: '#ffffff' }
+    });
+    const qrImg = new Image();
+    qrImg.src = dataUrl;
+    await new Promise(resolve => { qrImg.onload = resolve; });
+
+    // Build composite canvas
+    const canvas = document.createElement('canvas');
+    canvas.width = totalWidth;
+    canvas.height = totalHeight;
+    canvas.style.maxWidth = '100%';
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, totalWidth, totalHeight);
+
+    ctx.drawImage(qrImg, paddingX, paddingTop, qrSize, qrSize);
+
+    ctx.fillStyle = '#111111';
+    ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
+    ctx.textAlign = 'center';
+    const textStartY = paddingTop + qrSize + paddingGap + fontSize;
+    lines.forEach((line, i) => {
+        ctx.fillText(line, totalWidth / 2, textStartY + i * lineHeight);
+    });
+
+    return canvas;
+}
+
+window.openQrModal = async (slug) => {
+    const url = `https://gftv.asia/${slug}`;
+    document.getElementById('qr-modal-subtitle').textContent = url;
+    const container = document.getElementById('qr-canvas-container');
+    container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+    openModal('modal-qr');
+
+    try {
+        const compositeCanvas = await createQrCompositeImage(url);
+        container.innerHTML = '';
+        container.appendChild(compositeCanvas);
+        window._qrCanvas = compositeCanvas;
+        window._qrUrl = url;
+        window._qrSlug = slug;
+    } catch {
+        container.innerHTML = '<p style="color:var(--danger);padding:20px;">Failed to generate QR code.</p>';
+    }
+};
+
+window.downloadQrCode = () => {
+    const canvas = window._qrCanvas;
+    if (!canvas) return;
+    canvas.toBlob(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `qr-${window._qrSlug || 'code'}.png`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    }, 'image/png');
+};
+
+window.copyQrCode = async () => {
+    const canvas = window._qrCanvas;
+    if (!canvas) return;
+    try {
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        toast('QR code copied!', 'success');
+    } catch {
+        toast('Failed to copy image', 'error');
+    }
+};
+
+window.shareQrCode = async () => {
+    const canvas = window._qrCanvas;
+    const url = window._qrUrl;
+    const slug = window._qrSlug;
+    if (!canvas) return;
+    try {
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        const file = new File([blob], `qr-${slug || 'code'}.png`, { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ text: url, files: [file] });
+        } else if (navigator.share) {
+            await navigator.share({ text: url });
+        } else {
+            toast('Sharing is not supported on this browser', 'info');
+        }
+    } catch (e) {
+        if (e.name !== 'AbortError') toast('Failed to share', 'error');
+    }
+};
+
 // ===== SERVICE WORKER =====
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {

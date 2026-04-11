@@ -24,6 +24,9 @@ const ICON_PATHS = {
     camera: `<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>`,
     'external-link': `<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>`,
     copy: `<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>`,
+    qr: `<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>`,
+    download: `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>`,
+    share: `<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>`,
 };
 
 export function icon(name, size = 16) {
@@ -200,12 +203,16 @@ export function avatarHtml(user, size = 'sm') {
 export function slugCopyHtml(slug) {
     const url = `https://gftv.asia/${slug}`;
     const linkIcon = icon('copy');
-    return `<button class="copy-btn" onclick="(async()=>{
-    const btn=this;
-    await navigator.clipboard.writeText('${url}');
-    const orig=btn.innerHTML; btn.innerHTML='Copied!'; btn.classList.add('copied');
-    setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove('copied');},1800);
-  })()" title="${url}">${linkIcon} ${slug}</button>`;
+    const qrIcon = icon('qr', 14);
+    return `<div style="display:inline-flex;gap:4px;align-items:center;">
+      <button class="copy-btn" onclick="(async()=>{
+        const btn=this;
+        await navigator.clipboard.writeText('${url}');
+        const orig=btn.innerHTML; btn.innerHTML='Copied!'; btn.classList.add('copied');
+        setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove('copied');},1800);
+      })()" title="${url}">${linkIcon} ${slug}</button>
+      <button class="qr-btn" onclick="window.openQrModal('${slug}')" title="Generate QR code">${qrIcon}</button>
+    </div>`;
 }
 
 // ===== TAGS HTML =====
