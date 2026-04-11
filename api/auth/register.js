@@ -1,6 +1,7 @@
 import supabase from '../../lib/supabase.js';
 import { ok, err, optionsResponse, parseBody } from '../../lib/response.js';
 import bcrypt from 'bcryptjs';
+import passwordEntropy from 'fast-password-entropy';
 
 export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return optionsResponse(res);
@@ -15,8 +16,8 @@ export default async function handler(req, res) {
         if (!/^[a-zA-Z0-9_]{3,30}$/.test(username))
             return err(res, 'Username must be 3-30 alphanumeric characters or underscores');
 
-        if (password.length < 8)
-            return err(res, 'Password must be at least 8 characters');
+        if (passwordEntropy(password) < 36)
+            return err(res, 'Password is too weak. Use a longer password with a mix of uppercase, lowercase, numbers, and symbols.');
 
         const { data: existing } = await supabase
             .from('gftvlinks_users')

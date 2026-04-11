@@ -199,7 +199,7 @@ export function avatarHtml(user, size = 'sm') {
 // ===== SLUG COPY HTML =====
 export function slugCopyHtml(slug) {
     const url = `https://gftv.asia/${slug}`;
-    const linkIcon = icon('link');
+    const linkIcon = icon('copy');
     return `<button class="copy-btn" onclick="(async()=>{
     const btn=this;
     await navigator.clipboard.writeText('${url}');

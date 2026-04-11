@@ -336,7 +336,7 @@ function renderDirectoryTable() {
         const isOwner = state.user && link.gftvlinks_users?.id === state.user.id;
         return `<tr>
       <td class="td-slug">${slugCopyHtml(link.slug)}</td>
-      <td class="td-dest"><a href="${link.destination}" target="_blank" rel="noopener" title="${link.destination}">${link.destination}</a></td>
+      <td class="td-dest"><span title="${link.destination}">${link.destination}</span></td>
       <td class="td-user td-user-clickable" onclick="viewUserProfile('${user.id}')" title="View profile">${avatarHtml(user)}<span>${user.display_name || user.username || '—'}</span></td>
       <td style="white-space:nowrap"><span class="badge ${link.is_active ? 'badge-active' : 'badge-inactive'}">${link.is_active ? '● Active' : '● Inactive'}</span></td>
       <td class="access-count" style="white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
@@ -345,9 +345,11 @@ function renderDirectoryTable() {
       <td style="white-space:nowrap">
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           ${state.user?.is_admin ? `<button class="btn btn-sm btn-secondary" onclick="openAdminManageLink('${link.id}')">${icon('edit')} Edit</button>` : ''}
-          ${!isOwner
-            ? `<button class="btn btn-sm btn-secondary" onclick="requestOwnership('${link.id}')">Request Ownership</button>`
-            : `<span style="color:var(--text-light);font-size:0.8rem">You own this</span>`
+          ${isOwner
+            ? `<span style="color:var(--text-light);font-size:0.8rem">You own this</span>`
+            : isEditor()
+              ? `<button class="btn btn-sm btn-secondary" onclick="requestOwnership('${link.id}')">Request Ownership</button>`
+              : ''
           }
         </div>
       </td>

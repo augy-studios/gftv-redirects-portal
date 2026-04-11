@@ -6,6 +6,7 @@
     "type": "module",
     "dependencies": {
         "@supabase/supabase-js": "^2.39.0",
-        "bcryptjs": "^2.4.3"
+        "bcryptjs": "^2.4.3",
+        "fast-password-entropy": "^1.1.1"
     }
 }
