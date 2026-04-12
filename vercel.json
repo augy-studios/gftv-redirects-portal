@@ -89,6 +89,10 @@
             "destination": "/api/profile/avatar"
         },
         {
+            "source": "/api/profile/trusted-devices",
+            "destination": "/api/profile/trusted-devices"
+        },
+        {
             "source": "/api/stats",
             "destination": "/api/stats"
         },
