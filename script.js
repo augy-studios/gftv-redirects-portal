@@ -6,6 +6,7 @@ import {
     Admin,
     Profile,
     ProfileViews,
+    TrustedDevices,
     Stats
 } from './api.js';
 import {
@@ -1432,6 +1433,47 @@ function setupProfilePage() {
         }
     };
 }
+
+// ===== TRUSTED DEVICES =====
+async function loadTrustedDevices() {
+    const container = document.getElementById('trusted-devices-list');
+    if (!container) return;
+    container.innerHTML = '<div style="color:var(--text-muted);font-size:0.88rem;">Loading…</div>';
+
+    const res = await TrustedDevices.list();
+    if (!res.ok) {
+        container.innerHTML = '<div style="color:var(--danger);font-size:0.88rem;">Failed to load devices.</div>';
+        return;
+    }
+
+    const devices = res.data.devices || [];
+    if (devices.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);font-size:0.88rem;padding:8px 0;">No trusted devices found.</div>';
+        return;
+    }
+
+    container.innerHTML = devices.map(d => `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div>
+                <div style="font-size:0.9rem;font-weight:500;">Trusted on ${fmtDate(d.created_at)}</div>
+                <div style="font-size:0.82rem;color:var(--text-muted);">Expires ${fmtDate(d.expires_at)}</div>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="removeTrustedDevice('${d.id}')">Remove</button>
+        </div>
+    `).join('');
+}
+
+window.loadTrustedDevices = loadTrustedDevices;
+
+window.removeTrustedDevice = async (id) => {
+    const res = await TrustedDevices.remove(id);
+    if (res.ok) {
+        toast('Device removed', 'success');
+        loadTrustedDevices();
+    } else {
+        toast(res.data.error || 'Failed to remove device', 'error');
+    }
+};
 
 // ===== PROFILE 2FA TAB =====
 let _totpSetupSecret = null;

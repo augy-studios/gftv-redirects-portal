@@ -99,6 +99,12 @@ export const ProfileViews = {
     getViewers: (profile_id) => req('GET', `/profile/views?profile_id=${encodeURIComponent(profile_id)}`),
 };
 
+// Trusted 2FA Devices
+export const TrustedDevices = {
+    list: () => req('GET', '/profile/trusted-devices'),
+    remove: (id) => req('DELETE', `/profile/trusted-devices?id=${encodeURIComponent(id)}`),
+};
+
 // Public Stats
 export const Stats = {
     get: () => req('GET', '/stats'),
