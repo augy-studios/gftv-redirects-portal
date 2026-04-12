@@ -6,7 +6,7 @@ This guide contains everything you need to know about using gftv.asia, from crea
 
 ## What is gftv.asia?
 
-**gftv.asia** is the official link shortener for [GFTV (Global Furry Television)](https://gftv.asia). It allows verified GFTV officers to create short, memorable links under the `gftv.asia` domain — links that the wider GFTV community can trust.
+**gftv.asia** is the official link shortener for [GFTV (Global Furry Television)](https://globalfurrytv.news.blog/). It allows verified GFTV officers to create short, memorable links under the `gftv.asia` domain — links that the wider GFTV community can trust.
 
 For example, a long destination URL like `https://www.youtube.com/watch?v=...` can become something clean and recognisable like `gftv.asia/youtube`.
 
@@ -22,14 +22,14 @@ Only GFTV officers with **Editor** access can create and manage short links. Com
 
 Use the left-hand navigation to explore topics by section:
 
-| Section | What it covers |
-|---|---|
-| **Getting Started** | Registering, getting approved, and logging in |
-| **Managing Links** | Creating, editing, tagging, and sharing short links |
-| **Your Account** | Profile settings, 2FA, trusted devices, and account deletion |
-| **Directory** | Browsing and searching all published links |
-| **For Admins** | User management, pre-approvals, and admin link controls |
-| **Changelog** | Product updates and new feature releases |
+| Section             | What it covers                                               |
+| ------------------- | ------------------------------------------------------------ |
+| **Getting Started** | Registering, getting approved, and logging in                |
+| **Managing Links**  | Creating, editing, tagging, and sharing short links          |
+| **Your Account**    | Profile settings, 2FA, trusted devices, and account deletion |
+| **Directory**       | Browsing and searching all published links                   |
+| **For Admins**      | User management, pre-approvals, and admin link controls      |
+| **Changelog**       | Product updates and new feature releases                     |
 
 ## Need help?
 
