@@ -16,7 +16,7 @@ Copy and paste the block below into Discord.
 We've shipped a big wave of improvements to the GFTV Shortlinks portal. Here's everything that's new, broken down by your access level.
 
 ────────────────────────────
-🌐 **Everyone (No Account Needed)**
+🌐 **Viewers**
 ────────────────────────────
 - **QR Code Sharing** — Every public short link now has a QR code you can scan or download and share anywhere.
 - **Faster Link Redirects** — Visit tracking is now handled natively, removing any reliance on third-party analytics.
@@ -68,7 +68,7 @@ Copy and paste the block below into Telegram.
 We've shipped a big wave of improvements to the GFTV Shortlinks portal\. Here's everything that's new, broken down by your access level\.
 
 ────────────────────────────
-🌐 *Everyone \(No Account Needed\)*
+🌐 *Viewers*
 ────────────────────────────
 • *QR Code Sharing* — Every public short link now has a QR code you can scan or download and share anywhere\.
 • *Faster Link Redirects* — Visit tracking is now handled natively, removing any reliance on third\-party analytics\.
