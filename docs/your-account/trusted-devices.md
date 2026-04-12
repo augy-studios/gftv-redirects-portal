@@ -6,9 +6,9 @@ If you have [2FA enabled](two-factor-authentication.md) and log in from the same
 
 When you mark a device as trusted:
 
-- The device is recorded in your account.
-- For the next **30 days**, logging in from that device will **not** prompt you for a 2FA code.
-- After 30 days, the trust expires and you will be asked for a 2FA code again on your next login.
+* The device is recorded in your account.
+* For the next **30 days**, logging in from that device will **not** prompt you for a 2FA code.
+* After 30 days, the trust expires and you will be asked for a 2FA code again on your next login.
 
 {% hint style="info" %}
 "Trusted" applies to the specific browser on the specific device. A new browser or a private/incognito session will not inherit trust even on the same device.
@@ -27,24 +27,24 @@ The device is now trusted for 30 days.
 
 To see and manage which devices are currently trusted:
 
-1. Log in and go to **Settings** > **Security**.
+1. Log in and go to **Profile** > **Danger Zone**.
 2. Scroll to the **Trusted Devices** section.
 3. You will see a list of currently trusted devices.
 
-From this list you can:
+From this list, you can:
 
-| Action | What it does |
-|---|---|
-| **Remove a device** | Revokes trust for that specific device immediately. The next login from it will require a 2FA code. |
+| Action                             | What it does                                                                                                    |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Remove a device**                | Revokes trust for that specific device immediately. The next login from it will require a 2FA code.             |
 | **Log out from all other devices** | Ends all active sessions on other devices and clears their trust records. Your current session is not affected. |
 
 ## Revoking all sessions
 
 If you believe your account has been accessed without your knowledge:
 
-1. Go to **Settings** > **Security**.
+1. Go to **Profile** > **Danger Zone**.
 2. Click **Log out from all devices**.
-3. All sessions (except your current one) are terminated immediately and all trusted device records are cleared.
+3. All sessions (except your current one) are terminated immediately, and all trusted device records are cleared.
 
 {% hint style="danger" %}
 If you suspect your account is compromised, also change your password immediately and consider regenerating your 2FA backup codes.
@@ -52,11 +52,8 @@ If you suspect your account is compromised, also change your password immediatel
 
 ## Frequently asked questions
 
-**Is it safe to trust a shared computer?**
-No. Only trust devices that are personal and secure. On a shared computer, always log out when done and never mark it as trusted.
+**Is it safe to trust a shared computer?** No. Only trust devices that are personal and secure. On a shared computer, always log out when done and never mark it as trusted.
 
-**Can I see the device name or location for each trusted device?**
-The trusted devices list shows the devices that are registered, but detailed device metadata (browser name, OS, location) may be limited. Review the list regularly and remove any entries you do not recognise.
+**Can I see the device name or location for each trusted device?** The trusted devices list shows the devices that are registered, but detailed device metadata (browser name, OS, location) may be limited. Review the list regularly and remove any entries you do not recognise.
 
-**What happens when trust expires?**
-After 30 days, the trust record expires naturally. The next time you log in from that device, you will be prompted for a 2FA code. You can re-trust it at that point.
+**What happens when trust expires?** After 30 days, the trust record expires naturally. The next time you log in from that device, you will be prompted for a 2FA code. You can re-trust it at that point.

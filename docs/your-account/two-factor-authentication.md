@@ -13,9 +13,10 @@ GFTV officers are strongly encouraged to enable 2FA, especially those with Edito
 ## Setting up 2FA
 
 You will need an authenticator app such as:
-- Google Authenticator (iOS / Android)
-- Authy (iOS / Android / Desktop)
-- 1Password, Bitwarden, or another password manager with TOTP support
+
+* Google Authenticator (iOS / Android)
+* Authy (iOS / Android / Desktop)
+* 1Password, Bitwarden, or another password manager with TOTP support
 
 **Steps:**
 
@@ -23,7 +24,7 @@ You will need an authenticator app such as:
 2. Click **Set up Two-Factor Authentication**.
 3. A **QR code** will be displayed.
 4. Open your authenticator app and scan the QR code.
-   - If you cannot scan it, click **Enter setup key manually** to copy the secret text instead.
+   * If you cannot scan it, click **Enter setup key manually** to copy the secret text instead.
 5. Your authenticator app will now show a 6-digit code for gftv.asia.
 6. Enter the current 6-digit code in the **Verification Code** field.
 7. Click **Verify and Enable**.
@@ -62,14 +63,10 @@ Disabling 2FA removes the second layer of protection from your account. Only do 
 
 ## Frequently asked questions
 
-**What is TOTP?**
-TOTP (Time-based One-Time Password) is a standard algorithm (RFC 6238) that generates a new 6-digit code every 30 seconds based on a shared secret. Your authenticator app and the gftv.asia server both know the secret and generate the same code independently.
+**What is TOTP?** TOTP (Time-based One-Time Password) is a standard algorithm (RFC 6238) that generates a new 6-digit code every 30 seconds based on a shared secret. Your authenticator app and the gftv.asia server both knows the secret and generates the same code independently.
 
-**My code isn't being accepted.**
-Ensure your device's clock is accurate — TOTP codes are time-sensitive. Try syncing your device's time and using the next code. If the problem persists, use a backup code.
+**My code isn't being accepted.** Ensure your device's clock is accurate as TOTP codes are time-sensitive. Try syncing your device's time and using the next code. If the problem persists, use a backup code.
 
-**I've lost my authenticator app and backup codes.**
-Contact an Admin. They can reset your password and disable 2FA on your account so you can regain access.
+**I've lost my authenticator app and backup codes.** Contact an Admin. They can reset your password and disable 2FA on your account so you can regain access.
 
-**Do I need to re-verify 2FA when I change my password?**
-No. 2FA settings are separate from your password. Changing your password does not disable 2FA.
+**Do I need to re-verify 2FA when I change my password?** No. 2FA settings are separate from your password. Changing your password does not disable 2FA.

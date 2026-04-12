@@ -1,4 +1,4 @@
-# Managing Links (Admin)
+# Managing Links
 
 {% hint style="info" %}
 This section covers admin-level link management. For day-to-day link management as an Editor, see the [Managing Links](../managing-links/creating-a-link.md) section.
@@ -18,10 +18,10 @@ Admins can manage links in two ways:
 1. Find the link in the Admin panel or the Directory.
 2. Click **Edit**.
 3. Modify any fields:
-   - **Slug** — Change the short link path.
-   - **Destination URL** — Update where the link points.
-   - **Active status** — Toggle the link on or off.
-   - **Tags** — Add or remove tags.
+   * **Slug** — Change the short link path.
+   * **Destination URL** — Update where the link points.
+   * **Active status** — Toggle the link on or off.
+   * **Tags** — Add or remove tags.
 4. Click **Save**.
 
 Changes take effect immediately.
@@ -56,19 +56,16 @@ Deletion cannot be undone. If a link is still in active use, consider [deactivat
 
 Over time, some links may be owned by accounts that are no longer active. Admins should periodically review the platform for:
 
-- Links pointing to dead or changed destinations.
-- Links owned by deleted or deactivated accounts.
-- Duplicate links serving the same destination.
+* Links pointing to dead or changed destinations.
+* Links owned by deleted or deactivated accounts.
+* Duplicate links serving the same destination.
 
 For any of these, the Admin can edit the destination, transfer ownership to an active Editor, or delete the link as appropriate.
 
 ## Frequently asked questions
 
-**Will the link's owner be notified if I edit or transfer their link?**
-There is no automatic notification system. If you make significant changes to a link, communicate this to the original owner through other channels.
+**Will the link's owner be notified if I edit or transfer their link?** There is no automatic notification system. If you make significant changes to a link, communicate this to the original owner through other channels.
 
-**Can Admins see the full view history of a link?**
-Admins can see the view count for any link. Detailed per-visit logs may also be accessible for auditing purposes.
+**Can Admins see the full view history of a link?** Admins can see the view count for any link. Detailed per-visit logs may also be accessible for auditing purposes.
 
-**Can an Editor's link be protected from admin edits?**
-No. All links are subject to admin oversight. This is by design — platform integrity takes precedence.
+**Can an Editor's link be protected from admin edits?** No. All links are subject to admin oversight. This is by design as platform integrity takes precedence.

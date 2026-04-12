@@ -22,9 +22,9 @@ If your email has not been pre-approved, your account will be created with **Pen
 
 ### Username rules
 
-- Must be 3–30 characters long.
-- May contain letters (`a–z`, `A–Z`), numbers (`0–9`), and underscores (`_`).
-- Must be unique — no two accounts can share a username.
+* Must be 3–30 characters long.
+* May contain letters (`a–z`, `A–Z`), numbers (`0–9`), and underscores (`_`).
+* Must be unique, as no two accounts can share a username.
 
 ### Password requirements
 
@@ -38,19 +38,19 @@ Write down your password or save it in a password manager. Admins can reset your
 
 After registering, your account will be in one of the following states:
 
-| Status | What it means |
-|---|---|
-| **Active (Editor)** | Your email was pre-approved as Editor. You can create and manage links immediately. |
-| **Active (Viewer)** | Your email was pre-approved as Viewer. You can browse the directory but not create links. |
-| **Pending** | Your email was not pre-approved. An Admin must manually approve your account before you can log in. |
+| Status              | What it means                                                                                       |
+| ------------------- | --------------------------------------------------------------------------------------------------- |
+| **Active (Editor)** | Your email was pre-approved as Editor. You can create and manage links immediately.                 |
+| **Active (Viewer)** | Your email was pre-approved as Viewer. You can browse the directory but not create links.           |
+| **Pending**         | Your email was not pre-approved. An Admin must manually approve your account before you can log in. |
 
 ## What happens after approval?
 
 Once an Admin approves your account and grants you the Editor role, you can:
 
-- Log in at [gftv.asia](https://gftv.asia).
-- Access your **Dashboard** to create and manage short links.
-- Appear as a verified officer in the public [Directory](../directory/browsing-the-directory.md).
+* Log in at [gftv.asia](https://gftv.asia).
+* Access your **Dashboard** to create and manage short links.
+* Appear as a verified officer in the public [Directory](../directory/browsing-the-directory.md).
 
 ## Changing your role
 
