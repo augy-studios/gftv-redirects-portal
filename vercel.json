@@ -73,6 +73,10 @@
             "destination": "/api/admin/users"
         },
         {
+            "source": "/api/admin/preapproved",
+            "destination": "/api/admin/preapproved"
+        },
+        {
             "source": "/api/profile/update",
             "destination": "/api/profile/update"
         },
