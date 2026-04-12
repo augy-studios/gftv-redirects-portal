@@ -12,7 +12,7 @@ Copy and paste the block below into Discord.
 ---
 
 ```
-📣 **GFTV Shortlinks — April 2026 Update**
+📣 **GFTV.asia Short Links Portal — April 2026 Update**
 We've shipped a big wave of improvements to the GFTV Shortlinks portal. Here's everything that's new, broken down by your access level.
 
 ────────────────────────────
@@ -52,7 +52,7 @@ We've shipped a big wave of improvements to the GFTV Shortlinks portal. Here's e
 
 ────────────────────────────
 Thanks for using GFTV Shortlinks! 🦊
-Questions? Reach out to your platform admin.
+https://gftv.asia/
 ```
 
 ---
@@ -64,7 +64,7 @@ Copy and paste the block below into Telegram.
 ---
 
 ```
-📣 *GFTV Shortlinks — April 2026 Update*
+📣 *GFTV.asia Short Links Portal — April 2026 Update*
 We've shipped a big wave of improvements to the GFTV Shortlinks portal\. Here's everything that's new, broken down by your access level\.
 
 ────────────────────────────
@@ -104,5 +104,5 @@ _Everything above, plus:_
 
 ────────────────────────────
 Thanks for using GFTV Shortlinks\! 🦊
-Questions? Reach out to your platform admin\.
+https://gftv.asia/
 ```
