@@ -156,4 +156,4 @@ We will acknowledge your report as soon as possible, work with you to understand
 
 ## Contact
 
-For questions that are not bugs or feature requests, you can reach the maintainers at **augybiz@gmail.com**.
+For questions that are not bugs or feature requests, you can reach the maintainers at **augy@augystudios.com**.
