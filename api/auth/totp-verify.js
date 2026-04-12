@@ -48,10 +48,11 @@ export default async function handler(req, res) {
             // Consume the backup code — single use
             await supabase.from('gftvlinks_backup_codes').delete().eq('id', storedCode.id);
         } else {
-            // Verify the TOTP code
+            // Verify the TOTP code — allow current and 1 previous cycle (±1 window)
             let isValid = false;
             try {
-                isValid = authenticator.verify({ token: code, secret: user.totp_secret });
+                const totpWithWindow = authenticator.clone({ window: 1 });
+                isValid = totpWithWindow.verify({ token: code, secret: user.totp_secret });
             } catch {
                 return err(res, 'Invalid code', 400);
             }

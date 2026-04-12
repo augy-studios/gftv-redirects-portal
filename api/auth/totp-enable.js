@@ -30,7 +30,8 @@ export default async function handler(req, res) {
 
         let isValid = false;
         try {
-            isValid = authenticator.verify({ token: code, secret });
+            const totpWithWindow = authenticator.clone({ window: 1 });
+            isValid = totpWithWindow.verify({ token: code, secret });
         } catch {
             return err(res, 'Invalid verification code', 400);
         }
