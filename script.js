@@ -99,7 +99,7 @@ function isEditor() {
 
 function navigate(page) {
     // Auth guard
-    const publicPages = ['home', 'login', 'register', 'pending'];
+    const publicPages = ['home', 'login', 'register', 'pending', 'preapproved'];
     if (!publicPages.includes(page) && !state.user) {
         showPage('home');
         return;
@@ -123,6 +123,7 @@ function navigate(page) {
     if (page === 'ownership') loadOwnershipRequests();
     if (page === 'admin') loadAdmin();
     if (page === 'profile') renderProfile();
+    if (page === 'preapproved') renderPreapprovedPage();
 }
 
 // ===== NAV =====
@@ -390,8 +391,20 @@ function setupRegisterPage() {
             });
 
             if (res.ok) {
-                toast('Account created! Waiting for admin approval.', 'success');
-                navigate('pending');
+                if (res.data.preapproved) {
+                    // Auto-login and show congratulations screen
+                    state.token = res.data.token;
+                    state.user = res.data.user;
+                    state.preapprovedRole = res.data.preapproved_role;
+                    localStorage.setItem('gftv_token', res.data.token);
+                    updateNav();
+                    showPage('preapproved');
+                    renderPreapprovedPage();
+                    toast('Account created! You\'ve been pre-approved.', 'success');
+                } else {
+                    toast('Account created! Waiting for admin approval.', 'success');
+                    navigate('pending');
+                }
             } else {
                 errEl.textContent = res.data.error || 'Registration failed';
                 errEl.style.display = 'flex';
@@ -883,11 +896,14 @@ let adminDeleteStep = 0;
 
 async function loadAdmin() {
     const container = document.getElementById('admin-users-wrap');
+    const preapprovedContainer = document.getElementById('admin-preapproved-wrap');
     container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+    preapprovedContainer.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
 
-    const res = await Admin.users();
+    const [res, preapprovedRes] = await Promise.all([Admin.users(), Admin.preapproved()]);
     if (!res.ok) {
         container.innerHTML = '<p style="color:var(--danger);padding:20px">Access denied.</p>';
+        preapprovedContainer.innerHTML = '';
         return;
     }
 
@@ -935,6 +951,116 @@ async function loadAdmin() {
       <tbody>${approved.map(userRow).join('')}</tbody>
     </table></div>
   `;
+
+    // Render pre-approved section
+    const preapprovedList = preapprovedRes.ok ? (preapprovedRes.data.preapproved || []) : [];
+    renderPreapprovedSection(preapprovedList);
+}
+
+function renderPreapprovedSection(list) {
+    const container = document.getElementById('admin-preapproved-wrap');
+    const pending = list.filter(e => !e.user_id);
+    const activated = list.filter(e => e.user_id);
+
+    function preapprovedRow(e) {
+        const roleBadge = e.preapproved_role === 'editor'
+            ? '<span class="badge badge-editor">Editor</span>'
+            : '<span class="badge badge-viewer">Viewer</span>';
+        const statusBadge = e.activated_at
+            ? '<span class="badge badge-active">Activated</span>'
+            : '<span class="badge badge-pending">Waiting</span>';
+        return `<tr>
+      <td style="word-break:break-all">
+        <span style="font-size:0.85rem">${e.email}</span>
+        <button class="btn-copy-inline" data-copy="${e.email}" onclick="copyInline(this)" title="Copy email">${icon('copy')}</button>
+      </td>
+      <td>${roleBadge}</td>
+      <td>${statusBadge}</td>
+      <td>${fmtDate(e.preapproved_at)}</td>
+      <td>${e.activated_at ? fmtDate(e.activated_at) : '<span style="color:var(--text-muted)">—</span>'}</td>
+      <td>
+        <div class="action-btns">
+          ${!e.activated_at ? `<button class="btn btn-sm btn-danger" onclick="removePreapproved('${e.id}')">${icon('x-circle')} Remove</button>` : ''}
+        </div>
+      </td>
+    </tr>`;
+    }
+
+    container.innerHTML = `
+    <h3 class="section-title"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Pre-approved Users (${list.length})</h3>
+    ${list.length > 0
+      ? `<div class="table-wrap glass"><table>
+          <thead><tr><th>Email</th><th>Role</th><th>Status</th><th>Pre-approved</th><th>Activated</th><th>Actions</th></tr></thead>
+          <tbody>${list.map(preapprovedRow).join('')}</tbody>
+        </table></div>`
+      : `<div class="empty-state" style="padding:24px"><p>No pre-approved users yet. Use the <strong>Pre-approve User</strong> button to add one.</p></div>`
+    }
+  `;
+}
+
+window.removePreapproved = async (id) => {
+    if (!confirm('Remove this pre-approval? The user will need manual approval if they register.')) return;
+    const res = await Admin.deletePreapproved(id);
+    if (res.ok) {
+        toast('Pre-approval removed', 'success');
+        await loadAdmin();
+    } else {
+        toast(res.data.error || 'Failed to remove pre-approval', 'error');
+    }
+};
+
+function setupAddPreapprovedModal() {
+    const form = document.getElementById('add-preapproved-form');
+    const errEl = document.getElementById('add-preapproved-error');
+    const btn = document.getElementById('add-preapproved-btn');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errEl.style.display = 'none';
+
+        const email = document.getElementById('preapproved-email').value.trim();
+        const role = document.getElementById('preapproved-role').value;
+
+        if (!email) {
+            errEl.textContent = 'Please enter an email address';
+            errEl.style.display = 'flex';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Adding…';
+
+        try {
+            const res = await Admin.addPreapproved(email, role);
+            if (res.ok) {
+                toast('User pre-approved successfully', 'success');
+                closeModal('modal-add-preapproved');
+                form.reset();
+                await loadAdmin();
+            } else {
+                errEl.textContent = res.data.error || 'Failed to add pre-approved user';
+                errEl.style.display = 'flex';
+            }
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Pre-approve User';
+        }
+    });
+}
+
+function renderPreapprovedPage() {
+    const role = state.preapprovedRole || 'viewer';
+    const roleLabel = role === 'editor' ? 'Editor' : 'Viewer';
+    const targetPage = role === 'editor' ? 'dashboard' : 'directory';
+    const btnLabel = role === 'editor' ? 'Go to Dashboard →' : 'Browse the Directory →';
+
+    const roleEl = document.getElementById('preapproved-role-text');
+    const btn = document.getElementById('preapproved-cta-btn');
+    if (roleEl) roleEl.textContent = `Congratulations, you have been pre-approved with ${roleLabel} access!`;
+    if (btn) {
+        btn.textContent = btnLabel;
+        btn.onclick = () => navigate(targetPage);
+    }
 }
 
 window.loadAdmin = loadAdmin;
@@ -1859,6 +1985,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDisable2FAModal();
     setupRegenBackupCodesModal();
     setupAdminModal();
+    setupAddPreapprovedModal();
     setupThemePicker();
     setupHamburger();
 
