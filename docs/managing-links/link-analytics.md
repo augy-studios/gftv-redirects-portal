@@ -1,24 +1,30 @@
 # Link Analytics
 
-gftv.asia tracks how many times each short link has been visited, giving you a simple view of how your links are performing.
+gftv.asia tracks detailed analytics for every short link, giving you a clear view of how your links are performing over time.
 
-## Viewing your link's view count
+## Viewing link analytics
 
-Each link in your **Dashboard** displays a **view count** — the total number of times the short link has been visited (i.e. a redirect was performed).
+Each link in your **My Links** dashboard has an analytics button (bar chart icon). Clicking it opens the analytics modal for that link, with four tabs:
 
-The view count is also visible on link cards in the public [Directory](../directory/browsing-the-directory.md), so other officers can see how popular a link is.
+- **Overview** — total visit count, device type breakdown, and a 7-day click trend chart.
+- **Heatmap** — a traffic heatmap showing clicks by day of the week and hour of the day (UTC), useful for identifying when your audience is most active.
+- **History** — a chronological log of events for the link: creation, status changes (active/inactive), and ownership transfers.
+- **Export** — download the complete all-time daily click history for the link as a CSV file.
+
+The total visit count is also visible on link cards in the public [Directory](../directory/browsing-the-directory.md).
 
 ## What is tracked
 
 | Data | Tracked? |
 |---|---|
 | Total visit count per link | Yes |
-| Per-visit timestamp | Yes (stored internally) |
+| Per-visit timestamp | Yes |
+| Device type (Desktop, Tablet, Mobile) | Yes |
 | Visitor identity | No |
 | Visitor IP address | No |
-| Browser or device details | No |
+| Browser name or version | No |
 
-gftv.asia records that a visit happened, but does **not** collect any personally identifiable information about visitors. Analytics are aggregate only.
+gftv.asia records that a visit happened and the general device category, but does **not** collect any personally identifiable information about visitors. Analytics are aggregate only.
 
 {% hint style="info" %}
 Every redirect through a `gftv.asia` short link increments the view count by 1, including the link owner visiting their own link.
@@ -26,11 +32,12 @@ Every redirect through a `gftv.asia` short link increments the view count by 1, 
 
 ## Using analytics to manage your links
 
-View counts can help you:
+Analytics can help you:
 
 - **Identify popular links** — high-traffic links may warrant more careful management (e.g. avoid changing their slug).
 - **Spot unused links** — links with very low or zero views over time may be candidates for cleanup.
-- **Measure campaign reach** — if you create a dedicated short link for a specific event or announcement, the view count gives you a rough measure of reach.
+- **Measure campaign reach** — if you create a dedicated short link for a specific event or announcement, the view count and daily trend give you a measure of reach.
+- **Understand your audience** — the device breakdown and heatmap show what devices people use and when they are most active.
 
 ## Profile and directory statistics
 
@@ -42,10 +49,10 @@ The platform also surfaces higher-level statistics:
 ## Frequently asked questions
 
 **Can I see a breakdown of visits over time?**
-The platform currently shows the total lifetime view count per link. Per-day or per-week breakdowns are not displayed in the UI.
+Yes. The analytics modal shows a 7-day daily click trend chart. You can also export the complete all-time daily click history as a CSV from the Export tab.
 
 **Are views counted for inactive links?**
 No. Inactive links redirect visitors to the GFTV blog rather than the original destination. Only visits to active links increment the counter.
 
 **Can other users see my link's view count?**
-Yes. View counts are visible on link cards in the public Directory to all users (logged in or not).
+Yes. View counts are visible on link cards in the public Directory to all users (logged in or not). The detailed analytics modal is only accessible to the link owner from their My Links dashboard.

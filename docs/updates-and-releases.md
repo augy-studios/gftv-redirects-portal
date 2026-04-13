@@ -6,6 +6,46 @@ Versions follow date-based release codes in the format `YYYY.MM.DD`.
 
 ***
 
+## 2026.04.13 — Analytics, Public API & Dashboard Enhancements
+
+**Released:** 13 April 2026
+
+**Link Analytics**
+
+Every short link now has a full analytics modal accessible directly from the My Links dashboard. It includes:
+
+* Device type breakdown — see how many visits came from Desktop, Tablet, Mobile, or other devices.
+* 7-day click trend chart — daily visit counts for the past week.
+* Traffic heatmap — clicks by day of the week and hour of the day (UTC).
+* Link history log — an automatically recorded event trail showing creation, status changes, and ownership transfers.
+* Analytics CSV export — download the complete all-time daily click history for any link as a CSV file.
+
+See [Link Analytics](managing-links/link-analytics.md).
+
+**Public API v1**
+
+Editors and Admins can now access their links programmatically via a REST API, authenticated with a personal API key.
+
+* `GET /api/v1/links` — list your links, with optional filtering by slug or tag and pagination support.
+* `POST /api/v1/links` — create a new short link.
+* `GET /api/v1/links/:slug` — retrieve any link by slug.
+* `PUT /api/v1/links/:slug` — update your link's destination, active status, or tags.
+
+See the [API Overview](api/overview.md) and endpoint references.
+
+**API Integration Page**
+
+A new **API** page in the portal sidebar lets Editors and Admins generate and manage their personal API key. Regenerating a key immediately invalidates the previous one.
+
+**My Links Dashboard Enhancements**
+
+* Search your links by keyword or tag directly from the My Links dashboard.
+* Filter by link status (All / Active / Inactive).
+* Sort by date created or total visit count.
+* Download your link list (or any filtered subset) as a CSV file.
+
+***
+
 ## 2026.04.12 — Documentation & Stability
 
 **Released:** 12 April 2026
