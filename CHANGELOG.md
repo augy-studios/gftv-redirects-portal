@@ -6,6 +6,29 @@ Versions follow date-based release codes in the format `YYYY.MM.DD`. If multiple
 
 ---
 
+#### [2026.04.13](https://github.com/augy-studios/gftv-redirects-portal/compare/2026.04.12...2026.04.13)
+
+> 13 April 2026
+
+**Analytics, Public API & Dashboard Enhancements**
+
+- Add **link analytics modal** — per-link analytics accessible from the My Links dashboard, showing device type breakdown (Desktop, Tablet, Mobile, Others), a 7-day click trend chart, an hour-of-day traffic heatmap, and a full link history log
+- Add **device type tracking** on link visits — the `record_link_visit` RPC now accepts a `device_type` parameter; existing visits default to `Others`
+- Add **link history log** — auto-recorded event trail for each link (creation, status changes, ownership transfers) via a database trigger (`trg_link_history`)
+- Add **analytics CSV export** — export the full all-time daily click history for any link as a CSV from the analytics modal
+- Add **Public API v1** — REST API for programmatic link access, authenticated via `Authorization: ApiKey <key>`:
+  - `GET /api/v1/links` — list your links, filterable by slug or tag with pagination
+  - `POST /api/v1/links` — create a new short link
+  - `GET /api/v1/links/:slug` — retrieve any link by slug
+  - `PUT /api/v1/links/:slug` — update your link's destination, active status, or tags
+- Add **API Integration page** — generate and manage a personal API key from the portal sidebar; available to Editors and Admins
+- Add **My Links search and filters** — filter by keyword, tag, or active/inactive status; sort by date created or total visit count
+- Add **My Links CSV export** — download your link list (or any filtered subset) as a CSV file including slug, destination, active status, visits, tags, and creation date
+- Fix `visited_at` column naming in link visits migration
+- Fix API key display field layout on small screens
+
+---
+
 #### [2026.04.12](https://github.com/augy-studios/gftv-redirects-portal/compare/2026.04.11...2026.04.12)
 
 > 12 April 2026

@@ -33,6 +33,9 @@ We've shipped a big wave of improvements to the GFTV Shortlinks portal. Here's e
 - **Ownership Transfer** — You can now hand off any of your short links to another user. Just enter their username in the link's edit panel.
 - **Ownership Requests** — Other users can formally request ownership of your links. You'll receive the request and can approve or deny it from the Ownership Requests page.
 - **QR Code in My Links** — The QR code button is available directly inside your "My Links" dashboard — no need to find the link in the public directory.
+- **Link Analytics** — A detailed analytics modal for every link, accessible from your "My Links" dashboard. View a device type breakdown (Desktop, Tablet, Mobile), a 7-day click trend chart, an hour-of-day traffic heatmap, and a full link history log (creation events, status changes, and ownership transfers). Export the complete daily click history for any link as a CSV.
+- **My Links Search & Filters** — Filter your links by keyword, tag, or status (Active / Inactive) and sort by date created or total visit count.
+- **CSV Export** — Download your entire link list (or any filtered subset) as a CSV file, including slug, destination, active status, visit count, tags, and creation date.
 
 ## 🛠️ **Admins**
 *Everything above, plus:*
@@ -41,6 +44,15 @@ We've shipped a big wave of improvements to the GFTV Shortlinks portal. Here's e
 - **Admin Link Management** — A new "Manage Short Link" modal lets admins edit the slug, destination URL, active status, and tags of **any** link on the platform — and delete links if needed.
 - **Edit Button in Directory** — Admins now see an edit button on every link in the public directory for quick access.
 - **User Management Improvements** — Reset any user's password, grant or revoke Editor/Viewer access, toggle admin status, or delete accounts entirely from the Admin panel.
+
+## 💻 **Editors & Admins (Developer Access)**
+*Available to all Editors and Admins:*
+- **Public API v1** — Programmatic REST access to your links, authenticated with a personal API key (`Authorization: ApiKey <key>`).
+  - `GET /api/v1/links` — List your links, filterable by slug or tag, with pagination support.
+  - `POST /api/v1/links` — Create a new short link.
+  - `GET /api/v1/links/:slug` — Retrieve any link by slug.
+  - `PUT /api/v1/links/:slug` — Update your link's destination, active status, or tags.
+- **API Integration Page** — Generate and manage your personal API key from the new **API** page in the portal sidebar. Regenerating your key immediately invalidates the previous one.
 
 Thanks for using GFTV Shortlinks! 🦊
 https://gftv.asia/
@@ -82,6 +94,9 @@ _Everything above, plus:_
 • *Ownership Transfer* — You can now hand off any of your short links to another user\. Just enter their username in the link's edit panel\.
 • *Ownership Requests* — Other users can formally request ownership of your links\. You'll receive the request and can approve or deny it from the Ownership Requests page\.
 • *QR Code in My Links* — The QR code button is available directly inside your "My Links" dashboard — no need to find the link in the public directory\.
+• *Link Analytics* — A detailed analytics modal for every link, accessible from your "My Links" dashboard\. View a device type breakdown \(Desktop, Tablet, Mobile\), a 7\-day click trend chart, an hour\-of\-day traffic heatmap, and a full link history log \(creation events, status changes, and ownership transfers\)\. Export the complete daily click history for any link as a CSV\.
+• *My Links Search & Filters* — Filter your links by keyword, tag, or status \(Active / Inactive\) and sort by date created or total visit count\.
+• *CSV Export* — Download your entire link list \(or any filtered subset\) as a CSV file, including slug, destination, active status, visit count, tags, and creation date\.
 
 ────────────────────────────
 🛠️ *Admins*
@@ -92,6 +107,13 @@ _Everything above, plus:_
 • *Admin Link Management* — A new "Manage Short Link" modal lets admins edit the slug, destination URL, active status, and tags of *any* link on the platform — and delete links if needed\.
 • *Edit Button in Directory* — Admins now see an edit button on every link in the public directory for quick access\.
 • *User Management Improvements* — Reset any user's password, grant or revoke Editor/Viewer access, toggle admin status, or delete accounts entirely from the Admin panel\.
+
+────────────────────────────
+💻 *Editors & Admins \(Developer Access\)*
+────────────────────────────
+_Available to all Editors and Admins:_
+• *Public API v1* — Programmatic REST access to your links, authenticated with a personal API key\. Supports listing, creating, reading, and updating links via `Authorization: ApiKey <key>`\.
+• *API Integration Page* — Generate and manage your personal API key from the new *API* page in the portal sidebar\. Regenerating your key immediately invalidates the previous one\.
 
 ────────────────────────────
 Thanks for using GFTV Shortlinks\! 🦊
