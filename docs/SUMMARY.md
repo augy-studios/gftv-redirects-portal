@@ -37,6 +37,14 @@
 * [Pre-Approval System](for-admins/pre-approval-system.md)
 * [Managing Links](for-admins/managing-links.md)
 
+## API
+
+* [API Overview](api/overview.md)
+* [GET /api/v1/links](api/get-links.md)
+* [GET /api/v1/links/:slug](api/get-link-by-slug.md)
+* [POST /api/v1/links](api/create-link.md)
+* [PUT /api/v1/links/:slug](api/update-link.md)
+
 ## Changelog
 
 * [Updates & Releases](updates-and-releases.md)

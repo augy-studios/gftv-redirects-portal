@@ -106,6 +106,12 @@ export const TrustedDevices = {
     remove: (id) => req('DELETE', `/profile/trusted-devices?id=${encodeURIComponent(id)}`),
 };
 
+// API Key management
+export const ApiKeys = {
+    get: () => req('GET', '/apikeys'),
+    regenerate: () => req('POST', '/apikeys'),
+};
+
 // Public Stats
 export const Stats = {
     get: () => req('GET', '/stats'),
