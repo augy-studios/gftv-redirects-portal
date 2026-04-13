@@ -691,6 +691,10 @@ function setupAdminManageLinkModal() {
 let dashboardLinks = [];
 let dashTagsManager = null;
 let editingLinkId = null;
+let dashFilterKeyword = '';
+let dashFilterTag = '';
+let dashFilterStatus = 'all';
+let dashSortOrder = 'date';
 
 async function loadDashboard() {
     const container = document.getElementById('dashboard-links-wrap');
@@ -717,6 +721,28 @@ async function loadDashboard() {
     renderDashboardTable();
 }
 
+function getFilteredSortedLinks() {
+    let links = dashboardLinks.filter(link => {
+        if (dashFilterKeyword) {
+            const kw = dashFilterKeyword.toLowerCase();
+            if (!link.slug.toLowerCase().includes(kw) && !link.destination.toLowerCase().includes(kw)) return false;
+        }
+        if (dashFilterTag) {
+            const tag = dashFilterTag.toLowerCase();
+            if (!link.tags || !link.tags.some(t => t.toLowerCase().includes(tag))) return false;
+        }
+        if (dashFilterStatus === 'active' && !link.is_active) return false;
+        if (dashFilterStatus === 'inactive' && link.is_active) return false;
+        return true;
+    });
+    if (dashSortOrder === 'visits') {
+        links.sort((a, b) => (b.access_count ?? 0) - (a.access_count ?? 0));
+    } else {
+        links.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+    return links;
+}
+
 function renderDashboardTable() {
     const container = document.getElementById('dashboard-links-wrap');
     if (dashboardLinks.length === 0) {
@@ -724,7 +750,14 @@ function renderDashboardTable() {
         return;
     }
 
-    const rows = dashboardLinks.map(link => `
+    const filtered = getFilteredSortedLinks();
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('link', 32)}</div><h3>No links match</h3><p>Try adjusting your search or filters.</p></div>`;
+        return;
+    }
+
+    const rows = filtered.map(link => `
     <tr>
       <td class="td-slug">${slugCopyHtml(link.slug)}</td>
       <td class="td-dest"><a href="${link.destination}" target="_blank" rel="noopener">${link.destination}</a></td>
@@ -751,6 +784,70 @@ function renderDashboardTable() {
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+}
+
+window.downloadLinksCSV = () => {
+    if (dashboardLinks.length === 0) {
+        toast('No links to download', 'error');
+        return;
+    }
+    const links = getFilteredSortedLinks();
+    if (links.length === 0) {
+        toast('No links match the current filters', 'error');
+        return;
+    }
+    const headers = ['Short URL', 'Original URL', 'Status', 'Tags', 'Visits', 'Created At', 'Last Modified'];
+    const csvEscape = val => {
+        const s = String(val ?? '');
+        return (s.includes(',') || s.includes('"') || s.includes('\n')) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const rows = links.map(link => [
+        `https://gftv.asia/${link.slug}`,
+        link.destination,
+        link.is_active ? 'Active' : 'Inactive',
+        (link.tags || []).join('; '),
+        link.access_count ?? 0,
+        link.created_at,
+        link.updated_at
+    ].map(csvEscape).join(','));
+    const csv = [headers.map(csvEscape).join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'my-links.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast(`Downloaded ${links.length} link${links.length !== 1 ? 's' : ''} as CSV`, 'success');
+};
+
+function setupDashboardPage() {
+    const keywordInput = document.getElementById('dash-search-keyword');
+    const tagInput = document.getElementById('dash-search-tag');
+    const statusSelect = document.getElementById('dash-filter-status');
+    const sortSelect = document.getElementById('dash-sort');
+
+    let debounceTimer;
+    keywordInput.addEventListener('input', () => {
+        dashFilterKeyword = keywordInput.value.trim();
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(renderDashboardTable, 200);
+    });
+    tagInput.addEventListener('input', () => {
+        dashFilterTag = tagInput.value.trim();
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(renderDashboardTable, 200);
+    });
+    statusSelect.addEventListener('change', () => {
+        dashFilterStatus = statusSelect.value;
+        renderDashboardTable();
+    });
+    sortSelect.addEventListener('change', () => {
+        dashSortOrder = sortSelect.value;
+        renderDashboardTable();
+    });
 }
 
 window.toggleLink = async (id, is_active) => {
@@ -2412,6 +2509,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupLoginPage();
     setupRegisterPage();
     setupDirectoryPage();
+    setupDashboardPage();
     setupCreateLinkModal();
     setupAdminManageLinkModal();
     setupProfilePage();
