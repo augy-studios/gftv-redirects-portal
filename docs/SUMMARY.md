@@ -45,6 +45,11 @@
 * [POST /api/v1/links](api/create-link.md)
 * [PUT /api/v1/links/:slug](api/update-link.md)
 
+## Legal
+
+* [Terms of Use](legal/terms-of-use.md)
+* [Privacy Policy](legal/privacy.md)
+
 ## Changelog
 
 * [Updates & Releases](updates-and-releases.md)
