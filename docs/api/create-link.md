@@ -23,7 +23,7 @@ Content-Type: application/json
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `slug` | string | **Yes** | The short link path. Must be 1–60 characters: letters, numbers, hyphens (`-`), or underscores (`_`). Must be unique across the platform. |
-| `destination` | string | **Yes** | The full URL to redirect to. Must be a valid URL and must not point to `gftv.asia`. |
+| `destination` | string | **Yes** | The full URL to redirect to. Must be a valid URL and must not point to `gftv.asia` (except `guide.gftv.asia`). |
 | `tags` | array of strings | No | Up to 5 tags. Omit or pass an empty array for no tags. |
 
 ## Response
@@ -54,7 +54,7 @@ Content-Type: application/json
 | `400` | `destination is required` | The `destination` field is missing or empty |
 | `400` | `slug must be 1–60 alphanumeric characters, hyphens, or underscores` | Slug contains invalid characters or exceeds 60 characters |
 | `400` | `destination must be a valid URL` | The destination is not a well-formed URL |
-| `400` | `destination cannot point to gftv.asia` | Circular redirect guard |
+| `400` | `destination cannot point to gftv.asia` | Circular redirect guard (`guide.gftv.asia` is allowed) |
 | `400` | `tags must be an array of up to 5 strings` | More than 5 tags provided, or wrong type |
 | `401` | Unauthorized | API key is missing or invalid |
 | `403` | Forbidden | Account is not an Editor or Admin |

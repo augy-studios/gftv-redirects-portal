@@ -52,7 +52,8 @@ export default async function handler(req, res) {
             if (!Array.isArray(tags) || tags.length > 5) return err(res, 'tags must be an array of up to 5 strings');
 
             try { new URL(destination); } catch { return err(res, 'destination must be a valid URL'); }
-            if (new URL(destination).hostname.endsWith('gftv.asia')) return err(res, 'destination cannot point to gftv.asia');
+            const destHostname = new URL(destination).hostname;
+            if (destHostname.endsWith('gftv.asia') && destHostname !== 'guide.gftv.asia') return err(res, 'destination cannot point to gftv.asia');
 
             const { data: created, error } = await supabase
                 .from('gftvlinks_links')

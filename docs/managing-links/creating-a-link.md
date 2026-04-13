@@ -34,7 +34,7 @@ If you leave the slug field blank, the platform will automatically generate a ra
 The destination URL is where visitors will be sent when they click your short link. Enter the full URL, including `https://`.
 
 {% hint style="warning" %}
-Destination URLs cannot point back to `gftv.asia` itself. Self-referential redirects are blocked to prevent loops.
+Destination URLs cannot point back to `gftv.asia` itself. Self-referential redirects are blocked to prevent loops. The one exception is `guide.gftv.asia`, which is allowed as a destination.
 {% endhint %}
 
 ### Tags
