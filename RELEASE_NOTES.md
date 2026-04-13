@@ -12,7 +12,7 @@ Copy and paste the block below into Discord.
 ---
 
 ```
-# 📣 **GFTV.asia Short Links Portal — April 2026 Update**
+# 📣 **GFTV.asia Short Links Portal — Release Notes**
 We've shipped a big wave of improvements to the GFTV Shortlinks portal. Here's everything that's new, broken down by your access level.
 
 ## 🌐 **Viewers**
@@ -67,7 +67,7 @@ Copy and paste the block below into Telegram.
 ---
 
 ```
-📣 *GFTV.asia Short Links Portal — April 2026 Update*
+📣 *GFTV.asia Short Links Portal — Release Notes*
 We've shipped a big wave of improvements to the GFTV Shortlinks portal\. Here's everything that's new, broken down by your access level\.
 
 ────────────────────────────
