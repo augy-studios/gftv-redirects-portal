@@ -156,7 +156,7 @@ function updateNav() {
     const renderLinks = (container) => {
         if (!state.user) {
             container.innerHTML = `
-        <button class="nav-btn-outline" onclick="window.open('https://form.gov.sg','_blank')">Send us feedback</button>
+        <button class="nav-btn-outline" onclick="window.open('https://gftv.asia/user-support','_blank')">Send us feedback</button>
         <button class="nav-btn-outline" onclick="window.open('https://guide.gftv.asia','_blank')">Guide</button>
         <button class="nav-btn-outline" onclick="window.open('https://github.com/augy-studios/gftv-redirects-portal','_blank')">Contribute</button>
         <button class="nav-btn ${state.currentPage==='login'?'active':''}" onclick="nav('login')">Log In</button>
