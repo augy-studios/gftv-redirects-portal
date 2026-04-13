@@ -57,6 +57,7 @@ export const Links = {
     create: (body) => req('POST', '/links', body),
     update: (id, body) => req('PUT', `/links/${id}`, body),
     delete: (id) => req('DELETE', `/links/${id}`),
+    analytics: (id) => req('GET', `/links/analytics?id=${encodeURIComponent(id)}`),
 };
 
 // Ownership

@@ -726,8 +726,9 @@ function renderDashboardTable() {
       <td>${fmtDate(link.created_at)}</td>
       <td style="white-space:nowrap">
         <div style="display:flex;gap:6px;align-items:center">
-          <button class="btn btn-sm btn-secondary" onclick="openEditLink('${link.id}')">${icon('edit')} Edit</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteLink('${link.id}')">${icon('trash')}</button>
+          <button class="btn btn-sm btn-secondary" onclick="openAnalyticsModal('${link.id}')" title="View analytics">${icon('bar-chart')}</button>
+          <button class="btn btn-sm btn-secondary" onclick="openEditLink('${link.id}')" title="Edit link">${icon('edit')}</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteLink('${link.id}')" title="Delete link">${icon('trash')}</button>
         </div>
       </td>
     </tr>
@@ -2007,6 +2008,288 @@ window.shareQrCode = async () => {
     } catch (e) {
         if (e.name !== 'AbortError') toast('Failed to share', 'error');
     }
+};
+
+// ===== LINK ANALYTICS MODAL =====
+let analyticsLinkId = null;
+let analyticsData = null;
+let analyticsActiveTab = 'devices';
+
+window.openAnalyticsModal = async (id) => {
+    analyticsLinkId = id;
+    analyticsData = null;
+    analyticsActiveTab = 'devices';
+
+    const link = dashboardLinks.find(l => l.id === id);
+    if (!link) return;
+
+    document.getElementById('analytics-modal-slug').textContent = 'https://gftv.asia/' + link.slug;
+    document.getElementById('analytics-total-clicks').textContent = '— total clicks';
+    document.getElementById('analytics-tab-content').innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+
+    // Reset tabs to first tab
+    document.querySelectorAll('.analytics-tab-btn').forEach(b => b.classList.remove('active'));
+    const firstTab = document.querySelector('.analytics-tab-btn[data-tab="devices"]');
+    if (firstTab) firstTab.classList.add('active');
+
+    openModal('modal-analytics');
+
+    const res = await Links.analytics(id);
+    if (!res.ok) {
+        document.getElementById('analytics-tab-content').innerHTML = `<p style="color:var(--danger);padding:20px">Failed to load analytics.</p>`;
+        return;
+    }
+    analyticsData = res.data;
+
+    const total = analyticsData.total_clicks || 0;
+    document.getElementById('analytics-total-clicks').textContent = `${total} total click${total !== 1 ? 's' : ''}`;
+
+    renderAnalyticsTabContent(analyticsActiveTab);
+};
+
+window.switchAnalyticsTab = (tab, btn) => {
+    analyticsActiveTab = tab;
+    document.querySelectorAll('.analytics-tab-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    if (analyticsData) {
+        renderAnalyticsTabContent(tab);
+    } else {
+        document.getElementById('analytics-tab-content').innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+    }
+};
+
+function renderAnalyticsTabContent(tab) {
+    const content = document.getElementById('analytics-tab-content');
+    if (!analyticsData) return;
+    if (tab === 'devices') content.innerHTML = renderAnalyticsDevices(analyticsData);
+    else if (tab === 'clicks') content.innerHTML = renderAnalyticsClicks(analyticsData);
+    else if (tab === 'traffic') content.innerHTML = renderAnalyticsTraffic(analyticsData);
+    else if (tab === 'history') content.innerHTML = renderAnalyticsHistory(analyticsData);
+}
+
+function renderAnalyticsDevices(data) {
+    const ORDER = ['Desktop', 'Tablet', 'Mobile', 'Others'];
+    const COLORS = ['#2d4057', '#7c8ea0', '#b0bec8', '#e2e8ec'];
+
+    const counts = { Desktop: 0, Tablet: 0, Mobile: 0, Others: 0 };
+    (data.devices || []).forEach(d => {
+        if (counts.hasOwnProperty(d.device_type)) counts[d.device_type] = Number(d.cnt);
+    });
+    const total = ORDER.reduce((s, k) => s + counts[k], 0);
+    const pct = v => total > 0 ? ((v / total) * 100).toFixed(1) : '0.0';
+
+    const segments = ORDER.map((type, i) => {
+        const w = total > 0 ? (counts[type] / total) * 100 : 0;
+        return w > 0 ? `<div style="width:${w}%;background:${COLORS[i]};height:100%;"></div>` : '';
+    }).join('');
+
+    const legend = ORDER.map((type, i) => `
+        <div style="display:flex;flex-direction:column;gap:3px;min-width:70px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+                <span style="width:10px;height:10px;border-radius:50%;background:${COLORS[i]};display:inline-block;flex-shrink:0;"></span>
+                <span style="font-size:0.82rem;color:var(--text-muted)">${type}</span>
+            </div>
+            <div style="font-size:1.05rem;font-weight:700;padding-left:16px;">${pct(counts[type])}%</div>
+        </div>
+    `).join('');
+
+    return `
+        <p style="font-size:0.95rem;font-weight:600;margin-bottom:16px;">What devices are your users on?</p>
+        <div style="height:18px;border-radius:999px;overflow:hidden;display:flex;background:var(--border);margin-bottom:20px;">
+            ${segments || `<div style="width:100%;background:var(--border);height:100%;"></div>`}
+        </div>
+        <div style="display:flex;gap:28px;flex-wrap:wrap;">${legend}</div>
+    `;
+}
+
+function renderAnalyticsClicks(data) {
+    // Build the 7-day window ending today (UTC)
+    const today = new Date();
+    today.setUTCHours(23, 59, 59, 999);
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setUTCDate(d.getUTCDate() - i);
+        days.push({
+            date: d.toISOString().split('T')[0],
+            label: d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }),
+            count: 0,
+        });
+    }
+    (data.daily_clicks || []).forEach(item => {
+        const day = days.find(d => d.date === item.day);
+        if (day) day.count = Number(item.cnt);
+    });
+
+    const maxCount = Math.max(...days.map(d => d.count), 1);
+    const W = 520, H = 160, padL = 28, padR = 12, padT = 16, padB = 28;
+    const cW = W - padL - padR, cH = H - padT - padB;
+    const xStep = cW / 6;
+
+    const points = days.map((d, i) => ({
+        x: padL + i * xStep,
+        y: padT + cH - (d.count / maxCount) * cH,
+        count: d.count,
+        label: d.label,
+    }));
+
+    // Y-axis reference lines
+    const yTicks = maxCount <= 4
+        ? Array.from({ length: maxCount + 1 }, (_, i) => i)
+        : [0, Math.ceil(maxCount / 2), maxCount];
+    const yLines = yTicks.map(v => {
+        const y = padT + cH - (v / maxCount) * cH;
+        return `<line x1="${padL}" y1="${y}" x2="${padL + cW}" y2="${y}" stroke="var(--border)" stroke-width="1"/>
+                <text x="${padL - 4}" y="${y + 4}" text-anchor="end" font-size="10" fill="var(--text-muted)">${v}</text>`;
+    }).join('');
+
+    const polyline = points.map(p => `${p.x},${p.y}`).join(' ');
+    const dots = points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--brand-darker)"/>`).join('');
+    const xLabels = points.map(p =>
+        `<text x="${p.x}" y="${H - 4}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${p.label}</text>`
+    ).join('');
+
+    const dlId = analyticsLinkId;
+    return `
+        <p style="font-size:0.95rem;font-weight:600;margin-bottom:6px;">How many users have visited your link in the past week?</p>
+        <p style="margin-bottom:18px;">
+            <a href="#" onclick="window.downloadAllClicks(event,'${dlId}')" style="color:var(--brand-darker);font-size:0.83rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+                Download full link click statistics here ${icon('download', 13)}
+            </a>
+        </p>
+        <div style="overflow-x:auto;">
+            <svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:280px;" xmlns="http://www.w3.org/2000/svg">
+                <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + cH}" stroke="var(--border)" stroke-width="1"/>
+                ${yLines}
+                <polyline points="${polyline}" fill="none" stroke="var(--brand-darker)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+                ${dots}
+                ${xLabels}
+            </svg>
+        </div>
+    `;
+}
+
+function renderAnalyticsTraffic(data) {
+    // PostgreSQL DOW: 0=Sun, 1=Mon ... 6=Sat — display Mon first
+    const DOW_ORDER = [1, 2, 3, 4, 5, 6, 0];
+    const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const HOUR_LABELS = Array.from({ length: 24 }, (_, h) => {
+        if (h === 0) return '12am';
+        if (h === 12) return '12pm';
+        return h < 12 ? `${h}am` : `${h - 12}pm`;
+    });
+
+    const grid = {};
+    let maxVal = 0;
+    (data.heatmap || []).forEach(item => {
+        const k = `${item.dow}:${item.hr}`;
+        grid[k] = Number(item.cnt);
+        if (grid[k] > maxVal) maxVal = grid[k];
+    });
+
+    const SHOW_AT = new Set([0, 6, 12, 18]);
+
+    const headerCells = Array.from({ length: 24 }, (_, h) =>
+        `<th style="padding:0 1px;text-align:center;font-size:9px;color:var(--text-light);font-weight:400;white-space:nowrap;min-width:20px;">${SHOW_AT.has(h) ? HOUR_LABELS[h] : ''}</th>`
+    ).join('');
+
+    const bodyRows = DOW_ORDER.map((dow, rowIdx) => {
+        const cells = Array.from({ length: 24 }, (_, h) => {
+            const cnt = grid[`${dow}:${h}`] || 0;
+            const intensity = maxVal > 0 ? cnt / maxVal : 0;
+            const bg = cnt > 0
+                ? `rgba(45,64,87,${(0.12 + intensity * 0.82).toFixed(2)})`
+                : 'var(--surface)';
+            const title = `${DOW_LABELS[rowIdx]} ${HOUR_LABELS[h]} — ${cnt} click${cnt !== 1 ? 's' : ''}`;
+            return `<td title="${title}" style="width:20px;height:20px;background:${bg};border:1px solid var(--border);border-radius:3px;"></td>`;
+        }).join('');
+        return `<tr>
+            <td style="font-size:11px;color:var(--text-muted);padding-right:8px;white-space:nowrap;vertical-align:middle;">${DOW_LABELS[rowIdx]}</td>
+            ${cells}
+        </tr>`;
+    }).join('');
+
+    // Legend: 5 steps from empty → max
+    const legendBoxes = [0, 0.12, 0.35, 0.6, 0.9].map((alpha, i) => {
+        const bg = i === 0 ? 'var(--surface)' : `rgba(45,64,87,${alpha})`;
+        return `<div style="width:16px;height:16px;background:${bg};border:1px solid var(--border);border-radius:3px;"></div>`;
+    }).join('');
+
+    return `
+        <p style="font-size:0.95rem;font-weight:600;margin-bottom:14px;">When do your users visit?</p>
+        <div style="overflow-x:auto;">
+            <table style="border-collapse:separate;border-spacing:2px;">
+                <thead><tr><th></th>${headerCells}</tr></thead>
+                <tbody>${bodyRows}</tbody>
+            </table>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:12px;font-size:11px;color:var(--text-muted);">
+            ${legendBoxes}
+            <span style="margin-left:4px;">0</span>
+            <span style="flex:1;min-width:8px;"></span>
+            <span>${maxVal}+</span>
+        </div>
+    `;
+}
+
+function renderAnalyticsHistory(data) {
+    const link = dashboardLinks.find(l => l.id === analyticsLinkId);
+    const slug = link ? link.slug : '';
+    const history = data.history || [];
+
+    if (history.length === 0) {
+        return `<div class="empty-state" style="padding:32px 0;">${icon('clock', 28)}<p style="margin-top:8px;">No history recorded yet.</p></div>`;
+    }
+
+    const items = history.map((item, i) => {
+        const isLast = i === history.length - 1;
+        const dateStr = new Date(item.created_at).toLocaleString('en-US', {
+            month: 'long', day: 'numeric', year: 'numeric',
+            hour: 'numeric', minute: '2-digit',
+        });
+        // Bold key terms in description
+        const desc = item.description
+            .replace(/\bACTIVE\b/g, '<strong>ACTIVE</strong>')
+            .replace(/\bINACTIVE\b/g, '<strong>INACTIVE</strong>')
+            .replace(/(https?:\/\/[^\s]+)/g, '<strong>$1</strong>');
+
+        return `
+            <div style="display:flex;gap:14px;align-items:flex-start;">
+                <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+                    <div style="width:11px;height:11px;border-radius:50%;background:var(--text-muted);margin-top:3px;"></div>
+                    ${!isLast ? `<div style="width:2px;flex:1;background:var(--border);margin-top:4px;min-height:32px;"></div>` : ''}
+                </div>
+                <div style="padding-bottom:${isLast ? '0' : '20px'};">
+                    <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:3px;">${dateStr}</div>
+                    <div style="font-size:0.88rem;line-height:1.5;">${desc}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    return `
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px;display:flex;align-items:center;gap:6px;">
+            ${icon('link', 13)} https://gftv.asia/${slug}
+        </p>
+        ${items}
+    `;
+}
+
+window.downloadAllClicks = (e, id) => {
+    e.preventDefault();
+    if (!analyticsData) return;
+    const rows = ['date,clicks'];
+    (analyticsData.all_daily_clicks || []).forEach(item => rows.push(`${item.day},${item.cnt}`));
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const link = dashboardLinks.find(l => l.id === id);
+    a.download = `analytics-${link ? link.slug : id}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 };
 
 // ===== SERVICE WORKER =====
