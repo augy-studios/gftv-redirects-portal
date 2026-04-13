@@ -292,10 +292,34 @@
                     <h1 class="page-title"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> My Links</h1>
                     <p class="page-subtitle">Manage and track your short links</p>
                 </div>
-                <button class="btn btn-primary" onclick="openModal('modal-create-link')">+ New Link</button>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+                    <button class="btn btn-secondary" onclick="downloadLinksCSV()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download CSV</button>
+                    <button class="btn btn-primary" onclick="openModal('modal-create-link')">+ New Link</button>
+                </div>
             </div>
 
             <div class="stats-grid" id="dashboard-stats"></div>
+
+            <div class="search-bar" style="flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+                <div class="search-input-wrap" style="flex:1;min-width:180px;">
+                    <span class="search-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+                    <input class="search-input" id="dash-search-keyword" type="text" placeholder="Search by keyword…">
+                </div>
+                <div class="search-input-wrap" style="flex:1;min-width:140px;">
+                    <span class="search-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+                    <input class="search-input" id="dash-search-tag" type="text" placeholder="Filter by tag…">
+                </div>
+                <select class="search-type-select" id="dash-filter-status">
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+                <select class="search-type-select" id="dash-sort">
+                    <option value="date">Date Created</option>
+                    <option value="visits">Most Visits</option>
+                </select>
+            </div>
+
             <div id="dashboard-links-wrap">
                 <div class="loading-wrap">
                     <div class="spinner"></div>
