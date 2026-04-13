@@ -47,8 +47,8 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-    INSERT INTO gftvlinks_linkvisits (link_id, slug, device_type)
-    VALUES (p_link_id, p_slug, p_device_type);
+    INSERT INTO gftvlinks_linkvisits (link_id, slug, device_type, visited_at)
+    VALUES (p_link_id, p_slug, p_device_type, NOW());
 
     UPDATE gftvlinks_links
     SET access_count = COALESCE(access_count, 0) + 1
@@ -58,9 +58,7 @@ $$;
 
 -- =================================================================
 -- PART 3: Analytics RPC functions
--- NOTE: All timestamp queries use 'created_at'. If your
--- gftvlinks_linkvisits table uses 'visited_at' instead,
--- replace 'created_at' with 'visited_at' in the functions below.
+-- Uses 'visited_at' as the timestamp column in gftvlinks_linkvisits.
 -- =================================================================
 
 -- Device type breakdown for a link
@@ -82,12 +80,12 @@ LANGUAGE sql
 SECURITY DEFINER
 AS $$
     SELECT
-        (created_at AT TIME ZONE 'UTC')::DATE AS day,
+        (visited_at AT TIME ZONE 'UTC')::DATE AS day,
         COUNT(*) AS cnt
     FROM gftvlinks_linkvisits
     WHERE link_id = p_link_id
-      AND created_at >= (NOW() - INTERVAL '7 days')
-    GROUP BY (created_at AT TIME ZONE 'UTC')::DATE
+      AND visited_at >= (NOW() - INTERVAL '7 days')
+    GROUP BY (visited_at AT TIME ZONE 'UTC')::DATE
     ORDER BY day;
 $$;
 
@@ -98,11 +96,11 @@ LANGUAGE sql
 SECURITY DEFINER
 AS $$
     SELECT
-        (created_at AT TIME ZONE 'UTC')::DATE AS day,
+        (visited_at AT TIME ZONE 'UTC')::DATE AS day,
         COUNT(*) AS cnt
     FROM gftvlinks_linkvisits
     WHERE link_id = p_link_id
-    GROUP BY (created_at AT TIME ZONE 'UTC')::DATE
+    GROUP BY (visited_at AT TIME ZONE 'UTC')::DATE
     ORDER BY day;
 $$;
 
@@ -113,8 +111,8 @@ LANGUAGE sql
 SECURITY DEFINER
 AS $$
     SELECT
-        EXTRACT(DOW  FROM created_at AT TIME ZONE 'UTC')::SMALLINT AS dow,
-        EXTRACT(HOUR FROM created_at AT TIME ZONE 'UTC')::SMALLINT AS hr,
+        EXTRACT(DOW  FROM visited_at AT TIME ZONE 'UTC')::SMALLINT AS dow,
+        EXTRACT(HOUR FROM visited_at AT TIME ZONE 'UTC')::SMALLINT AS hr,
         COUNT(*) AS cnt
     FROM gftvlinks_linkvisits
     WHERE link_id = p_link_id
