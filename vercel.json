@@ -97,6 +97,18 @@
             "destination": "/api/stats"
         },
         {
+            "source": "/api/apikeys",
+            "destination": "/api/apikeys"
+        },
+        {
+            "source": "/api/v1/links/:slug",
+            "destination": "/api/v1/links/[slug]"
+        },
+        {
+            "source": "/api/v1/links",
+            "destination": "/api/v1/links/index"
+        },
+        {
             "source": "/:slug",
             "destination": "/api/redirect/[slug]"
         },

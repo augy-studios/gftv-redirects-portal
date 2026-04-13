@@ -7,6 +7,7 @@ import {
     Profile,
     ProfileViews,
     TrustedDevices,
+    ApiKeys,
     Stats
 } from './api.js';
 import {
@@ -115,6 +116,13 @@ function navigate(page) {
         }
     }
 
+    // Editor-only pages (editors + admins only)
+    const editorPages = ['dashboard', 'ownership', 'apiintegration'];
+    if (state.user && !isEditor() && editorPages.includes(page)) {
+        showPage('directory');
+        return;
+    }
+
     showPage(page);
 
     // Load data for pages
@@ -125,6 +133,7 @@ function navigate(page) {
     if (page === 'admin') loadAdmin();
     if (page === 'profile') renderProfile();
     if (page === 'preapproved') renderPreapprovedPage();
+    if (page === 'apiintegration') loadApiIntegration();
 }
 
 // ===== NAV =====
@@ -138,6 +147,7 @@ function updateNav() {
         ...(isEditor() ? [
             { id: 'dashboard', icon: icon('home'), label: 'My Links' },
             { id: 'ownership', icon: icon('inbox'), label: 'Requests' },
+            { id: 'apiintegration', icon: icon('api'), label: 'API' },
         ] : []),
         ...(state.user.is_admin ? [{ id: 'admin', icon: icon('settings'), label: 'Admin' }] : []),
         { id: 'profile', icon: icon('user'), label: 'Profile' },
@@ -847,6 +857,104 @@ function setupCreateLinkModal() {
         btn.textContent = 'Save Changes';
     });
 }
+
+// ===== API INTEGRATION PAGE =====
+let _apiKeyValue = null; // holds the plaintext key only immediately after generation
+
+async function loadApiIntegration() {
+    _apiKeyValue = null;
+    const display = document.getElementById('api-key-display');
+    const status = document.getElementById('api-key-status');
+    const copyBtn = document.getElementById('api-key-copy-btn');
+    const toggleBtn = document.getElementById('api-key-toggle-btn');
+    if (!display) return;
+
+    display.type = 'password';
+    display.value = '';
+    display.placeholder = '••••••••••••••••••••';
+    if (status) status.textContent = 'Checking for existing API key…';
+    if (copyBtn) copyBtn.disabled = true;
+    if (toggleBtn) toggleBtn.disabled = true;
+
+    const res = await ApiKeys.get();
+    if (res.ok && res.data.api_key) {
+        // Key exists — show masked placeholder, don't reveal it
+        display.value = res.data.api_key;
+        display.type = 'password';
+        if (status) {
+            const updated = res.data.updated_at ? ` Last regenerated: ${fmtDate(res.data.updated_at)}.` : '';
+            status.textContent = `You have an active API key.${updated} Regenerate to get a new one (your old key will stop working immediately).`;
+        }
+        if (copyBtn) copyBtn.disabled = false;
+        if (toggleBtn) toggleBtn.disabled = false;
+    } else {
+        display.value = '';
+        display.placeholder = 'No API key yet — click Regenerate to create one';
+        if (status) status.textContent = 'No API key generated yet.';
+        if (copyBtn) copyBtn.disabled = true;
+        if (toggleBtn) toggleBtn.disabled = true;
+    }
+}
+
+window.toggleApiKeyVisibility = () => {
+    const display = document.getElementById('api-key-display');
+    const toggleBtn = document.getElementById('api-key-toggle-btn');
+    if (!display) return;
+    const isHidden = display.type === 'password';
+    display.type = isHidden ? 'text' : 'password';
+    if (toggleBtn) {
+        toggleBtn.innerHTML = isHidden
+            ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg> Hide`
+            : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> Show`;
+    }
+};
+
+window.copyApiKey = async () => {
+    const display = document.getElementById('api-key-display');
+    if (!display || !display.value) return;
+    try {
+        await navigator.clipboard.writeText(display.value);
+        toast('API key copied to clipboard', 'success');
+    } catch {
+        toast('Failed to copy — please copy manually', 'error');
+    }
+};
+
+window.regenerateApiKey = async () => {
+    const btn = document.getElementById('api-key-regen-btn');
+    const display = document.getElementById('api-key-display');
+    const status = document.getElementById('api-key-status');
+    const copyBtn = document.getElementById('api-key-copy-btn');
+    const toggleBtn = document.getElementById('api-key-toggle-btn');
+
+    const hasExisting = display && display.value;
+    if (hasExisting && !confirm('Regenerating your API key will immediately invalidate your current key. Any integrations using the old key will stop working. Continue?')) return;
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+
+    const res = await ApiKeys.regenerate();
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Regenerate`;
+    }
+
+    if (res.ok && res.data.api_key) {
+        _apiKeyValue = res.data.api_key;
+        if (display) {
+            display.value = _apiKeyValue;
+            display.type = 'text'; // show it immediately after generation
+        }
+        if (toggleBtn) {
+            toggleBtn.disabled = false;
+            toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg> Hide`;
+        }
+        if (copyBtn) copyBtn.disabled = false;
+        if (status) status.textContent = 'Your new API key is shown above. Copy it now — it will be hidden once you leave this page.';
+        toast('API key regenerated successfully', 'success');
+    } else {
+        toast(res.data?.error || 'Failed to regenerate API key', 'error');
+    }
+};
 
 // ===== OWNERSHIP REQUESTS =====
 async function loadOwnershipRequests() {
