@@ -41,13 +41,28 @@ export default async function handler(req, res) {
 
         if (existing) return err(res, 'This email is already pre-approved');
 
+        // Check if this email already belongs to a registered and approved user
+        const { data: existingUser } = await supabase
+            .from('gftvlinks_users')
+            .select('id, is_approved')
+            .eq('email', trimmedEmail)
+            .maybeSingle();
+
+        const insertData = {
+            email: trimmedEmail,
+            preapproved_role: role,
+            preapproved_by: user.id,
+        };
+
+        // If the user is already registered and approved, link them immediately
+        if (existingUser && existingUser.is_approved) {
+            insertData.user_id = existingUser.id;
+            insertData.activated_at = new Date().toISOString();
+        }
+
         const { error } = await supabase
             .from('gftvlinks_users_preapproved')
-            .insert({
-                email: trimmedEmail,
-                preapproved_role: role,
-                preapproved_by: user.id,
-            });
+            .insert(insertData);
 
         if (error) return err(res, 'Failed to add pre-approved user');
         return ok(res, { message: 'User pre-approved successfully' }, 201);
