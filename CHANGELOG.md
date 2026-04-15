@@ -6,6 +6,36 @@ Versions follow date-based release codes in the format `YYYY.MM.DD`. If multiple
 
 ---
 
+#### [2026.04.15](https://github.com/augy-studios/gftv-redirects-portal/compare/2026.04.14...2026.04.15)
+
+> 15 April 2026
+
+**Directory Search & Filter Enhancements**
+
+- Refactor Directory page to load all links once and apply filtering and sorting client-side, so controls respond instantly without extra API round-trips
+- Replace the single search-type dropdown with four independent controls matching the My Links page:
+  - **Keyword search** — matches slug, destination URL, display name, and username simultaneously
+  - **Tag filter** — narrows results to links carrying a specific tag
+  - **Status filter** — show All, Active, or Inactive links
+  - **Sort order** — sort by Date Created or Most Visits
+
+---
+
+#### [2026.04.14](https://github.com/augy-studios/gftv-redirects-portal/compare/2026.04.13...2026.04.14)
+
+> 14 April 2026
+
+**Legal Pages, Navigation & Admin Improvements**
+
+- Add **Terms of Use** and **Privacy Policy** legal pages, linked from the portal footer
+- Fix footer links to correctly point to the Terms of Use and Privacy Policy pages
+- Fix feedback button URL for improved navigation
+- Allow `guide.gftv.asia` as a valid short link destination URL (previously blocked as a `gftv.asia` subdomain)
+- Add complete database schema SQL script (`supabase/gftvlinks_db_schema.sql`) covering all platform tables, indexes, and triggers
+- Fix: when an admin adds a pre-approval for an email address that already belongs to an existing approved user, immediately set `user_id` and `activated_at` on the new record rather than leaving it in a pending/unlinked state
+
+---
+
 #### [2026.04.13](https://github.com/augy-studios/gftv-redirects-portal/compare/2026.04.12...2026.04.13)
 
 > 13 April 2026
