@@ -32,13 +32,16 @@ Clicking on a link creator's name or avatar takes you to their public [user prof
 
 ## Filtering and searching
 
-Use the search bar at the top of the Directory to narrow down results. You can switch between three search modes:
+Four controls at the top of the Directory let you narrow down and reorder results:
 
-* **Keyword** — searches both the slug and destination URL.
-* **Tag** — finds links with a specific tag.
-* **Username** — finds all links created by a specific officer.
+* **Keyword search** — searches the slug, destination URL, display name, and username simultaneously.
+* **Tag filter** — narrows results to links carrying a specific tag.
+* **Status filter** — show All, Active, or Inactive links.
+* **Sort order** — sort by Date Created (newest first) or Most Visits.
 
-See [Searching Links](searching-links.md) for a detailed walkthrough of each search mode.
+All filtering and sorting happen client-side, so the controls respond instantly without reloading the page.
+
+See [Searching Links](searching-links.md) for a detailed walkthrough of each control.
 
 ## Frequently asked questions
 

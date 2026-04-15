@@ -18,7 +18,8 @@ We've shipped a big wave of improvements to the GFTV Shortlinks portal. Here's e
 ## 🌐 **Viewers**
 - **QR Code Sharing** — Every public short link now has a QR code you can scan or download and share anywhere.
 - **Faster Link Redirects** — Visit tracking is now handled natively, removing any reliance on third-party analytics.
-- **Directory Search** — Browse and search all active links by keyword, tag, or username from the public directory.
+- **Directory Search & Filters** — Browse all links from the public directory with four independent controls: keyword search (matches slug, destination, display name, and username), tag filter, Active/Inactive status filter, and sort by Date Created or Most Visits. All filtering and sorting happen instantly without page reloads.
+- **Legal Pages** — Terms of Use and Privacy Policy are now published and linked from the portal footer.
 
 ## 🔐 **All Logged-In Users (Viewers & Editors)**
 - **Two-Factor Authentication (2FA)** — Secure your account with a TOTP authenticator app (Google Authenticator, Authy, etc.). Set it up from your Profile page.
@@ -40,6 +41,7 @@ We've shipped a big wave of improvements to the GFTV Shortlinks portal. Here's e
 ## 🛠️ **Admins**
 *Everything above, plus:*
 - **Pre-Approved Users** — Pre-authorise an email address with a role (Viewer or Editor) before they register. When that person signs up, they're instantly approved, assigned their role, and logged in automatically.
+- **Pre-Approval Auto-Linking** — If you add a pre-approval for an email that already belongs to an existing approved user, the record is immediately marked as Activated — no manual step needed.
 - **Pre-Approval Dashboard** — See all pending pre-approvals, who created them, and when each one was activated.
 - **Admin Link Management** — A new "Manage Short Link" modal lets admins edit the slug, destination URL, active status, and tags of **any** link on the platform — and delete links if needed.
 - **Edit Button in Directory** — Admins now see an edit button on every link in the public directory for quick access.
@@ -75,7 +77,8 @@ We've shipped a big wave of improvements to the GFTV Shortlinks portal\. Here's 
 ────────────────────────────
 • *QR Code Sharing* — Every public short link now has a QR code you can scan or download and share anywhere\.
 • *Faster Link Redirects* — Visit tracking is now handled natively, removing any reliance on third\-party analytics\.
-• *Directory Search* — Browse and search all active links by keyword, tag, or username from the public directory\.
+• *Directory Search & Filters* — Browse all links with four independent controls: keyword search, tag filter, Active/Inactive status filter, and sort by Date Created or Most Visits\. All filtering and sorting happen instantly without page reloads\.
+• *Legal Pages* — Terms of Use and Privacy Policy are now published and linked from the portal footer\.
 
 ────────────────────────────
 🔐 *All Logged\-In Users \(Viewers & Editors\)*
@@ -103,6 +106,7 @@ _Everything above, plus:_
 ────────────────────────────
 _Everything above, plus:_
 • *Pre\-Approved Users* — Pre\-authorise an email address with a role \(Viewer or Editor\) before they register\. When that person signs up, they're instantly approved, assigned their role, and logged in automatically\.
+• *Pre\-Approval Auto\-Linking* — If you add a pre\-approval for an email that already belongs to an existing approved user, the record is immediately marked as Activated — no manual step needed\.
 • *Pre\-Approval Dashboard* — See all pending pre\-approvals, who created them, and when each one was activated\.
 • *Admin Link Management* — A new "Manage Short Link" modal lets admins edit the slug, destination URL, active status, and tags of *any* link on the platform — and delete links if needed\.
 • *Edit Button in Directory* — Admins now see an edit button on every link in the public directory for quick access\.
