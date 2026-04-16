@@ -429,14 +429,43 @@ function setupRegisterPage() {
 
 // ===== DIRECTORY PAGE =====
 let directoryData = [];
-let directorySearch = '';
-let directorySearchType = 'keyword';
+let dirFilterKeyword = '';
+let dirFilterTag = '';
+let dirFilterStatus = 'all';
+let dirSortOrder = 'date';
+
+function getFilteredSortedDirectoryLinks() {
+    let links = directoryData.filter(link => {
+        if (dirFilterKeyword) {
+            const kw = dirFilterKeyword.toLowerCase();
+            const user = link.gftvlinks_users || {};
+            if (!link.slug.toLowerCase().includes(kw) &&
+                !link.destination.toLowerCase().includes(kw) &&
+                !(user.display_name || '').toLowerCase().includes(kw) &&
+                !(user.username || '').toLowerCase().includes(kw)) return false;
+        }
+        if (dirFilterTag) {
+            const tag = dirFilterTag.toLowerCase();
+            if (!link.tags || !link.tags.some(t => t.toLowerCase().includes(tag))) return false;
+        }
+        if (dirFilterStatus === 'active' && !link.is_active) return false;
+        if (dirFilterStatus === 'inactive' && link.is_active) return false;
+        return true;
+    });
+
+    if (dirSortOrder === 'visits') {
+        links.sort((a, b) => (b.access_count ?? 0) - (a.access_count ?? 0));
+    } else {
+        links.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+    return links;
+}
 
 async function loadDirectory() {
     const container = document.getElementById('directory-table-wrap');
     container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
 
-    const res = await Links.list(directorySearch, directorySearchType);
+    const res = await Links.list('', 'keyword');
     if (!res.ok) {
         container.innerHTML = '<p style="color:var(--danger);padding:20px">Failed to load links.</p>';
         return;
@@ -448,10 +477,16 @@ async function loadDirectory() {
 
 function renderDirectoryTable() {
     const container = document.getElementById('directory-table-wrap');
-    const data = directoryData;
+
+    if (directoryData.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('link', 32)}</div><h3>No links found</h3><p>No links have been created yet.</p></div>`;
+        return;
+    }
+
+    const data = getFilteredSortedDirectoryLinks();
 
     if (data.length === 0) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('link', 32)}</div><h3>No links found</h3><p>Try a different search, or add some links!</p></div>`;
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('link', 32)}</div><h3>No links match</h3><p>Try adjusting your search or filters.</p></div>`;
         return;
     }
 
@@ -493,18 +528,29 @@ function renderDirectoryTable() {
 }
 
 function setupDirectoryPage() {
-    const searchInput = document.getElementById('dir-search');
-    const typeSelect = document.getElementById('dir-search-type');
+    const keywordInput = document.getElementById('dir-search-keyword');
+    const tagInput = document.getElementById('dir-search-tag');
+    const statusSelect = document.getElementById('dir-filter-status');
+    const sortSelect = document.getElementById('dir-sort');
 
     let debounceTimer;
-    searchInput.addEventListener('input', () => {
-        directorySearch = searchInput.value.trim();
+    keywordInput.addEventListener('input', () => {
+        dirFilterKeyword = keywordInput.value.trim();
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(loadDirectory, 350);
+        debounceTimer = setTimeout(renderDirectoryTable, 200);
     });
-    typeSelect.addEventListener('change', () => {
-        directorySearchType = typeSelect.value;
-        if (directorySearch) loadDirectory();
+    tagInput.addEventListener('input', () => {
+        dirFilterTag = tagInput.value.trim();
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(renderDirectoryTable, 200);
+    });
+    statusSelect.addEventListener('change', () => {
+        dirFilterStatus = statusSelect.value;
+        renderDirectoryTable();
+    });
+    sortSelect.addEventListener('change', () => {
+        dirSortOrder = sortSelect.value;
+        renderDirectoryTable();
     });
 }
 

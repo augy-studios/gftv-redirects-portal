@@ -266,15 +266,23 @@
                 </div>
             </div>
 
-            <div class="search-bar">
-                <div class="search-input-wrap">
+            <div class="search-bar" style="flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+                <div class="search-input-wrap" style="flex:1;min-width:180px;">
                     <span class="search-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
-                    <input class="search-input" id="dir-search" type="text" placeholder="Search links…">
+                    <input class="search-input" id="dir-search-keyword" type="text" placeholder="Search by keyword…">
                 </div>
-                <select class="search-type-select" id="dir-search-type">
-                    <option value="keyword">By Keyword</option>
-                    <option value="username">By Username</option>
-                    <option value="tag">By Tag</option>
+                <div class="search-input-wrap" style="flex:1;min-width:140px;">
+                    <span class="search-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+                    <input class="search-input" id="dir-search-tag" type="text" placeholder="Filter by tag…">
+                </div>
+                <select class="search-type-select" id="dir-filter-status">
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+                <select class="search-type-select" id="dir-sort">
+                    <option value="date">Date Created</option>
+                    <option value="visits">Most Visits</option>
                 </select>
             </div>
 

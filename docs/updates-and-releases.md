@@ -6,6 +6,52 @@ Versions follow date-based release codes in the format `YYYY.MM.DD`.
 
 ***
 
+## 2026.04.15 — Directory Search & Filter Enhancements
+
+**Released:** 15 April 2026
+
+The Directory now has the same rich search and filter controls as the My Links dashboard.
+
+**New controls**
+
+* **Keyword search** — search across the slug, destination URL, display name, and username of every link simultaneously.
+* **Tag filter** — filter the Directory to links that carry a specific tag.
+* **Status filter** — show All links, Active links only, or Inactive links only.
+* **Sort order** — sort results by Date Created (newest first) or Most Visits.
+
+All filtering and sorting happen client-side after loading links once, so the controls respond instantly without additional server requests.
+
+See [Searching Links](directory/searching-links.md).
+
+***
+
+## 2026.04.14 — Legal Pages, Navigation & Admin Improvements
+
+**Released:** 14 April 2026
+
+**Legal Pages**
+
+Terms of Use and Privacy Policy pages are now available and linked from the portal footer. These documents cover how gftv.asia collects and handles data, the permitted uses of the platform, and the rights and obligations of users.
+
+See [Terms of Use](legal/terms-of-use.md) and [Privacy Policy](legal/privacy.md).
+
+**Navigation Fixes**
+
+* Footer links now correctly point to the Terms of Use and Privacy Policy pages.
+* Feedback button URL corrected for improved navigation.
+
+**Destination URL Exception**
+
+`guide.gftv.asia` is now permitted as a valid short link destination. Previously all `gftv.asia` subdomains were blocked to prevent circular redirects; `guide.gftv.asia` is now explicitly allowed as an exception.
+
+**Pre-Approval Auto-Linking**
+
+When an admin adds a pre-approval entry for an email address that already belongs to an existing approved user, the record is now immediately linked to that user (setting `user_id` and `activated_at`). Previously this situation would leave the pre-approval in a pending state even though the user was already registered and approved.
+
+See [Pre-Approval System](for-admins/pre-approval-system.md).
+
+***
+
 ## 2026.04.13 — Analytics, Public API & Dashboard Enhancements
 
 **Released:** 13 April 2026
