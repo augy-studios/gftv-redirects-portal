@@ -2141,6 +2141,23 @@ async function createQrCompositeImage(url) {
 
     ctx.drawImage(qrCanvas, paddingX, paddingTop, qrSize, qrSize);
 
+    // Overlay center logo (level H error correction allows ~30% occlusion)
+    try {
+        const logo = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = '/gsl-qr.png';
+        });
+        const logoSize = Math.round(qrSize * 0.22);
+        const logoPad = 5;
+        const logoX = paddingX + (qrSize - logoSize) / 2;
+        const logoY = paddingTop + (qrSize - logoSize) / 2;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(logoX - logoPad, logoY - logoPad, logoSize + logoPad * 2, logoSize + logoPad * 2);
+        ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
+    } catch { /* skip logo if image unavailable */ }
+
     ctx.fillStyle = '#111111';
     ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
     ctx.textAlign = 'center';
