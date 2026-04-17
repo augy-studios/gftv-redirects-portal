@@ -15,7 +15,7 @@ For example, a long destination URL like `https://www.youtube.com/watch?v=...` c
 Anyone can create a short link with a generic URL shortener. gftv.asia is different because **only approved GFTV officers can create links** on the platform. This means that when a community member sees a `gftv.asia/...` link shared in an official channel, they can be confident it was created by a real, verified GFTV officer, and not a bad actor trying to phish them.
 
 {% hint style="info" %}
-Only GFTV officers with **Editor** access can create and manage short links. Community members can browse and use links freely without an account.
+Only GFTV officers with **Editor** access can create and manage short links. Browsing the Directory, viewing profiles, and using links all require logging in with an approved account.
 {% endhint %}
 
 ## How to use this guide

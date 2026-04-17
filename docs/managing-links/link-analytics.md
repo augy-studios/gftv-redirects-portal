@@ -55,4 +55,4 @@ Yes. The analytics modal shows a 7-day daily click trend chart. You can also exp
 No. Inactive links redirect visitors to the GFTV blog rather than the original destination. Only visits to active links increment the counter.
 
 **Can other users see my link's view count?**
-Yes. View counts are visible on link cards in the public Directory to all users (logged in or not). The detailed analytics modal is only accessible to the link owner from their My Links dashboard.
+Yes. View counts are visible on link cards in the Directory to all logged-in users. The detailed analytics modal is only accessible to the link owner from their My Links dashboard.
