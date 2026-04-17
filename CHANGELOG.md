@@ -6,6 +6,18 @@ Versions follow date-based release codes in the format `YYYY.MM.DD`. If multiple
 
 ---
 
+#### [2026.04.17](https://github.com/augy-studios/gftv-redirects-portal/compare/2026.04.15...2026.04.17)
+
+> 17 April 2026
+
+**Logout All Devices Now Includes Current Device**
+
+- Update **Logout All Sessions** behaviour — logging out of all devices now also terminates the current session and signs the user out on this device, instead of preserving it
+- Update Danger Zone description text and confirmation modal to clearly state that this device will also be signed out
+- Update README, release notes, and documentation to reflect the new behaviour
+
+---
+
 #### [2026.04.15](https://github.com/augy-studios/gftv-redirects-portal/compare/2026.04.14...2026.04.15)
 
 > 15 April 2026

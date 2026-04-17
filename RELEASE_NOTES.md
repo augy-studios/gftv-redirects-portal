@@ -25,7 +25,7 @@ We've shipped a big wave of improvements to the GFTV Shortlinks portal. Here's e
 - **Two-Factor Authentication (2FA)** — Secure your account with a TOTP authenticator app (Google Authenticator, Authy, etc.). Set it up from your Profile page.
 - **2FA Backup Codes** — When enabling 2FA, you'll receive 8 one-time backup codes. Download them and keep them safe. You can regenerate them anytime (password required).
 - **Trusted Devices** — After a 2FA login, you can mark your device as trusted so you won't be prompted again on that device.
-- **Logout All Sessions** — Found a suspicious login? Hit "Logout All Sessions" in your Profile to immediately invalidate every active session across all your devices.
+- **Logout All Sessions** — Found a suspicious login? Hit "Logout All Sessions" in your Profile to immediately invalidate every active session across all your devices, including the current one. You will be signed out everywhere.
 - **Stronger Password Requirements** — Passwords are now validated for real entropy, not just length. Pick a strong one.
 - **Auto-Lowercase Tags** — Tags are automatically lowercased as you type — no more mixed-case inconsistencies.
 
