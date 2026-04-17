@@ -1679,9 +1679,14 @@ function setupProfilePage() {
         btn.textContent = 'Log Out All Devices';
         closeModal('modal-logout-all');
         if (res.ok) {
-            toast('All other devices have been signed out.', 'success');
+            localStorage.removeItem('gftv_token');
+            state.user = null;
+            state.token = null;
+            closeAllModals();
+            navigate('home');
+            toast('Logged out of all devices.', 'success');
         } else {
-            toast(res.data.error || 'Failed to sign out other devices', 'error');
+            toast(res.data.error || 'Failed to sign out all devices', 'error');
         }
     };
 }
