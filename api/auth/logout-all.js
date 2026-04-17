@@ -12,11 +12,8 @@ export default async function handler(req, res) {
     const auth = req.headers['authorization'] || '';
     const currentToken = auth.replace(/^Bearer\s+/i, '').trim();
 
-    let query = supabase.from('gftvlinks_sessions').delete().eq('user_id', user.id);
-    if (currentToken) query = query.neq('token', currentToken);
-
-    const { error } = await query;
+    const { error } = await supabase.from('gftvlinks_sessions').delete().eq('user_id', user.id);
     if (error) return err(res, 'Server error', 500);
 
-    return ok(res, { message: 'All other sessions terminated' });
+    return ok(res, { message: 'All sessions terminated' });
 }
