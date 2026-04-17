@@ -12,7 +12,7 @@ If you do not agree to these Terms of Use, please do not use this Service or any
 
 gftv.asia is a **restricted link-shortening platform** operated by GFTV for internal use by verified GFTV officers (staff, volunteers, and other personnel operating under the GFTV banner). It is not a general-purpose link shortener open to the public.
 
-Access to link-creation functionality requires approval by a GFTV administrator. Unapproved visitors may browse the public link directory but may not create or manage links.
+Access to the Service requires an approved account. Approved accounts without Editor access (Viewers) may browse the link directory and view profiles but may not create or manage links.
 
 GFTV reserves the right to refuse, suspend, or revoke access to any account at any time, with or without notice, including where it determines that a user no longer meets the eligibility criteria for GFTV officer status.
 

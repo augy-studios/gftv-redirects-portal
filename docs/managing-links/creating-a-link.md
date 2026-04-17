@@ -12,7 +12,7 @@ You need an **Editor** account to create short links. If you only have Viewer ac
 4. Fill in the fields described below.
 5. Click **Create**.
 
-Your new link will appear in your Dashboard and will immediately be live in the public [Directory](../directory/browsing-the-directory.md).
+Your new link will appear in your Dashboard and will immediately be live in the [Directory](../directory/browsing-the-directory.md).
 
 ## Fields
 
@@ -48,7 +48,7 @@ See [Link Tags](link-tags.md) for full details on tag format and usage.
 Once created, your link is:
 
 * **Active** by default, so that visitors are redirected immediately.
-* Visible in the **public Directory** for anyone to browse.
+* Visible in the **Directory** to all logged-in users.
 * Listed in your **Dashboard** where you can edit, deactivate, or delete it.
 
 To generate a QR code for your new link, see [QR Codes](qr-codes.md).

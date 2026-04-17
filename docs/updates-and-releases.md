@@ -120,7 +120,7 @@ See [Two-Factor Authentication](your-account/two-factor-authentication.md) and [
 
 **QR Code Generation**
 
-Any short link can now generate a downloadable composite QR code image, a PNG containing the QR code and the printed short link URL. The image can be downloaded, copied to the clipboard, or shared natively on mobile. Available in both the public Directory and the My Links dashboard.
+Any short link can now generate a downloadable composite QR code image, a PNG containing the QR code and the printed short link URL. The image can be downloaded, copied to the clipboard, or shared natively on mobile. Available in both the Directory and the My Links dashboard.
 
 See [QR Codes](managing-links/qr-codes.md).
 
@@ -151,7 +151,7 @@ A new role system distinguishes between Viewers (who can browse the Directory bu
 
 **Public Homepage**
 
-A public homepage with a hero section, feature highlights, animated typing effect, and live platform statistics (total links, total redirects, total users).
+A public-facing homepage with a hero section, feature highlights, animated typing effect, and live platform statistics (total links, total redirects, total users).
 
 **Profile View Tracking**
 
@@ -162,7 +162,7 @@ See [User Profiles](directory/user-profiles.md).
 **Admin Improvements**
 
 * Admin Manage Short Link modal — admins can edit the slug, destination URL, active status, and tags of any link on the platform, and delete links if needed.
-* Edit button in Directory for admin users, providing one-click access to the link management modal from the public listing.
+* Edit button in Directory for admin users, providing one-click access to the link management modal from the Directory listing.
 * Unified modal interface for the admin user management panel.
 
 See [Managing Users](for-admins/managing-users.md) and [Managing Links](for-admins/managing-links.md).
@@ -176,12 +176,12 @@ See [Managing Users](for-admins/managing-users.md) and [Managing Links](for-admi
 gftv.asia launched as the official link shortener for GFTV (Global Furry Television). Core features at launch included:
 
 * **Short link creation** — editors can create custom slug links pointing to any external URL; slugs are alphanumeric (hyphens/underscores allowed) up to 60 characters. See [Creating a Link](managing-links/creating-a-link.md).
-* **Public Directory** — browse all active links on the platform, searchable by keyword, tag, or username. See [Browsing the Directory](directory/browsing-the-directory.md).
+* **Directory** — browse all active links on the platform (login required), searchable by keyword, tag, or username. See [Browsing the Directory](directory/browsing-the-directory.md).
 * **Link tags** — label links with up to 5 tags for organisation and discovery. See [Link Tags](managing-links/link-tags.md).
 * **Link analytics** — cumulative access count tracked and displayed per link on the Dashboard and Directory. See [Link Analytics](managing-links/link-analytics.md).
 * **Edge Runtime redirect handler** — short link redirects served via Vercel Edge for globally distributed, low-latency performance; deactivated links fall back to the GFTV blog.
 * **Admin panel** — manage users (approve, reset password, change role, delete) and platform links.
-* **User profile modal** — public profile pages showing role badge, avatar, display name, link stats, and optional social links (Twitter/X, YouTube, Twitch, etc.). See [User Profiles](directory/user-profiles.md) and [Profile & Settings](your-account/profile-and-settings.md).
+* **User profile modal** — profile pages (visible to logged-in users) showing role badge, avatar, display name, link stats, and optional social links (Twitter/X, YouTube, Twitch, etc.). See [User Profiles](directory/user-profiles.md) and [Profile & Settings](your-account/profile-and-settings.md).
 * **8 colour themes** — users can personalise their interface via the built-in theme selector.
 * **PWA support** — installable on mobile and desktop with offline capability via service worker.
 * **Invite-only registration** — new accounts are Pending until an Admin approves them.

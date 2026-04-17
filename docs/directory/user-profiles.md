@@ -1,6 +1,6 @@
 # User Profiles
 
-Every GFTV officer on gftv.asia has a public profile page. Profiles help the community understand who is behind a link and provide a central place to see all the links an officer manages.
+Every GFTV officer on gftv.asia has a profile page. Profiles help other logged-in users understand who is behind a link and provide a central place to see all the links an officer manages.
 
 ## Viewing a profile
 
@@ -39,16 +39,16 @@ Role badges appear on a user's profile to indicate their standing on the platfor
 When a logged-in user visits a profile, the visit is recorded, and the profile owner can see a short list of **recent viewers** on their own profile page. This is similar to a "who viewed your profile" feature.
 
 {% hint style="info" %}
-Profile views are only recorded for **logged-in** users. Anonymous (not logged in) visitors do not appear in the recent viewers list.
+Profile views are recorded for all logged-in users who visit a profile. Viewing a profile requires being logged in with at least Viewer access.
 {% endhint %}
 
 ## Your own profile
 
-Your own public profile is what other users and community members will see when they look you up. To update what appears on your profile, see [Profile & Settings](../your-account/profile-and-settings.md).
+Your own profile is what other logged-in users will see when they look you up. To update what appears on your profile, see [Profile & Settings](../your-account/profile-and-settings.md).
 
 ## Frequently asked questions
 
-**Can I hide my profile from the public?** No. Profiles for active accounts are publicly visible. If you are concerned about privacy, keep your display name and social links minimal.
+**Can I hide my profile from other users?** No. Profiles for active accounts are visible to all logged-in users. If you are concerned about privacy, keep your display name and social links minimal.
 
 **Can I see a profile for a deleted account?** No. When an account is deleted, its profile page is no longer accessible.
 

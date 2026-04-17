@@ -12,7 +12,7 @@ Take a moment to consider the following:
 
 * **Your links will be deleted.** All short links you own will be removed. Visitors who follow those links will no longer be redirected anywhere. If these links are published in community materials, they will become dead.
 * **Transfer important links first.** If any of your links are still in active use, [transfer their ownership](../managing-links/editing-a-link.md) to another Editor before deleting your account.
-* **Your profile will disappear.** Your public profile, avatar, and social links will no longer be accessible.
+* **Your profile will disappear.** Your profile, avatar, and social links will no longer be accessible.
 
 ## How to delete your account
 

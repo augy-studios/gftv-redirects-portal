@@ -1,6 +1,6 @@
 # Profile & Settings
 
-Your profile is publicly visible to anyone who visits gftv.asia. It shows your role, the links you've created, and any social links you've added. This page explains how to update your profile and manage your account settings.
+Your profile is visible to other logged-in users on gftv.asia. It shows your role, the links you've created, and any social links you've added. This page explains how to update your profile and manage your account settings.
 
 ## Accessing your settings
 
@@ -10,7 +10,7 @@ Your profile is publicly visible to anyone who visits gftv.asia. It shows your r
 
 ## Display name
 
-Your **display name** is the name shown on your public profile and on link cards in the Directory. It can be different from your username.
+Your **display name** is the name shown on your profile and on link cards in the Directory. It can be different from your username.
 
 To update it:
 1. Go to **Settings**.
@@ -19,7 +19,7 @@ To update it:
 
 ## Avatar
 
-Your profile picture is displayed on your public profile and alongside your links in the Directory.
+Your profile picture is displayed on your profile and alongside your links in the Directory.
 
 To upload or change your avatar:
 1. Go to **Settings**.
@@ -35,7 +35,7 @@ Supported input formats include JPEG, PNG, and WebP. The recommended upload size
 
 ## Social links
 
-You can add up to several **social links** to your public profile — for example, links to your Twitter/X, LinkedIn, or other platforms relevant to your GFTV work.
+You can add up to several **social links** to your profile — for example, links to your Twitter/X, LinkedIn, or other platforms relevant to your GFTV work.
 
 Each social link has two parts:
 - **Label** — a short display name for the link (e.g. `Twitter`, `Portfolio`).
@@ -70,7 +70,7 @@ Your **username** and **email address** cannot be changed by yourself. Contact a
 ## Frequently asked questions
 
 **Is my profile visible without logging in?**
-Yes. Your public profile (display name, avatar, role badge, social links, and statistics) is visible to anyone who visits your profile URL.
+No. Viewing profiles requires logging in with an approved account (Viewer access or above). Your profile (display name, avatar, role badge, social links, and statistics) is visible to all other logged-in users.
 
-**Can I hide my links from my public profile?**
+**Can I hide my links from my profile?**
 No. All active links created by your account are associated with your profile and visible in the Directory.

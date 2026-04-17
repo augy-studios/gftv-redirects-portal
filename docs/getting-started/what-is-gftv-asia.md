@@ -34,7 +34,7 @@ New accounts start as **Pending** until an Admin approves them. Admins can also 
 
 gftv.asia is for **GFTV officers** — staff, volunteers, and other personnel operating under the GFTV banner. It is not a general-purpose link shortener for the public.
 
-Community members who are not officers can still visit the public [Directory](../directory/browsing-the-directory.md) to browse all published links.
+Access to the [Directory](../directory/browsing-the-directory.md), user profiles, and link listings requires logging in with an approved account.
 
 ## Open source
 
