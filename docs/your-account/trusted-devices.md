@@ -36,7 +36,7 @@ From this list, you can:
 | Action                             | What it does                                                                                                    |
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | **Remove a device**                | Revokes trust for that specific device immediately. The next login from it will require a 2FA code.             |
-| **Log out from all other devices** | Ends all active sessions on other devices and clears their trust records. Your current session is not affected. |
+| **Log out from all devices**        | Ends all active sessions on every device, including this one, and clears all trust records. You will be signed out everywhere. |
 
 ## Revoking all sessions
 
@@ -44,7 +44,7 @@ If you believe your account has been accessed without your knowledge:
 
 1. Go to **Profile** > **Danger Zone**.
 2. Click **Log out from all devices**.
-3. All sessions (except your current one) are terminated immediately, and all trusted device records are cleared.
+3. All sessions are terminated immediately, including your current one. All trusted device records are also cleared. You will be signed out and redirected to the home page.
 
 {% hint style="danger" %}
 If you suspect your account is compromised, also change your password immediately and consider regenerating your 2FA backup codes.

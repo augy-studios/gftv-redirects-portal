@@ -44,7 +44,7 @@ With GFTV Shortlinks, community members know that any `gftv.asia/...` link was c
 - **Two-Factor Authentication (2FA)** — Secure your account with a TOTP authenticator app (Google Authenticator, Authy, 1Password, etc.).
 - **2FA Backup Codes** — Receive 8 one-time recovery codes when enabling 2FA. Regenerate them at any time with your password.
 - **Trusted Devices** — Skip the 2FA prompt on devices you trust for up to 30 days.
-- **Logout All Sessions** — Instantly invalidate every active session across all devices from your Profile page.
+- **Logout All Sessions** — Instantly invalidate every active session across all devices, including the current one, from your Profile page. You will be signed out everywhere.
 - **User Profiles** — Public profile pages showing role badge, avatar, link stats, and optional social links.
 - **Strong Password Enforcement** — Passwords are validated against real entropy requirements, not just length rules.
 
