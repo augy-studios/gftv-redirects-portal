@@ -15,7 +15,7 @@ You can edit any link you own at any time from your Dashboard. Admins can edit a
 | Field | Notes |
 |---|---|
 | **Slug** | The short link path (e.g. `gftv.asia/your-slug`). Changing this immediately breaks the old URL. |
-| **Destination URL** | Where visitors are redirected. Must be a valid URL and cannot point to `gftv.asia`. |
+| **Destination URL** | Where visitors are redirected. Must be a valid URL and cannot point to `gftv.asia` (except `guide.gftv.asia` and `form.gftv.asia`). |
 | **Active status** | Toggle the link on or off. See [Link Status](link-status.md). |
 | **Tags** | Add or remove tags (up to 5). See [Link Tags](link-tags.md). |
 | **Owner** | Transfer the link to another user. See below. |

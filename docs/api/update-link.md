@@ -30,7 +30,7 @@ All fields are optional — include only the fields you want to change.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `destination` | string | New destination URL. Must be valid and must not point to `gftv.asia`. |
+| `destination` | string | New destination URL. Must be valid and must not point to `gftv.asia` (except `guide.gftv.asia` and `form.gftv.asia`). |
 | `is_active` | boolean | Set to `false` to disable the link (visitors will not be redirected), or `true` to re-enable it. |
 | `tags` | array of strings | Replaces the existing tag list. Up to 5 tags. Pass `[]` to clear all tags. |
 
@@ -64,7 +64,7 @@ You cannot change a link's `slug` via the API. To use a different slug, create a
 |------|-------|-------|
 | `400` | `destination must be a string` | `destination` field is not a string |
 | `400` | `destination must be a valid URL` | The destination is not a well-formed URL |
-| `400` | `destination cannot point to gftv.asia` | Circular redirect guard |
+| `400` | `destination cannot point to gftv.asia` | Circular redirect guard (`guide.gftv.asia` and `form.gftv.asia` are allowed) |
 | `400` | `is_active must be a boolean` | `is_active` field is not `true` or `false` |
 | `400` | `tags must be an array of up to 5 strings` | More than 5 tags, or wrong type |
 | `401` | Unauthorized | API key is missing or invalid |
