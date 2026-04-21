@@ -63,7 +63,8 @@ export default async function handler(req, res) {
 
             try { new URL(destination); } catch { return err(res, 'Invalid destination URL'); }
             const destHostname = new URL(destination).hostname;
-            if (destHostname.endsWith('gftv.asia') && destHostname !== 'guide.gftv.asia') return err(res, 'Destination cannot point to gftv.asia');
+            const allowedGftvSubdomains = ['guide.gftv.asia', 'form.gftv.asia'];
+            if (destHostname.endsWith('gftv.asia') && !allowedGftvSubdomains.includes(destHostname)) return err(res, 'Destination cannot point to gftv.asia');
 
             const { error } = await supabase
                 .from('gftvlinks_links')
