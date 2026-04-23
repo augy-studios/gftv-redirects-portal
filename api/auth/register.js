@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
         // Check if this email has been pre-approved by an admin
         const { data: preapproved } = await supabase
-            .from('gftvlinks_users_preapproved')
+            .from('gftvhello_users_preapproved')
             .select('id, preapproved_role')
             .eq('email', email.toLowerCase())
             .is('user_id', null)
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
         // If pre-approved: link the record, create a session for immediate login
         if (preapproved && newUser) {
             await supabase
-                .from('gftvlinks_users_preapproved')
+                .from('gftvhello_users_preapproved')
                 .update({ user_id: newUser.id, activated_at: new Date().toISOString() })
                 .eq('id', preapproved.id);
 
