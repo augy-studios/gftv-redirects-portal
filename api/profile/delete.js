@@ -19,7 +19,7 @@ export default async function handler(req, res) {
         const valid = await bcrypt.compare(password, user.password_hash);
         if (!valid) return err(res, 'Incorrect password');
 
-        await supabase.from('gftvlinks_users').delete().eq('id', user.id);
+        await supabase.from('gftvhello_users').delete().eq('id', user.id);
 
         return ok(res, { message: 'Account deleted' });
     } catch (e) {

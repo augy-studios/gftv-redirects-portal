@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
     const auth = req.headers['authorization'] || '';
     const token = auth.replace(/^Bearer\s+/i, '').trim();
-    if (token) await supabase.from('gftvlinks_sessions').delete().eq('token', token);
+    if (token) await supabase.from('gftvhello_sessions').delete().eq('token', token);
 
     return ok(res, { message: 'Logged out' });
 }

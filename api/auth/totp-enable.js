@@ -38,7 +38,7 @@ export default async function handler(req, res) {
         if (!isValid) return err(res, 'Invalid verification code', 400);
 
         const { error: updateError } = await supabase
-            .from('gftvlinks_users')
+            .from('gftvhello_users')
             .update({ totp_secret: secret })
             .eq('id', user.id);
 
@@ -49,9 +49,9 @@ export default async function handler(req, res) {
         const rows = plainCodes.map(c => ({ user_id: user.id, code_hash: hashCode(c) }));
 
         // Clear any old backup codes first (e.g. re-enabling after disable)
-        await supabase.from('gftvlinks_backup_codes').delete().eq('user_id', user.id);
+        await supabase.from('gftvhello_backup_codes').delete().eq('user_id', user.id);
 
-        const { error: codesError } = await supabase.from('gftvlinks_backup_codes').insert(rows);
+        const { error: codesError } = await supabase.from('gftvhello_backup_codes').insert(rows);
         if (codesError) return err(res, 'Failed to generate backup codes', 500);
 
         return ok(res, { message: '2FA enabled successfully', backup_codes: plainCodes });

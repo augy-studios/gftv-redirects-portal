@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     if (!user.is_editor && !user.is_admin) return err(res, 'Forbidden: Viewers cannot access this page', 403);
 
     const { data: links, error } = await supabase
-        .from('gftvlinks_links')
+        .from('gftvhello_links')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });

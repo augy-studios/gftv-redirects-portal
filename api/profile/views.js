@@ -18,7 +18,7 @@ export default async function handler(req, res) {
         if (viewed_id === user.id) return ok(res, { message: 'Self-view not tracked' });
 
         const { error } = await supabase
-            .from('gftvlinks_profileviews')
+            .from('gftvhello_profileviews')
             .upsert(
                 { viewer_id: user.id, viewed_id, viewed_at: new Date().toISOString() },
                 { onConflict: 'viewer_id,viewed_id' }
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
         if (!profile_id) return err(res, 'profile_id required');
 
         const { data, error } = await supabase
-            .from('gftvlinks_profileviews')
+            .from('gftvhello_profileviews')
             .select(`
                 viewed_at,
                 viewer:viewer_id(id, username, display_name, avatar_url)

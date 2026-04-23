@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
         if (req.method === 'GET') {
             const { data, error } = await supabase
-                .from('gftvlinks_trusted_devices')
+                .from('gftvhello_trusted_devices')
                 .select('id, created_at, expires_at')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
             if (!id) return err(res, 'Device ID required', 400);
 
             const { error } = await supabase
-                .from('gftvlinks_trusted_devices')
+                .from('gftvhello_trusted_devices')
                 .delete()
                 .eq('id', id)
                 .eq('user_id', user.id);

@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
     // Fetch the link
     const { data: link } = await supabase
-        .from('gftvlinks_links')
+        .from('gftvhello_links')
         .select('*')
         .eq('id', id)
         .single();
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
                 if (!canTransfer) return err(res, 'Only the link owner or an admin can transfer ownership', 403);
                 const trimmedUsername = new_owner_username.trim().toLowerCase();
                 const { data: newOwner } = await supabase
-                    .from('gftvlinks_users')
+                    .from('gftvhello_users')
                     .select('id')
                     .eq('username', trimmedUsername)
                     .single();
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
             }
 
             const { error } = await supabase
-                .from('gftvlinks_links')
+                .from('gftvhello_links')
                 .update(updates)
                 .eq('id', id);
 
@@ -79,7 +79,7 @@ export default async function handler(req, res) {
     if (req.method === 'DELETE') {
         if (!canEdit) return err(res, 'Forbidden', 403);
 
-        await supabase.from('gftvlinks_links').delete().eq('id', id);
+        await supabase.from('gftvhello_links').delete().eq('id', id);
         return ok(res, { message: 'Link deleted' });
     }
 

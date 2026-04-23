@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     // GET - list all users
     if (req.method === 'GET') {
         const { data: users, error } = await supabase
-            .from('gftvlinks_users')
+            .from('gftvhello_users')
             .select('id, username, display_name, email, is_admin, is_approved, is_editor, avatar_url, created_at')
             .order('created_at', { ascending: false });
 
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
             updates.is_editor = false;
         } else if (action === 'toggle_admin') {
             const { data: target } = await supabase
-                .from('gftvlinks_users')
+                .from('gftvhello_users')
                 .select('is_admin')
                 .eq('id', user_id)
                 .single();
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
                 if (!trimmed) return err(res, 'Username cannot be empty');
                 if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) return err(res, 'Username can only contain letters, numbers, hyphens and underscores');
                 const { data: existing } = await supabase
-                    .from('gftvlinks_users').select('id').eq('username', trimmed).single();
+                    .from('gftvhello_users').select('id').eq('username', trimmed).single();
                 if (existing && existing.id !== user_id) return err(res, 'Username already taken');
                 updates.username = trimmed;
             }
@@ -73,7 +73,7 @@ export default async function handler(req, res) {
                 const trimmedEmail = email.trim().toLowerCase();
                 if (!trimmedEmail) return err(res, 'Email cannot be empty');
                 const { data: existing } = await supabase
-                    .from('gftvlinks_users').select('id').eq('email', trimmedEmail).single();
+                    .from('gftvhello_users').select('id').eq('email', trimmedEmail).single();
                 if (existing && existing.id !== user_id) return err(res, 'Email already in use');
                 updates.email = trimmedEmail;
             }
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
             }
             updates.password_hash = await bcrypt.hash(newPassword, 10);
             const { error: pwErr } = await supabase
-                .from('gftvlinks_users').update(updates).eq('id', user_id);
+                .from('gftvhello_users').update(updates).eq('id', user_id);
             if (pwErr) return err(res, 'Failed to reset password');
             return ok(res, { message: 'Password reset', password: newPassword });
         } else {
@@ -93,7 +93,7 @@ export default async function handler(req, res) {
         }
 
         const { error } = await supabase
-            .from('gftvlinks_users')
+            .from('gftvhello_users')
             .update(updates)
             .eq('id', user_id);
 
@@ -106,7 +106,7 @@ export default async function handler(req, res) {
         const user_id = new URL(req.url, 'http://localhost').searchParams.get('user_id');
         if (!user_id) return err(res, 'user_id required');
 
-        await supabase.from('gftvlinks_users').delete().eq('id', user_id);
+        await supabase.from('gftvhello_users').delete().eq('id', user_id);
         return ok(res, { message: 'User deleted' });
     }
 

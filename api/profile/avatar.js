@@ -22,7 +22,7 @@ export default async function handler(req, res) {
         const filename = `${user.id}.webp`;
 
         const { error: uploadError } = await supabase.storage
-            .from('gftvlinks_avatars')
+            .from('gftvhello_avatars')
             .upload(filename, buffer, {
                 contentType: 'image/webp',
                 upsert: true,
@@ -31,11 +31,11 @@ export default async function handler(req, res) {
         if (uploadError) return err(res, 'Failed to upload avatar');
 
         const { data: { publicUrl } } = supabase.storage
-            .from('gftvlinks_avatars')
+            .from('gftvhello_avatars')
             .getPublicUrl(filename);
 
         await supabase
-            .from('gftvlinks_users')
+            .from('gftvhello_users')
             .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
             .eq('id', user.id);
 

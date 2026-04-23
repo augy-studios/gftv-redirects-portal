@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     // GET - retrieve current API key (masked, or full if just generated)
     if (req.method === 'GET') {
         const { data: row } = await supabase
-            .from('gftvlinks_api_keys')
+            .from('gftvhello_api_keys')
             .select('api_key, created_at, updated_at')
             .eq('user_id', user.id)
             .single();
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
         const now = new Date().toISOString();
 
         const { error } = await supabase
-            .from('gftvlinks_api_keys')
+            .from('gftvhello_api_keys')
             .upsert(
                 { user_id: user.id, api_key: newKey, updated_at: now },
                 { onConflict: 'user_id' }

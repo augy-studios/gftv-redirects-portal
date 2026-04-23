@@ -17,8 +17,8 @@ export default async function handler(req, res) {
 
         // Look up the challenge (join to user)
         const { data: challenge } = await supabase
-            .from('gftvlinks_totp_challenges')
-            .select('*, gftvlinks_users(*)')
+            .from('gftvhello_totp_challenges')
+            .select('*, gftvhello_users(*)')
             .eq('token', challenge_token)
             .gt('expires_at', new Date().toISOString())
             .single();
@@ -26,9 +26,9 @@ export default async function handler(req, res) {
         if (!challenge) return err(res, 'Invalid or expired challenge', 401);
 
         // Delete the challenge immediately — single use
-        await supabase.from('gftvlinks_totp_challenges').delete().eq('token', challenge_token);
+        await supabase.from('gftvhello_totp_challenges').delete().eq('token', challenge_token);
 
-        const user = challenge.gftvlinks_users;
+        const user = challenge.gftvhello_users;
         if (!user?.totp_secret) return err(res, 'TOTP not configured for this account', 400);
 
         if (backup_code) {
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
             const hash = hashCode(normalized);
 
             const { data: storedCode } = await supabase
-                .from('gftvlinks_backup_codes')
+                .from('gftvhello_backup_codes')
                 .select('id')
                 .eq('user_id', user.id)
                 .eq('code_hash', hash)
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
             if (!storedCode) return err(res, 'Invalid backup code', 401);
 
             // Consume the backup code — single use
-            await supabase.from('gftvlinks_backup_codes').delete().eq('id', storedCode.id);
+            await supabase.from('gftvhello_backup_codes').delete().eq('id', storedCode.id);
         } else {
             // Verify the TOTP code — allow current and 1 previous cycle (±1 window)
             let isValid = false;
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
         // Create the real session
         const token = crypto.randomBytes(48).toString('hex');
         const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-        await supabase.from('gftvlinks_sessions').insert({ user_id: user.id, token, expires_at });
+        await supabase.from('gftvhello_sessions').insert({ user_id: user.id, token, expires_at });
 
         const { password_hash, totp_secret, ...safeUser } = user;
         safeUser.totp_enabled = true;
@@ -72,7 +72,7 @@ export default async function handler(req, res) {
         if (trust_device) {
             device_token = crypto.randomBytes(32).toString('hex');
             const device_expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-            await supabase.from('gftvlinks_trusted_devices').insert({
+            await supabase.from('gftvhello_trusted_devices').insert({
                 user_id: user.id,
                 device_token,
                 expires_at: device_expires,

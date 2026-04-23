@@ -9,15 +9,15 @@ export default async function handler(req, res) {
     try {
         const [editorsRes, linksRes, clicksRes] = await Promise.all([
             supabase
-                .from('gftvlinks_users')
+                .from('gftvhello_users')
                 .select('*', { count: 'exact', head: true })
                 .eq('is_approved', true)
                 .or('is_editor.eq.true,is_admin.eq.true'),
             supabase
-                .from('gftvlinks_links')
+                .from('gftvhello_links')
                 .select('*', { count: 'exact', head: true }),
             supabase
-                .from('gftvlinks_links')
+                .from('gftvhello_links')
                 .select('access_count'),
         ]);
 

@@ -12,11 +12,11 @@ export default async function handler(req, res) {
     // GET - get ownership requests for current user (as owner)
     if (req.method === 'GET') {
         const { data, error } = await supabase
-            .from('gftvlinks_ownership_requests')
+            .from('gftvhello_ownership_requests')
             .select(`
                 id, status, created_at,
-                gftvlinks_links(id, slug, destination),
-                requester:gftvlinks_users!gftvlinks_ownership_requests_requester_id_fkey(id, username, display_name, avatar_url)
+                gftvhello_links(id, slug, destination),
+                requester:gftvhello_users!gftvhello_ownership_requests_requester_id_fkey(id, username, display_name, avatar_url)
             `)
             .eq('owner_id', user.id)
             .order('created_at', { ascending: false });
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
             if (!link_id) return err(res, 'Link ID required');
 
             const { data: link } = await supabase
-                .from('gftvlinks_links')
+                .from('gftvhello_links')
                 .select('user_id')
                 .eq('id', link_id)
                 .single();
@@ -41,7 +41,7 @@ export default async function handler(req, res) {
             if (link.user_id === user.id) return err(res, 'You already own this link');
 
             const { data: existing } = await supabase
-                .from('gftvlinks_ownership_requests')
+                .from('gftvhello_ownership_requests')
                 .select('id')
                 .eq('link_id', link_id)
                 .eq('requester_id', user.id)
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
 
             if (existing) return err(res, 'You already have a pending request for this link');
 
-            await supabase.from('gftvlinks_ownership_requests').insert({
+            await supabase.from('gftvhello_ownership_requests').insert({
                 link_id,
                 requester_id: user.id,
                 owner_id: link.user_id,

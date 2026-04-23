@@ -438,7 +438,7 @@ function getFilteredSortedDirectoryLinks() {
     let links = directoryData.filter(link => {
         if (dirFilterKeyword) {
             const kw = dirFilterKeyword.toLowerCase();
-            const user = link.gftvlinks_users || {};
+            const user = link.gftvhello_users || {};
             if (!link.slug.toLowerCase().includes(kw) &&
                 !link.destination.toLowerCase().includes(kw) &&
                 !(user.display_name || '').toLowerCase().includes(kw) &&
@@ -491,8 +491,8 @@ function renderDirectoryTable() {
     }
 
     const rows = data.map(link => {
-        const user = link.gftvlinks_users || {};
-        const isOwner = state.user && link.gftvlinks_users?.id === state.user.id;
+        const user = link.gftvhello_users || {};
+        const isOwner = state.user && link.gftvhello_users?.id === state.user.id;
         return `<tr>
       <td class="td-slug">${slugCopyHtml(link.slug)}</td>
       <td class="td-dest"><span title="${link.destination}">${link.destination}</span></td>
@@ -602,10 +602,10 @@ function buildProfileModalHtml(user, userLinks, viewers) {
 }
 
 window.viewUserProfile = async (userId) => {
-    const user = directoryData.map(l => l.gftvlinks_users).find(u => u?.id === userId);
+    const user = directoryData.map(l => l.gftvhello_users).find(u => u?.id === userId);
     if (!user) return;
 
-    const userLinks = directoryData.filter(l => l.gftvlinks_users?.id === userId);
+    const userLinks = directoryData.filter(l => l.gftvhello_users?.id === userId);
 
     // Show modal immediately with loading viewers placeholder
     document.getElementById('view-profile-content').innerHTML = buildProfileModalHtml(user, userLinks, []);
@@ -625,7 +625,7 @@ window.viewUserProfile = async (userId) => {
 // View a profile by ID — used by viewer pills (looks up user from directoryData or fetches from API)
 window.viewUserProfileById = async (userId) => {
     // Try to find user in already-loaded directory data first
-    const fromDir = directoryData.map(l => l.gftvlinks_users).find(u => u?.id === userId);
+    const fromDir = directoryData.map(l => l.gftvhello_users).find(u => u?.id === userId);
     if (fromDir) {
         await window.viewUserProfile(userId);
         return;
@@ -1119,7 +1119,7 @@ async function loadOwnershipRequests() {
     container.innerHTML = requests.map(r => `
     <div class="glass" style="padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
       <div style="flex:1;min-width:200px;">
-        <div style="font-weight:700;margin-bottom:2px;">${icon('link')} gftv.asia/${r.gftvlinks_links?.slug || '—'}</div>
+        <div style="font-weight:700;margin-bottom:2px;">${icon('link')} gftv.asia/${r.gftvhello_links?.slug || '—'}</div>
         <div style="font-size:0.85rem;color:var(--text-muted);">Requested by <strong>${r.requester?.display_name || r.requester?.username || '?'}</strong> (@${r.requester?.username || '?'})</div>
         <div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">${fmtDate(r.created_at)}</div>
       </div>

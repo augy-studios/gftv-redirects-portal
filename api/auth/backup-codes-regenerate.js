@@ -29,7 +29,7 @@ export default async function handler(req, res) {
         if (!password) return err(res, 'Password required');
 
         const { data: fullUser } = await supabase
-            .from('gftvlinks_users')
+            .from('gftvhello_users')
             .select('password_hash, totp_secret')
             .eq('id', user.id)
             .single();
@@ -43,8 +43,8 @@ export default async function handler(req, res) {
         const plainCodes = generateBackupCodes();
         const rows = plainCodes.map(c => ({ user_id: user.id, code_hash: hashCode(c) }));
 
-        await supabase.from('gftvlinks_backup_codes').delete().eq('user_id', user.id);
-        const { error: codesError } = await supabase.from('gftvlinks_backup_codes').insert(rows);
+        await supabase.from('gftvhello_backup_codes').delete().eq('user_id', user.id);
+        const { error: codesError } = await supabase.from('gftvhello_backup_codes').insert(rows);
         if (codesError) return err(res, 'Failed to regenerate backup codes', 500);
 
         return ok(res, { backup_codes: plainCodes });

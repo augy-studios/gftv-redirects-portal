@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     if (!['approve', 'reject'].includes(action)) return err(res, 'Invalid action');
 
     const { data: request } = await supabase
-        .from('gftvlinks_ownership_requests')
+        .from('gftvhello_ownership_requests')
         .select('*')
         .eq('id', id)
         .single();
@@ -27,13 +27,13 @@ export default async function handler(req, res) {
     const status = action === 'approve' ? 'approved' : 'rejected';
 
     await supabase
-        .from('gftvlinks_ownership_requests')
+        .from('gftvhello_ownership_requests')
         .update({ status, updated_at: new Date().toISOString() })
         .eq('id', id);
 
     if (action === 'approve') {
         await supabase
-            .from('gftvlinks_links')
+            .from('gftvhello_links')
             .update({ user_id: request.requester_id, updated_at: new Date().toISOString() })
             .eq('id', request.link_id);
     }

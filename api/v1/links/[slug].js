@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
     // Fetch the link
     const { data: link } = await supabase
-        .from('gftvlinks_links')
+        .from('gftvhello_links')
         .select('id, slug, destination, is_active, access_count, tags, created_at, updated_at, user_id')
         .eq('slug', slug)
         .single();
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
             }
 
             const { data: updated, error } = await supabase
-                .from('gftvlinks_links')
+                .from('gftvhello_links')
                 .update(updates)
                 .eq('id', link.id)
                 .select('id, slug, destination, is_active, access_count, tags, created_at, updated_at')

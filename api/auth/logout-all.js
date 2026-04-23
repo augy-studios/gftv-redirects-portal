@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     const auth = req.headers['authorization'] || '';
     const currentToken = auth.replace(/^Bearer\s+/i, '').trim();
 
-    const { error } = await supabase.from('gftvlinks_sessions').delete().eq('user_id', user.id);
+    const { error } = await supabase.from('gftvhello_sessions').delete().eq('user_id', user.id);
     if (error) return err(res, 'Server error', 500);
 
     return ok(res, { message: 'All sessions terminated' });

@@ -12,7 +12,7 @@ export default async function handler(req, res) {
         if (!username || !password) return err(res, 'Username and password required');
 
         const { data: user } = await supabase
-            .from('gftvlinks_users')
+            .from('gftvhello_users')
             .select('*')
             .or(`username.eq.${username.toLowerCase()},email.eq.${username.toLowerCase()}`)
             .single();
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
             // Check if the current device is already trusted
             if (device_token) {
                 const { data: trusted } = await supabase
-                    .from('gftvlinks_trusted_devices')
+                    .from('gftvhello_trusted_devices')
                     .select('id')
                     .eq('user_id', user.id)
                     .eq('device_token', device_token)
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
                     // Trusted device — skip 2FA, create session directly
                     const token = crypto.randomBytes(48).toString('hex');
                     const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-                    await supabase.from('gftvlinks_sessions').insert({ user_id: user.id, token, expires_at });
+                    await supabase.from('gftvhello_sessions').insert({ user_id: user.id, token, expires_at });
 
                     const { password_hash, totp_secret, ...safeUser } = user;
                     safeUser.totp_enabled = true;
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
             // Device not trusted — issue a short-lived challenge token
             const challenge_token = crypto.randomBytes(32).toString('hex');
             const expires_at = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
-            await supabase.from('gftvlinks_totp_challenges').insert({
+            await supabase.from('gftvhello_totp_challenges').insert({
                 token: challenge_token,
                 user_id: user.id,
                 expires_at,
@@ -63,7 +63,7 @@ export default async function handler(req, res) {
         // No 2FA — create session normally
         const token = crypto.randomBytes(48).toString('hex');
         const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-        await supabase.from('gftvlinks_sessions').insert({ user_id: user.id, token, expires_at });
+        await supabase.from('gftvhello_sessions').insert({ user_id: user.id, token, expires_at });
 
         const { password_hash, totp_secret, ...safeUser } = user;
         safeUser.totp_enabled = false;

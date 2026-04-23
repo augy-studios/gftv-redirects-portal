@@ -17,10 +17,10 @@ export default async function handler(req, res) {
             const searchType = url.searchParams.get('type') || 'keyword';
 
             let query = supabase
-                .from('gftvlinks_links')
+                .from('gftvhello_links')
                 .select(`
                     id, slug, destination, is_active, access_count, tags, created_at,
-                    gftvlinks_users(id, username, display_name, avatar_url, social_links, is_admin)
+                    gftvhello_users(id, username, display_name, avatar_url, social_links, is_admin)
                 `)
                 .order('created_at', { ascending: false });
 
@@ -39,8 +39,8 @@ export default async function handler(req, res) {
 
             if (search && searchType === 'username') {
                 result = result.filter(l =>
-                    l.gftvlinks_users?.username?.toLowerCase().includes(search.toLowerCase()) ||
-                    l.gftvlinks_users?.display_name?.toLowerCase().includes(search.toLowerCase())
+                    l.gftvhello_users?.username?.toLowerCase().includes(search.toLowerCase()) ||
+                    l.gftvhello_users?.display_name?.toLowerCase().includes(search.toLowerCase())
                 );
             }
 
@@ -67,7 +67,7 @@ export default async function handler(req, res) {
             if (destHostname.endsWith('gftv.asia') && !allowedGftvSubdomains.includes(destHostname)) return err(res, 'Destination cannot point to gftv.asia');
 
             const { error } = await supabase
-                .from('gftvlinks_links')
+                .from('gftvhello_links')
                 .insert({ slug, destination, user_id: user.id, tags });
 
             if (error) {

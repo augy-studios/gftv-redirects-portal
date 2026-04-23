@@ -40,7 +40,7 @@ export default async function handler(req, res) {
         }
 
         const { error } = await supabase
-            .from('gftvlinks_users')
+            .from('gftvhello_users')
             .update(updates)
             .eq('id', user.id);
 
