@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     // GET - list all pre-approved users
     if (req.method === 'GET') {
         const { data, error } = await supabase
-            .from('gftvhello_users_preapproved')
+            .from('gftvlinks_users_preapproved')
             .select('id, email, preapproved_role, user_id, preapproved_at, activated_at')
             .order('preapproved_at', { ascending: false });
 
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
 
         // Check if already pre-approved
         const { data: existing } = await supabase
-            .from('gftvhello_users_preapproved')
+            .from('gftvlinks_users_preapproved')
             .select('id')
             .eq('email', trimmedEmail)
             .maybeSingle();
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
         }
 
         const { error } = await supabase
-            .from('gftvhello_users_preapproved')
+            .from('gftvlinks_users_preapproved')
             .insert(insertData);
 
         if (error) return err(res, 'Failed to add pre-approved user');
@@ -74,7 +74,7 @@ export default async function handler(req, res) {
         if (!id) return err(res, 'id required');
 
         const { error } = await supabase
-            .from('gftvhello_users_preapproved')
+            .from('gftvlinks_users_preapproved')
             .delete()
             .eq('id', id);
 

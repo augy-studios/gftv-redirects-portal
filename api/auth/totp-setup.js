@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
         const secret = authenticator.generateSecret();
         const account = user.email || user.username;
-        const otpauthUrl = authenticator.keyuri(account, 'GFTV Links Portal', secret);
+        const otpauthUrl = authenticator.keyuri(account, 'GFTV Hello Apps', secret);
 
         const qrDataUrl = await QRCode.toDataURL(otpauthUrl, { width: 200, margin: 2 });
 

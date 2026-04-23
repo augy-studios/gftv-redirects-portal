@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
     // Verify link exists and requester owns it (or is admin)
     const { data: link } = await supabase
-        .from('gftvhello_links')
+        .from('gftvlinks_links')
         .select('id, user_id, access_count')
         .eq('id', id)
         .single();
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         supabase.rpc('get_link_all_daily_clicks', { p_link_id: id }),
         supabase.rpc('get_link_traffic_heatmap', { p_link_id: id }),
         supabase
-            .from('gftvhello_linkhistory')
+            .from('gftvlinks_linkhistory')
             .select('id, event_type, description, created_at')
             .eq('link_id', id)
             .order('created_at', { ascending: false }),

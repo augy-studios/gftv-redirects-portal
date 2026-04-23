@@ -4,15 +4,15 @@
 -- =================================================================
 
 -- =================================================================
--- PART 1: Add device_type column to gftvhello_linkvisits
+-- PART 1: Add device_type column to gftvlinks_linkvisits
 -- =================================================================
 
-ALTER TABLE gftvhello_linkvisits
+ALTER TABLE gftvlinks_linkvisits
     ADD COLUMN IF NOT EXISTS device_type TEXT NOT NULL DEFAULT 'Others';
 
 -- Set existing records to 'Others' (already handled by DEFAULT above,
 -- but explicit update for any rows that slipped through)
-UPDATE gftvhello_linkvisits
+UPDATE gftvlinks_linkvisits
 SET device_type = 'Others'
 WHERE device_type IS NULL OR device_type NOT IN ('Desktop', 'Tablet', 'Mobile', 'Others');
 
@@ -22,7 +22,7 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM pg_constraint WHERE conname = 'chk_linkvisit_device_type'
     ) THEN
-        ALTER TABLE gftvhello_linkvisits
+        ALTER TABLE gftvlinks_linkvisits
             ADD CONSTRAINT chk_linkvisit_device_type
             CHECK (device_type IN ('Desktop', 'Tablet', 'Mobile', 'Others'));
     END IF;
@@ -31,7 +31,7 @@ END $$;
 -- =================================================================
 -- PART 2: Update record_link_visit RPC to accept device_type
 -- IMPORTANT: This rewrites the function body. The INSERT statement
--- below assumes your gftvhello_linkvisits table has columns:
+-- below assumes your gftvlinks_linkvisits table has columns:
 --   link_id (UUID), slug (TEXT), device_type (TEXT)
 -- and a created_at TIMESTAMPTZ with DEFAULT NOW().
 -- Adjust column names if your schema differs.
@@ -47,10 +47,10 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-    INSERT INTO gftvhello_linkvisits (link_id, slug, device_type, visited_at)
+    INSERT INTO gftvlinks_linkvisits (link_id, slug, device_type, visited_at)
     VALUES (p_link_id, p_slug, p_device_type, NOW());
 
-    UPDATE gftvhello_links
+    UPDATE gftvlinks_links
     SET access_count = COALESCE(access_count, 0) + 1
     WHERE id = p_link_id;
 END;
@@ -58,7 +58,7 @@ $$;
 
 -- =================================================================
 -- PART 3: Analytics RPC functions
--- Uses 'visited_at' as the timestamp column in gftvhello_linkvisits.
+-- Uses 'visited_at' as the timestamp column in gftvlinks_linkvisits.
 -- =================================================================
 
 -- Device type breakdown for a link
@@ -68,7 +68,7 @@ LANGUAGE sql
 SECURITY DEFINER
 AS $$
     SELECT device_type, COUNT(*) AS cnt
-    FROM gftvhello_linkvisits
+    FROM gftvlinks_linkvisits
     WHERE link_id = p_link_id
     GROUP BY device_type;
 $$;
@@ -82,7 +82,7 @@ AS $$
     SELECT
         (visited_at AT TIME ZONE 'UTC')::DATE AS day,
         COUNT(*) AS cnt
-    FROM gftvhello_linkvisits
+    FROM gftvlinks_linkvisits
     WHERE link_id = p_link_id
       AND visited_at >= (NOW() - INTERVAL '7 days')
     GROUP BY (visited_at AT TIME ZONE 'UTC')::DATE
@@ -98,7 +98,7 @@ AS $$
     SELECT
         (visited_at AT TIME ZONE 'UTC')::DATE AS day,
         COUNT(*) AS cnt
-    FROM gftvhello_linkvisits
+    FROM gftvlinks_linkvisits
     WHERE link_id = p_link_id
     GROUP BY (visited_at AT TIME ZONE 'UTC')::DATE
     ORDER BY day;
@@ -114,7 +114,7 @@ AS $$
         EXTRACT(DOW  FROM visited_at AT TIME ZONE 'UTC')::SMALLINT AS dow,
         EXTRACT(HOUR FROM visited_at AT TIME ZONE 'UTC')::SMALLINT AS hr,
         COUNT(*) AS cnt
-    FROM gftvhello_linkvisits
+    FROM gftvlinks_linkvisits
     WHERE link_id = p_link_id
     GROUP BY dow, hr
     ORDER BY dow, hr;
@@ -124,19 +124,19 @@ $$;
 -- PART 4: Link History table
 -- =================================================================
 
-CREATE TABLE IF NOT EXISTS gftvhello_linkhistory (
+CREATE TABLE IF NOT EXISTS gftvlinks_linkhistory (
     id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    link_id     UUID        NOT NULL REFERENCES gftvhello_links(id) ON DELETE CASCADE,
+    link_id     UUID        NOT NULL REFERENCES gftvlinks_links(id) ON DELETE CASCADE,
     event_type  TEXT        NOT NULL,
     description TEXT        NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_linkhistory_link_id
-    ON gftvhello_linkhistory(link_id);
+    ON gftvlinks_linkhistory(link_id);
 
 CREATE INDEX IF NOT EXISTS idx_linkhistory_created_at
-    ON gftvhello_linkhistory(created_at DESC);
+    ON gftvlinks_linkhistory(created_at DESC);
 
 -- =================================================================
 -- PART 5: Trigger to auto-record link history on changes
@@ -152,7 +152,7 @@ DECLARE
 BEGIN
     -- On INSERT: record creation event
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO gftvhello_linkhistory (link_id, event_type, description, created_at)
+        INSERT INTO gftvlinks_linkhistory (link_id, event_type, description, created_at)
         VALUES (
             NEW.id,
             'created',
@@ -165,7 +165,7 @@ BEGIN
     IF TG_OP = 'UPDATE' THEN
         -- Active/inactive status change
         IF OLD.is_active IS DISTINCT FROM NEW.is_active THEN
-            INSERT INTO gftvhello_linkhistory (link_id, event_type, description)
+            INSERT INTO gftvlinks_linkhistory (link_id, event_type, description)
             VALUES (
                 NEW.id,
                 'status_change',
@@ -182,7 +182,7 @@ BEGIN
             FROM gftvhello_users
             WHERE id = NEW.user_id;
 
-            INSERT INTO gftvhello_linkhistory (link_id, event_type, description)
+            INSERT INTO gftvlinks_linkhistory (link_id, event_type, description)
             VALUES (
                 NEW.id,
                 'ownership_change',
@@ -195,9 +195,9 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_link_history ON gftvhello_links;
+DROP TRIGGER IF EXISTS trg_link_history ON gftvlinks_links;
 CREATE TRIGGER trg_link_history
-    AFTER INSERT OR UPDATE ON gftvhello_links
+    AFTER INSERT OR UPDATE ON gftvlinks_links
     FOR EACH ROW EXECUTE FUNCTION fn_record_link_history();
 
 -- =================================================================
@@ -205,14 +205,14 @@ CREATE TRIGGER trg_link_history
 -- Only inserts if a 'created' record does not already exist
 -- =================================================================
 
-INSERT INTO gftvhello_linkhistory (link_id, event_type, description, created_at)
+INSERT INTO gftvlinks_linkhistory (link_id, event_type, description, created_at)
 SELECT
     l.id,
     'created',
     'https://gftv.asia/' || l.slug || ' created for ' || l.destination,
     l.created_at
-FROM gftvhello_links l
+FROM gftvlinks_links l
 WHERE NOT EXISTS (
-    SELECT 1 FROM gftvhello_linkhistory h
+    SELECT 1 FROM gftvlinks_linkhistory h
     WHERE h.link_id = l.id AND h.event_type = 'created'
 );

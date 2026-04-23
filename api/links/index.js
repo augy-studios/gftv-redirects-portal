@@ -17,7 +17,7 @@ export default async function handler(req, res) {
             const searchType = url.searchParams.get('type') || 'keyword';
 
             let query = supabase
-                .from('gftvhello_links')
+                .from('gftvlinks_links')
                 .select(`
                     id, slug, destination, is_active, access_count, tags, created_at,
                     gftvhello_users(id, username, display_name, avatar_url, social_links, is_admin)
@@ -67,7 +67,7 @@ export default async function handler(req, res) {
             if (destHostname.endsWith('gftv.asia') && !allowedGftvSubdomains.includes(destHostname)) return err(res, 'Destination cannot point to gftv.asia');
 
             const { error } = await supabase
-                .from('gftvhello_links')
+                .from('gftvlinks_links')
                 .insert({ slug, destination, user_id: user.id, tags });
 
             if (error) {

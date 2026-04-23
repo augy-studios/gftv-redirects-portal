@@ -21,7 +21,7 @@ export default async function handler(req) {
 
     try {
         const { data: link } = await supabase
-            .from('gftvhello_links')
+            .from('gftvlinks_links')
             .select('id, destination, is_active')
             .eq('slug', slug)
             .single();
@@ -33,7 +33,7 @@ export default async function handler(req) {
         const ua = req.headers.get('user-agent') || '';
         const deviceType = detectDeviceType(ua);
 
-        // Record visit with device type in gftvhello_linkvisits and sync access_count
+        // Record visit with device type in gftvlinks_linkvisits and sync access_count
         await supabase.rpc('record_link_visit', {
             p_link_id: link.id,
             p_slug: slug,

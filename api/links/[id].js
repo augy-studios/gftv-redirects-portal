@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
     // Fetch the link
     const { data: link } = await supabase
-        .from('gftvhello_links')
+        .from('gftvlinks_links')
         .select('*')
         .eq('id', id)
         .single();
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
             }
 
             const { error } = await supabase
-                .from('gftvhello_links')
+                .from('gftvlinks_links')
                 .update(updates)
                 .eq('id', id);
 
@@ -79,7 +79,7 @@ export default async function handler(req, res) {
     if (req.method === 'DELETE') {
         if (!canEdit) return err(res, 'Forbidden', 403);
 
-        await supabase.from('gftvhello_links').delete().eq('id', id);
+        await supabase.from('gftvlinks_links').delete().eq('id', id);
         return ok(res, { message: 'Link deleted' });
     }
 

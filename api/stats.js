@@ -14,10 +14,10 @@ export default async function handler(req, res) {
                 .eq('is_approved', true)
                 .or('is_editor.eq.true,is_admin.eq.true'),
             supabase
-                .from('gftvhello_links')
+                .from('gftvlinks_links')
                 .select('*', { count: 'exact', head: true }),
             supabase
-                .from('gftvhello_links')
+                .from('gftvlinks_links')
                 .select('access_count'),
         ]);
 
