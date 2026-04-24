@@ -109,7 +109,7 @@
             "destination": "/api/v1/links/index"
         },
         {
-            "source": "/:slug",
+            "source": "/nc/:slug",
             "destination": "/api/redirect/[slug]"
         },
         {
