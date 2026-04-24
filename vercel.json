@@ -109,7 +109,8 @@
             "destination": "/api/v1/links/index"
         },
         {
-            "source": "/nc/:slug",
+            "source": "/",
+            "has": [{"type": "query", "key": "nc"}],
             "destination": "/api/redirect/[slug]"
         },
         {

@@ -15,7 +15,7 @@ function detectDeviceType(ua) {
 
 export default async function handler(req) {
     const url = new URL(req.url);
-    const slug = url.pathname.split('/').pop();
+    const slug = url.searchParams.get('nc');
 
     if (!slug) return Response.redirect(FALLBACK, 302);
 
