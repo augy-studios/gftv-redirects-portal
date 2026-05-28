@@ -59,14 +59,20 @@ export default async function handler(req, res) {
                 updates.user_id = newOwner.id;
             }
 
-            const { error } = await supabase
+            const { data: updated, error } = await supabase
                 .from('gftvlinks_links')
                 .update(updates)
-                .eq('id', id);
+                .eq('id', id)
+                .select('id');
 
             if (error) {
                 console.error('Link update error:', JSON.stringify(error));
                 if (error.code === '23505') return err(res, 'Slug already taken');
+                return err(res, 'Failed to update link');
+            }
+
+            if (!updated || updated.length === 0) {
+                console.error('Link update matched 0 rows for id:', id);
                 return err(res, 'Failed to update link');
             }
 

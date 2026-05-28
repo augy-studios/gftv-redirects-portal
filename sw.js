@@ -1,4 +1,4 @@
-const CACHE = "gftvlinks-offline-v1";
+const CACHE = "gftvlinks-offline-v2";
 
 const ASSETS = [
   "/",
@@ -29,6 +29,11 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  // Never intercept API calls or non-GET requests — always go to the network
+  if (event.request.method !== "GET" || event.request.url.includes("/api/")) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetched = fetch(event.request).then((response) => {
