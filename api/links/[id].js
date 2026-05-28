@@ -65,6 +65,7 @@ export default async function handler(req, res) {
                 .eq('id', id);
 
             if (error) {
+                console.error('Link update error:', JSON.stringify(error));
                 if (error.code === '23505') return err(res, 'Slug already taken');
                 return err(res, 'Failed to update link');
             }

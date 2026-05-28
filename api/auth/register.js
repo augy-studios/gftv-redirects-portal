@@ -33,7 +33,7 @@ export default async function handler(req, res) {
         const { data: preapproved } = await supabase
             .from('gftvhello_users_preapproved')
             .select('id, preapproved_role')
-            .eq('email', email.toLowerCase())
+            .eq('email', email.trim().toLowerCase())
             .is('user_id', null)
             .maybeSingle();
 

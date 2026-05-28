@@ -1,10 +1,10 @@
-const CACHE = "template-offline-v1";
+const CACHE = "gftvlinks-offline-v1";
 
 const ASSETS = [
   "/",
   "/index.html",
   "/style.css",
-  "/app.js",
+  "/script.js",
   "/gsl-main.png",
   "/favicon.ico",
   "/manifest.json"

@@ -92,12 +92,33 @@ export default async function handler(req, res) {
             return err(res, 'Invalid action');
         }
 
+        const { data: targetUser } = await supabase
+            .from('gftvhello_users')
+            .select('email, is_approved')
+            .eq('id', user_id)
+            .single();
+
         const { error } = await supabase
             .from('gftvhello_users')
             .update(updates)
             .eq('id', user_id);
 
         if (error) return err(res, 'Failed to update user');
+
+        // If granting/revoking approval, sync the pre-approved list
+        if ((action === 'grant_editor' || action === 'grant_viewer') && targetUser) {
+            await supabase
+                .from('gftvhello_users_preapproved')
+                .update({ user_id, activated_at: new Date().toISOString() })
+                .eq('email', targetUser.email)
+                .is('user_id', null);
+        } else if (action === 'revoke_viewer' && targetUser) {
+            await supabase
+                .from('gftvhello_users_preapproved')
+                .update({ user_id: null, activated_at: null })
+                .eq('email', targetUser.email);
+        }
+
         return ok(res, { message: 'User updated' });
     }
 
