@@ -179,7 +179,7 @@ BEGIN
         -- Ownership transfer
         IF OLD.user_id IS DISTINCT FROM NEW.user_id THEN
             SELECT username INTO v_new_owner
-            FROM gftvhello_users
+            FROM gftvhello_users   -- was gftvlinks_users before prefix migration
             WHERE id = NEW.user_id;
 
             INSERT INTO gftvlinks_linkhistory (link_id, event_type, description)

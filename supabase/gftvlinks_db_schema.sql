@@ -7,7 +7,7 @@ create table public.gftvlinks_api_keys (
   updated_at timestamp with time zone not null default now(),
   constraint gftvlinks_api_keys_pkey primary key (id),
   constraint gftvlinks_api_keys_api_key_key unique (api_key),
-  constraint gftvlinks_api_keys_user_id_fkey foreign KEY (user_id) references gftvlinks_users (id) on delete CASCADE
+  constraint gftvlinks_api_keys_user_id_fkey foreign KEY (user_id) references gftvhello_users (id) on delete CASCADE
 ) TABLESPACE pg_default;
 
 create unique INDEX IF not exists idx_api_keys_user_id on public.gftvlinks_api_keys using btree (user_id) TABLESPACE pg_default;
