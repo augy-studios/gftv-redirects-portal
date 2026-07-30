@@ -43,13 +43,7 @@ let homeTypingInterval = null;
 
 // ===== THEME =====
 const COLOR_THEMES = [
-    { id: 'classic', label: 'Classic', color: '#ccffcc' },
-    { id: 'notgreen1', label: 'Not Green 1', color: '#ffcccc' },
-    { id: 'notgreen2', label: 'Not Green 2', color: '#ccccff' },
-    { id: 'notgreen3', label: 'Not Green 3', color: '#ffffcc' },
-    { id: 'notgreen4', label: 'Not Green 4', color: '#ffccff' },
-    { id: 'notgreen5', label: 'Not Green 5', color: '#ccffff' },
-    { id: 'rrlgreen', label: 'Really Really Light Green', color: '#ffffff' },
+    { id: 'classic', label: 'Classic', color: '#ffffff' },
     { id: 'hellotheme', label: 'HelloTheme', color: '#fedc00' },
 ];
 
@@ -60,7 +54,7 @@ function isValidColorTheme(id) {
 function updateThemeColorMeta() {
     const meta = document.querySelector('meta[name="theme-color"]');
     const theme = COLOR_THEMES.find(t => t.id === state.colorTheme);
-    if (meta) meta.setAttribute('content', theme?.color || '#ccffcc');
+    if (meta) meta.setAttribute('content', theme?.color || '#ffffff');
 }
 
 function applyColorTheme(id) {
@@ -76,6 +70,12 @@ function applyMode(mode) {
     state.mode = mode;
     localStorage.setItem(MODE_KEY, mode);
     document.documentElement.setAttribute('data-mode', mode);
+    updateThemeButtonIcon();
+}
+
+function updateThemeButtonIcon() {
+    const btn = document.getElementById('theme-picker-btn');
+    if (btn) btn.innerHTML = icon(state.mode === 'dark' ? 'moon' : 'sun', 18);
 }
 
 // Migrate the old single-key theme value, then drop it, so nobody loses their pick
