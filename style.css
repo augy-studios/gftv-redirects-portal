@@ -463,6 +463,15 @@ body::before {
   transition: all var(--transition);
 }
 
+/* Keep the sun/moon glyph readable against whichever mode is active */
+:root[data-mode="light"] .nav-theme-btn {
+  color: #000;
+}
+
+:root[data-mode="dark"] .nav-theme-btn {
+  color: #fff;
+}
+
 .nav-theme-btn:hover {
   background: var(--brand);
   transform: rotate(20deg);
@@ -1248,61 +1257,108 @@ td {
   max-width: 700px;
 }
 
-/* Theme picker modal */
-.theme-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-top: 16px;
+/* ===== APPEARANCE (THEME PICKER) MODAL ===== */
+.appearance-modal {
+  max-width: 560px;
+  padding: 28px;
 }
 
-.theme-swatch {
-  border-radius: 12px;
-  padding: 14px 8px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  text-align: center;
-  transition: all var(--transition);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.theme-swatch:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px var(--shadow-ambient);
-}
-
-.theme-swatch.active {
-  border-color: var(--swatch-ring-active);
-  box-shadow: 0 0 0 2px var(--swatch-ring);
-}
-
-.theme-swatch-dot {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid var(--swatch-ring);
-}
-
-.theme-swatch-name {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--swatch-text);
-  line-height: 1.2;
-  text-align: center;
-}
-
-/* Mode toggle in theme modal */
-.mode-toggle-row {
+.appearance-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.appearance-header h3 {
+  margin-bottom: 0;
+}
+
+/* Boxed X, matching the option tiles below it */
+.appearance-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  background: none;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  margin-bottom: 4px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.appearance-close:hover {
+  background: var(--danger-light);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.appearance-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.appearance-row + .appearance-row {
+  margin-top: 12px;
+}
+
+.appearance-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.appearance-option-mode {
+  justify-content: center;
+}
+
+.appearance-option:hover {
+  border-color: var(--border-strong);
+}
+
+/* Neutral grey tint so the selected tile reads the same way in light and dark */
+.appearance-option.active {
+  background: rgba(128, 128, 128, 0.18);
+  border-color: var(--border-strong);
+}
+
+.theme-swatch-dot {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--swatch-ring);
+}
+
+.theme-swatch-name {
+  line-height: 1.2;
+}
+
+.theme-swatch-hex {
+  margin-left: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  color: var(--text-light);
+}
+
+@media (max-width: 480px) {
+  .appearance-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ===== PROFILE ===== */

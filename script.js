@@ -71,6 +71,7 @@ function applyMode(mode) {
     localStorage.setItem(MODE_KEY, mode);
     document.documentElement.setAttribute('data-mode', mode);
     updateThemeButtonIcon();
+    updateModeOptions();
 }
 
 function updateThemeButtonIcon() {
@@ -2122,13 +2123,19 @@ function renderThemeGrid() {
     const grid = document.getElementById('theme-grid');
     if (!grid) return;
     grid.innerHTML = COLOR_THEMES.map(t => `
-    <div class="theme-swatch ${state.colorTheme === t.id ? 'active' : ''}"
-      data-theme-id="${t.id}"
-      style="background:${t.color};">
-      <div class="theme-swatch-dot" style="background:${t.color};"></div>
-      <div class="theme-swatch-name">${t.label}</div>
-    </div>
+    <button type="button" class="appearance-option theme-swatch ${state.colorTheme === t.id ? 'active' : ''}"
+      data-theme-id="${t.id}">
+      <span class="theme-swatch-dot" style="background:${t.color};"></span>
+      <span class="theme-swatch-name">${t.label}</span>
+      <span class="theme-swatch-hex">${t.color}</span>
+    </button>
   `).join('');
+}
+
+function updateModeOptions() {
+    document.querySelectorAll('[data-mode-option]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.modeOption === state.mode);
+    });
 }
 
 function setupThemePicker() {
@@ -2146,14 +2153,15 @@ function setupThemePicker() {
         toast(`Theme changed to ${theme.label}`, 'success');
     });
 
-    const modeToggle = document.getElementById('mode-toggle');
-    if (modeToggle) {
-        modeToggle.checked = state.mode === 'dark';
-        modeToggle.addEventListener('change', () => {
-            applyMode(modeToggle.checked ? 'dark' : 'light');
-            toast(`Switched to ${modeToggle.checked ? 'dark' : 'light'} mode`, 'success');
-        });
-    }
+    document.getElementById('mode-options')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-mode-option]');
+        if (!btn) return;
+        const mode = btn.dataset.modeOption;
+        if (mode === state.mode) return;
+        applyMode(mode);
+        toast(`Switched to ${mode} mode`, 'success');
+    });
+    updateModeOptions();
 }
 
 // ===== HAMBURGER MENU =====
