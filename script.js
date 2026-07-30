@@ -229,6 +229,7 @@ async function handleLogout() {
     localStorage.removeItem('gftv_token');
     state.user = null;
     state.token = null;
+    navigator.serviceWorker?.controller?.postMessage('CLEAR_API_CACHE');
     closeAllModals();
     navigate('home');
     toast('Logged out successfully', 'success');
