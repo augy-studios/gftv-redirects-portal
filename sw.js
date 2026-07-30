@@ -1,4 +1,4 @@
-const CACHE = "gftvlinks-offline-v2";
+const CACHE = "gftvlinks-offline-v3";
 
 const ASSETS = [
   "/",

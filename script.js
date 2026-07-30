@@ -26,58 +26,74 @@ import {
 } from './ui.js';
 
 // ===== STATE =====
+const COLOR_THEME_KEY = 'gftv-gftvlinks.colorTheme';
+const MODE_KEY = 'gftv-gftvlinks.mode';
+const DEFAULT_COLOR_THEME = 'classic';
+const DEFAULT_MODE = 'light';
+
 let state = {
     user: null,
     token: localStorage.getItem('gftv_token') || null,
-    theme: localStorage.getItem('gftv_theme') || 'classic',
+    colorTheme: DEFAULT_COLOR_THEME,
+    mode: DEFAULT_MODE,
     currentPage: 'home',
 };
 
 let homeTypingInterval = null;
 
 // ===== THEME =====
-const THEMES = {
-    classic: {
-        label: 'Classic',
-        color: '#ccffcc'
-    },
-    notgreen1: {
-        label: 'Not Green 1',
-        color: '#ffcccc'
-    },
-    notgreen2: {
-        label: 'Not Green 2',
-        color: '#ccccff'
-    },
-    notgreen3: {
-        label: 'Not Green 3',
-        color: '#ffffcc'
-    },
-    notgreen4: {
-        label: 'Not Green 4',
-        color: '#ffccff'
-    },
-    notgreen5: {
-        label: 'Not Green 5',
-        color: '#ccffff'
-    },
-    rrlgreen: {
-        label: 'Really Really Light Green',
-        color: '#ffffff'
-    },
-    hellotheme: {
-        label: 'HelloTheme',
-        color: '#fedc00'
-    },
-};
+const COLOR_THEMES = [
+    { id: 'classic', label: 'Classic', color: '#ccffcc' },
+    { id: 'notgreen1', label: 'Not Green 1', color: '#ffcccc' },
+    { id: 'notgreen2', label: 'Not Green 2', color: '#ccccff' },
+    { id: 'notgreen3', label: 'Not Green 3', color: '#ffffcc' },
+    { id: 'notgreen4', label: 'Not Green 4', color: '#ffccff' },
+    { id: 'notgreen5', label: 'Not Green 5', color: '#ccffff' },
+    { id: 'rrlgreen', label: 'Really Really Light Green', color: '#ffffff' },
+    { id: 'hellotheme', label: 'HelloTheme', color: '#fedc00' },
+];
 
-function applyTheme(key) {
-    state.theme = key;
-    localStorage.setItem('gftv_theme', key);
-    document.documentElement.setAttribute('data-theme', key === 'classic' ? '' : key);
-    // Update manifest theme-color meta
+function isValidColorTheme(id) {
+    return COLOR_THEMES.some(t => t.id === id);
+}
+
+function updateThemeColorMeta() {
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', THEMES[key]?.color || '#ccffcc');
+    const theme = COLOR_THEMES.find(t => t.id === state.colorTheme);
+    if (meta) meta.setAttribute('content', theme?.color || '#ccffcc');
+}
+
+function applyColorTheme(id) {
+    if (!isValidColorTheme(id)) id = DEFAULT_COLOR_THEME;
+    state.colorTheme = id;
+    localStorage.setItem(COLOR_THEME_KEY, id);
+    document.documentElement.setAttribute('data-color-theme', id);
+    updateThemeColorMeta();
+}
+
+function applyMode(mode) {
+    if (mode !== 'light' && mode !== 'dark') mode = DEFAULT_MODE;
+    state.mode = mode;
+    localStorage.setItem(MODE_KEY, mode);
+    document.documentElement.setAttribute('data-mode', mode);
+}
+
+// Migrate the old single-key theme value, then drop it, so nobody loses their pick
+function migrateLegacyTheme() {
+    const legacy = localStorage.getItem('gftv_theme');
+    if (legacy === null) return;
+    const migrated = isValidColorTheme(legacy) ? legacy : DEFAULT_COLOR_THEME;
+    if (!localStorage.getItem(COLOR_THEME_KEY)) localStorage.setItem(COLOR_THEME_KEY, migrated);
+    if (!localStorage.getItem(MODE_KEY)) localStorage.setItem(MODE_KEY, DEFAULT_MODE);
+    localStorage.removeItem('gftv_theme');
+}
+
+function initTheme() {
+    migrateLegacyTheme();
+    const savedColorTheme = localStorage.getItem(COLOR_THEME_KEY);
+    const savedMode = localStorage.getItem(MODE_KEY);
+    applyColorTheme(isValidColorTheme(savedColorTheme) ? savedColorTheme : DEFAULT_COLOR_THEME);
+    applyMode(savedMode === 'dark' ? 'dark' : DEFAULT_MODE);
 }
 
 // ===== ROUTER =====
@@ -191,8 +207,6 @@ window.openModal = openModal;
 
 // ===== AUTH =====
 async function init() {
-    applyTheme(state.theme);
-
     if (state.token) {
         const res = await Auth.me();
         if (res.ok) {
@@ -559,7 +573,7 @@ function buildProfileModalHtml(user, userLinks, viewers) {
     const letter = (user.display_name || user.username || '?')[0].toUpperCase();
     const avHtml = user.avatar_url
         ? `<img src="${user.avatar_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;margin-bottom:10px;" alt="${letter}">`
-        : `<div style="width:72px;height:72px;border-radius:50%;background:var(--brand);color:var(--brand-text,#fff);font-size:1.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">${letter}</div>`;
+        : `<div style="width:72px;height:72px;border-radius:50%;background:var(--brand);color:var(--brand-text);font-size:1.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">${letter}</div>`;
 
     const socials = user.social_links || [];
     const socialsHtml = socials.length > 0
@@ -2103,24 +2117,43 @@ function animateCounter(elementId, target) {
 }
 
 // ===== THEME PICKER =====
-function setupThemePicker() {
+function renderThemeGrid() {
     const grid = document.getElementById('theme-grid');
-    grid.innerHTML = Object.entries(THEMES).map(([key, t]) => `
-    <div class="theme-swatch ${state.theme === key ? 'active' : ''}"
-      style="background:${t.color};"
-      onclick="selectTheme('${key}', this)">
-      <div class="theme-swatch-dot" style="background:${t.color};border:2px solid rgba(0,0,0,0.15)"></div>
+    if (!grid) return;
+    grid.innerHTML = COLOR_THEMES.map(t => `
+    <div class="theme-swatch ${state.colorTheme === t.id ? 'active' : ''}"
+      data-theme-id="${t.id}"
+      style="background:${t.color};">
+      <div class="theme-swatch-dot" style="background:${t.color};"></div>
       <div class="theme-swatch-name">${t.label}</div>
     </div>
   `).join('');
 }
 
-window.selectTheme = (key, el) => {
-    applyTheme(key);
-    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
-    el.classList.add('active');
-    toast(`Theme changed to ${THEMES[key].label}`, 'success');
-};
+function setupThemePicker() {
+    renderThemeGrid();
+
+    const grid = document.getElementById('theme-grid');
+    grid?.addEventListener('click', (e) => {
+        const swatch = e.target.closest('.theme-swatch');
+        if (!swatch) return;
+        const id = swatch.dataset.themeId;
+        applyColorTheme(id);
+        document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
+        swatch.classList.add('active');
+        const theme = COLOR_THEMES.find(t => t.id === id);
+        toast(`Theme changed to ${theme.label}`, 'success');
+    });
+
+    const modeToggle = document.getElementById('mode-toggle');
+    if (modeToggle) {
+        modeToggle.checked = state.mode === 'dark';
+        modeToggle.addEventListener('change', () => {
+            applyMode(modeToggle.checked ? 'dark' : 'light');
+            toast(`Switched to ${modeToggle.checked ? 'dark' : 'light'} mode`, 'success');
+        });
+    }
+}
 
 // ===== HAMBURGER MENU =====
 function setupHamburger() {
@@ -2342,7 +2375,7 @@ function renderAnalyticsTabContent(tab) {
 
 function renderAnalyticsDevices(data) {
     const ORDER = ['Desktop', 'Tablet', 'Mobile', 'Others'];
-    const COLORS = ['#2d4057', '#7c8ea0', '#b0bec8', '#e2e8ec'];
+    const COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)'];
 
     const counts = { Desktop: 0, Tablet: 0, Mobile: 0, Others: 0 };
     (data.devices || []).forEach(d => {
@@ -2471,7 +2504,7 @@ function renderAnalyticsTraffic(data) {
             const cnt = grid[`${dow}:${h}`] || 0;
             const intensity = maxVal > 0 ? cnt / maxVal : 0;
             const bg = cnt > 0
-                ? `rgba(45,64,87,${(0.12 + intensity * 0.82).toFixed(2)})`
+                ? `rgba(var(--heat-rgb),${(0.12 + intensity * 0.82).toFixed(2)})`
                 : 'var(--surface)';
             const title = `${DOW_LABELS[rowIdx]} ${HOUR_LABELS[h]} — ${cnt} click${cnt !== 1 ? 's' : ''}`;
             return `<td title="${title}" style="width:20px;height:20px;background:${bg};border:1px solid var(--border);border-radius:3px;"></td>`;
@@ -2484,7 +2517,7 @@ function renderAnalyticsTraffic(data) {
 
     // Legend: 5 steps from empty → max
     const legendBoxes = [0, 0.12, 0.35, 0.6, 0.9].map((alpha, i) => {
-        const bg = i === 0 ? 'var(--surface)' : `rgba(45,64,87,${alpha})`;
+        const bg = i === 0 ? 'var(--surface)' : `rgba(var(--heat-rgb),${alpha})`;
         return `<div style="width:16px;height:16px;background:${bg};border:1px solid var(--border);border-radius:3px;"></div>`;
     }).join('');
 
@@ -2574,6 +2607,7 @@ function registerServiceWorker() {
 
 // ===== BOOT =====
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     setupLoginPage();
     setupRegisterPage();
     setupDirectoryPage();
