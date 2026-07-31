@@ -1311,6 +1311,7 @@ td {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
   padding: 13px 16px;
   background: none;
   border: 1.5px solid var(--border);
@@ -1346,6 +1347,10 @@ td {
 
 .theme-swatch-name {
   line-height: 1.2;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .theme-swatch-hex {
@@ -1355,9 +1360,35 @@ td {
   color: var(--text-light);
 }
 
+/* Mobile: keep Light/Dark side by side and shrink the swatch tiles so the
+   colour grid fits the modal width instead of scrolling sideways. */
 @media (max-width: 480px) {
+  .appearance-header {
+    margin-bottom: 18px;
+  }
+
   .appearance-row {
-    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .appearance-row + .appearance-row {
+    margin-top: 8px;
+  }
+
+  .appearance-option {
+    gap: 8px;
+    padding: 11px 12px;
+    font-size: 0.88rem;
+  }
+
+  /* The hex label doesn't fit alongside the name in a half-width tile */
+  .theme-swatch-hex {
+    display: none;
+  }
+
+  .theme-swatch-dot {
+    width: 16px;
+    height: 16px;
   }
 }
 
