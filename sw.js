@@ -1,4 +1,4 @@
-const VERSION = "v6";
+const VERSION = "v7";
 const SHELL_CACHE = "gftvlinks-shell-" + VERSION;
 const API_CACHE = "gftvlinks-api-" + VERSION;
 const RUNTIME_CACHE = "gftvlinks-runtime-" + VERSION;
