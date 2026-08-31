@@ -199,6 +199,10 @@
                             <input class="form-control" id="login-password" type="password" placeholder="••••••••"
                                 autocomplete="current-password" required>
                         </div>
+                        <label class="totp-trust-label" style="margin-bottom:16px;">
+                            <input type="checkbox" id="login-remember">
+                            <span>Stay logged in on this device for 30 days</span>
+                        </label>
                         <button type="submit" class="btn btn-primary btn-full" id="login-btn">Log In</button>
                     </form>
                     <p class="auth-switch">Don't have an account? <a onclick="nav('register')">Register here</a></p>

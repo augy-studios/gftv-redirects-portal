@@ -8,7 +8,10 @@ import {
     ProfileViews,
     TrustedDevices,
     ApiKeys,
-    Stats
+    Stats,
+    getToken,
+    setToken,
+    clearToken
 } from './api.js';
 import {
     toast,
@@ -33,7 +36,7 @@ const DEFAULT_MODE = 'light';
 
 let state = {
     user: null,
-    token: localStorage.getItem('gftv_token') || null,
+    token: getToken() || null,
     colorTheme: DEFAULT_COLOR_THEME,
     mode: DEFAULT_MODE,
     currentPage: 'home',
@@ -214,7 +217,7 @@ async function init() {
             state.user = res.data.user;
             navigate(isEditor() ? 'dashboard' : 'directory');
         } else {
-            localStorage.removeItem('gftv_token');
+            clearToken();
             state.token = null;
             navigate('home');
         }
@@ -227,7 +230,7 @@ async function init() {
 
 async function handleLogout() {
     await Auth.logout();
-    localStorage.removeItem('gftv_token');
+    clearToken();
     state.user = null;
     state.token = null;
     navigator.serviceWorker?.controller?.postMessage('CLEAR_API_CACHE');
@@ -241,6 +244,7 @@ window.handleLogout = handleLogout;
 // Holds state during the 2FA challenge flow
 let _totpChallengeToken = null;
 let _totpLoginUsername = null;
+let _totpLoginRemember = false;
 
 function setupLoginPage() {
     const form = document.getElementById('login-form');
@@ -263,23 +267,26 @@ function setupLoginPage() {
 
         const username = document.getElementById('login-username').value.trim();
         const password = document.getElementById('login-password').value;
+        // Stay logged in for 30 days on this device, or just for this browser session
+        const remember = document.getElementById('login-remember').checked;
 
         // Send stored device token so trusted devices skip 2FA
         const device_token = localStorage.getItem(`gftv_device_${username.toLowerCase()}`) || undefined;
 
-        const res = await Auth.login({ username, password, device_token });
+        const res = await Auth.login({ username, password, device_token, remember });
 
         if (res.ok && res.data.requires_2fa) {
             // Server issued a TOTP challenge — show the 2FA modal
             _totpChallengeToken = res.data.challenge_token;
             _totpLoginUsername = res.data.username || username.toLowerCase();
+            _totpLoginRemember = remember;
             document.getElementById('totp-login-code').value = '';
             document.getElementById('totp-trust-device').checked = false;
             document.getElementById('totp-login-error').style.display = 'none';
             openModal('modal-totp-login');
             setTimeout(() => document.getElementById('totp-login-code').focus(), 100);
         } else if (res.ok) {
-            finishLogin(res.data.token, res.data.user);
+            finishLogin(res.data.token, res.data.user, remember);
             toast(`Welcome back, ${res.data.user.display_name}!`, 'success');
         } else if (res.status === 403 && res.data.error === 'PENDING_APPROVAL') {
             navigate('pending');
@@ -293,10 +300,10 @@ function setupLoginPage() {
     });
 }
 
-function finishLogin(token, user) {
+function finishLogin(token, user, remember) {
     state.token = token;
     state.user = user;
-    localStorage.setItem('gftv_token', token);
+    setToken(token, remember);
     closeAllModals();
     navigate(isEditor() ? 'dashboard' : 'directory');
 }
@@ -304,6 +311,7 @@ function finishLogin(token, user) {
 window.cancelTotpLogin = () => {
     _totpChallengeToken = null;
     _totpLoginUsername = null;
+    _totpLoginRemember = false;
     // Reset to TOTP view for next open
     document.getElementById('totp-login-totp-section').style.display = 'block';
     document.getElementById('totp-login-backup-section').style.display = 'none';
@@ -346,7 +354,7 @@ window.submitTotpLogin = async () => {
             btn.textContent = 'Verify';
             return;
         }
-        res = await Totp.verifyBackup(_totpChallengeToken, backupCode, trust);
+        res = await Totp.verifyBackup(_totpChallengeToken, backupCode, trust, _totpLoginRemember);
     } else {
         const code = document.getElementById('totp-login-code').value.trim();
         if (!code || code.length !== 6) {
@@ -356,7 +364,7 @@ window.submitTotpLogin = async () => {
             btn.textContent = 'Verify';
             return;
         }
-        res = await Totp.verify(_totpChallengeToken, code, trust);
+        res = await Totp.verify(_totpChallengeToken, code, trust, _totpLoginRemember);
     }
 
     btn.disabled = false;
@@ -366,7 +374,7 @@ window.submitTotpLogin = async () => {
         if (trust && res.data.device_token && _totpLoginUsername) {
             localStorage.setItem(`gftv_device_${_totpLoginUsername}`, res.data.device_token);
         }
-        finishLogin(res.data.token, res.data.user);
+        finishLogin(res.data.token, res.data.user, _totpLoginRemember);
         toast(`Welcome back, ${res.data.user.display_name}!`, 'success');
     } else {
         errEl.textContent = res.data.error || 'Verification failed';
@@ -423,7 +431,7 @@ function setupRegisterPage() {
                     state.token = res.data.token;
                     state.user = res.data.user;
                     state.preapprovedRole = res.data.preapproved_role;
-                    localStorage.setItem('gftv_token', res.data.token);
+                    setToken(res.data.token, true);
                     updateNav();
                     showPage('preapproved');
                     renderPreapprovedPage();
@@ -1695,7 +1703,7 @@ function setupProfilePage() {
         btn.textContent = 'Log Out All Devices';
         closeModal('modal-logout-all');
         if (res.ok) {
-            localStorage.removeItem('gftv_token');
+            clearToken();
             state.user = null;
             state.token = null;
             closeAllModals();
@@ -2015,7 +2023,7 @@ function setupDeleteAccount() {
 
         const res = await Profile.delete(pwd);
         if (res.ok) {
-            localStorage.removeItem('gftv_token');
+            clearToken();
             state.user = null;
             state.token = null;
             closeAllModals();

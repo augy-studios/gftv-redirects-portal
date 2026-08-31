@@ -7,12 +7,17 @@ function hashCode(code) {
     return crypto.createHash('sha256').update(code.replace('-', '')).digest('hex');
 }
 
+// Session lifetimes: "stay logged in" keeps the session for 30 days,
+// otherwise it only lasts for the current browsing session (12h server-side cap).
+const REMEMBER_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
+const SHORT_SESSION_MS = 12 * 60 * 60 * 1000;
+
 export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return optionsResponse(res);
     if (req.method !== 'POST') return err(res, 'Method not allowed', 405);
 
     try {
-        const { challenge_token, code, backup_code, trust_device } = await parseBody(req);
+        const { challenge_token, code, backup_code, trust_device, remember } = await parseBody(req);
         if (!challenge_token || (!code && !backup_code)) return err(res, 'Challenge token and a verification code required');
 
         // Look up the challenge (join to user)
@@ -61,7 +66,7 @@ export default async function handler(req, res) {
 
         // Create the real session
         const token = crypto.randomBytes(48).toString('hex');
-        const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        const expires_at = new Date(Date.now() + (remember ? REMEMBER_SESSION_MS : SHORT_SESSION_MS)).toISOString();
         await supabase.from('gftvhello_sessions').insert({ user_id: user.id, token, expires_at });
 
         const { password_hash, totp_secret, ...safeUser } = user;
@@ -79,7 +84,7 @@ export default async function handler(req, res) {
             });
         }
 
-        return ok(res, { token, user: safeUser, device_token });
+        return ok(res, { token, user: safeUser, device_token, remember: !!remember });
     } catch (e) {
         console.error(e);
         return err(res, 'Server error', 500);

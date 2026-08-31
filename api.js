@@ -1,7 +1,28 @@
 const BASE = '/api';
+const TOKEN_KEY = 'gftv_token';
 
-function getToken() {
-    return localStorage.getItem('gftv_token') || '';
+// The session token lives in localStorage when the user chose to stay logged in
+// for 30 days, and in sessionStorage otherwise (cleared when the tab/browser closes).
+export function getToken() {
+    try {
+        return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || '';
+    } catch {
+        return '';
+    }
+}
+
+export function setToken(token, remember) {
+    clearToken();
+    try {
+        (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, token);
+    } catch { /* storage unavailable — session stays in memory only */ }
+}
+
+export function clearToken() {
+    try {
+        localStorage.removeItem(TOKEN_KEY);
+        sessionStorage.removeItem(TOKEN_KEY);
+    } catch { /* ignore */ }
 }
 
 async function req(method, path, body = null) {
@@ -45,8 +66,8 @@ export const Totp = {
     setup: () => req('GET', '/auth/totp-setup'),
     enable: (secret, code) => req('POST', '/auth/totp-enable', { secret, code }),
     disable: (password) => req('POST', '/auth/totp-disable', { password }),
-    verify: (challenge_token, code, trust_device) => req('POST', '/auth/totp-verify', { challenge_token, code, trust_device }),
-    verifyBackup: (challenge_token, backup_code, trust_device) => req('POST', '/auth/totp-verify', { challenge_token, backup_code, trust_device }),
+    verify: (challenge_token, code, trust_device, remember) => req('POST', '/auth/totp-verify', { challenge_token, code, trust_device, remember }),
+    verifyBackup: (challenge_token, backup_code, trust_device, remember) => req('POST', '/auth/totp-verify', { challenge_token, backup_code, trust_device, remember }),
     regenerateCodes: (password) => req('POST', '/auth/backup-codes-regenerate', { password }),
 };
 

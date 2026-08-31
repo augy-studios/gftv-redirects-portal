@@ -3,13 +3,20 @@ import { ok, err, optionsResponse, parseBody } from '../../lib/response.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
+// Session lifetimes: "stay logged in" keeps the session for 30 days,
+// otherwise it only lasts for the current browsing session (12h server-side cap).
+const REMEMBER_SESSION_MS = 30 * 24 * 60 * 60 * 1000;
+const SHORT_SESSION_MS = 12 * 60 * 60 * 1000;
+
 export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return optionsResponse(res);
     if (req.method !== 'POST') return err(res, 'Method not allowed', 405);
 
     try {
-        const { username, password, device_token } = await parseBody(req);
+        const { username, password, device_token, remember } = await parseBody(req);
         if (!username || !password) return err(res, 'Username and password required');
+
+        const sessionMs = remember ? REMEMBER_SESSION_MS : SHORT_SESSION_MS;
 
         const { data: user } = await supabase
             .from('gftvhello_users')
@@ -39,12 +46,12 @@ export default async function handler(req, res) {
                 if (trusted) {
                     // Trusted device — skip 2FA, create session directly
                     const token = crypto.randomBytes(48).toString('hex');
-                    const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+                    const expires_at = new Date(Date.now() + sessionMs).toISOString();
                     await supabase.from('gftvhello_sessions').insert({ user_id: user.id, token, expires_at });
 
                     const { password_hash, totp_secret, ...safeUser } = user;
                     safeUser.totp_enabled = true;
-                    return ok(res, { token, user: safeUser });
+                    return ok(res, { token, user: safeUser, remember: !!remember });
                 }
             }
 
@@ -62,12 +69,12 @@ export default async function handler(req, res) {
 
         // No 2FA — create session normally
         const token = crypto.randomBytes(48).toString('hex');
-        const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        const expires_at = new Date(Date.now() + sessionMs).toISOString();
         await supabase.from('gftvhello_sessions').insert({ user_id: user.id, token, expires_at });
 
         const { password_hash, totp_secret, ...safeUser } = user;
         safeUser.totp_enabled = false;
-        return ok(res, { token, user: safeUser });
+        return ok(res, { token, user: safeUser, remember: !!remember });
     } catch (e) {
         console.error(e);
         return err(res, 'Server error', 500);
