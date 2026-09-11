@@ -123,26 +123,75 @@ export function initTagsInput(container, onChange) {
         if (onChange) onChange(tags);
     }
 
+    // Mobile keyboards: label the action key "Enter" (not "Next"), and
+    // disable autocorrect / auto-capitalisation since tags are lowercase slugs.
+    input.setAttribute('enterkeyhint', 'enter');
+    input.setAttribute('autocapitalize', 'none');
+    input.setAttribute('autocorrect', 'off');
+    input.setAttribute('autocomplete', 'off');
+    input.setAttribute('spellcheck', 'false');
+
+    function addTag(raw) {
+        const val = raw.trim().replace(/,/g, '').toLowerCase().slice(0, 24);
+        if (val && tags.length < 5 && !tags.includes(val)) {
+            tags.push(val);
+            renderTags();
+        }
+    }
+
+    function removeLastTag() {
+        if (tags.length > 0) {
+            tags.pop();
+            renderTags();
+        }
+    }
+
     wrap.addEventListener('click', () => input.focus());
 
+    // Virtual keyboards often don't report a real `key` on keydown, so commas
+    // are detected from the value itself: any comma commits the text before it.
     input.addEventListener('input', () => {
+        if (input.value.includes(',')) {
+            const parts = input.value.split(',');
+            const remainder = parts.pop();
+            parts.forEach(addTag);
+            input.value = remainder;
+        }
         const lower = input.value.toLowerCase();
         if (input.value !== lower) input.value = lower;
     });
 
+    // Backspace on an empty field removes the last tag. Guard against the
+    // keydown and beforeinput fallbacks both firing for the same keypress.
+    let backspaceHandled = false;
     input.addEventListener('keydown', (e) => {
-        if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
+        if (e.key === 'Enter') {
             e.preventDefault();
-            const val = input.value.trim().replace(/,/g, '').toLowerCase().slice(0, 24);
-            if (val && tags.length < 5 && !tags.includes(val)) {
-                tags.push(val);
-                renderTags();
+            if (input.value.trim()) {
+                addTag(input.value);
+                input.value = '';
+            } else if (input.form) {
+                // Empty field: Enter submits the surrounding form.
+                if (typeof input.form.requestSubmit === 'function') input.form.requestSubmit();
+                else input.form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
             }
-            input.value = '';
+            return;
         }
-        if (e.key === 'Backspace' && !input.value && tags.length > 0) {
-            tags.pop();
-            renderTags();
+        if (e.key === ',' && input.value.trim()) {
+            e.preventDefault();
+            addTag(input.value);
+            input.value = '';
+            return;
+        }
+        if (e.key === 'Backspace' && !input.value) {
+            backspaceHandled = true;
+            removeLastTag();
+            setTimeout(() => { backspaceHandled = false; }, 0);
+        }
+    });
+    input.addEventListener('beforeinput', (e) => {
+        if (e.inputType === 'deleteContentBackward' && !input.value && !backspaceHandled) {
+            removeLastTag();
         }
     });
 
