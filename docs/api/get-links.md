@@ -13,8 +13,8 @@ Authorization: ApiKey <your_api_key>
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `slug` | string | — | Filter links whose slug contains this value (case-insensitive) |
-| `tag` | string | — | Filter links that have this exact tag |
+| `slug` | string | none | Filter links whose slug contains this value (case-insensitive) |
+| `tag` | string | none | Filter links that have this exact tag |
 | `limit` | integer | `50` | Maximum number of links to return (max `100`) |
 | `offset` | integer | `0` | Number of links to skip (for pagination) |
 

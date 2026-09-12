@@ -1,6 +1,6 @@
 # Ownership Requests
 
-If you need to take over a link owned by another GFTV officer — for example, because a colleague has left the team — you can submit an **ownership request** directly through the platform.
+If you need to take over a link owned by another GFTV officer, for example because a colleague has left the team, you can submit an **ownership request** directly through the platform.
 
 ## What is an ownership request?
 

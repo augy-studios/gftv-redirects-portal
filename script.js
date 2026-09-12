@@ -25,8 +25,10 @@ import {
     slugCopyHtml,
     tagsHtml,
     pwdStrength,
-    icon
+    icon,
+    loadingHtml
 } from './ui.js';
+import { registerServiceWorker } from './sw-update.js';
 
 // ===== STATE =====
 const COLOR_THEME_KEY = 'gftv-gftvlinks.colorTheme';
@@ -38,7 +40,8 @@ let state = {
     user: null,
     token: getToken() || null,
     colorTheme: DEFAULT_COLOR_THEME,
-    mode: DEFAULT_MODE,
+    mode: DEFAULT_MODE,            // resolved: light or dark
+    modePreference: DEFAULT_MODE,  // chosen: light, dark, or time
     currentPage: 'home',
 };
 
@@ -50,14 +53,49 @@ const COLOR_THEMES = [
     { id: 'hellotheme', label: 'HelloTheme', color: '#fedc00' },
 ];
 
+// Page background per colour theme x mode, for meta[name=theme-color].
+// Mirrors --bg in each token block in style.css.
+const THEME_COLOR = {
+    'classic:light': '#fafafa',
+    'classic:dark': '#111111',
+    'hellotheme:light': '#fffef0',
+    'hellotheme:dark': '#14120a',
+};
+
+// Mode preference and mode are different things. The preference is what the
+// person chose and can be "time"; the mode is what the document is in and is
+// only ever light or dark. state.mode holds the resolved mode, MODE_KEY holds
+// the preference.
+const MODE_PREFERENCES = ['light', 'dark', 'time'];
+
+// The daylight window. Duplicated in the pre-paint script in index.html's
+// <head>, which has to resolve this before first paint and cannot import
+// anything. Change both together.
+const LIGHT_FROM_HOUR = 9;
+const LIGHT_UNTIL_HOUR = 18;
+
 function isValidColorTheme(id) {
     return COLOR_THEMES.some(t => t.id === id);
 }
 
+function getModePreference() {
+    const v = localStorage.getItem(MODE_KEY);
+    return MODE_PREFERENCES.includes(v) ? v : DEFAULT_MODE;
+}
+
+function isDaylightHours(now = new Date()) {
+    const hour = now.getHours();
+    return hour >= LIGHT_FROM_HOUR && hour < LIGHT_UNTIL_HOUR;
+}
+
+function resolveMode(preference) {
+    if (preference === 'time') return isDaylightHours() ? 'light' : 'dark';
+    return preference === 'dark' ? 'dark' : 'light';
+}
+
 function updateThemeColorMeta() {
     const meta = document.querySelector('meta[name="theme-color"]');
-    const theme = COLOR_THEMES.find(t => t.id === state.colorTheme);
-    if (meta) meta.setAttribute('content', theme?.color || '#ffffff');
+    if (meta) meta.setAttribute('content', THEME_COLOR[`${state.colorTheme}:${state.mode}`] || '#ffffff');
 }
 
 function applyColorTheme(id) {
@@ -68,18 +106,94 @@ function applyColorTheme(id) {
     updateThemeColorMeta();
 }
 
-function applyMode(mode) {
-    if (mode !== 'light' && mode !== 'dark') mode = DEFAULT_MODE;
-    state.mode = mode;
-    localStorage.setItem(MODE_KEY, mode);
-    document.documentElement.setAttribute('data-mode', mode);
+// Takes a preference (light, dark, time), stores it, and writes the resolved
+// mode to the document. Never stores the resolved value: writing "dark" over a
+// stored "time" on a winter evening would silently end the setting chosen.
+function applyMode(preference) {
+    const chosen = MODE_PREFERENCES.includes(preference) ? preference : DEFAULT_MODE;
+    const resolved = resolveMode(chosen);
+    state.modePreference = chosen;
+    state.mode = resolved;
+    localStorage.setItem(MODE_KEY, chosen);
+    document.documentElement.setAttribute('data-mode', resolved);
+    document.documentElement.setAttribute('data-mode-preference', chosen);
+    updateThemeColorMeta();
     updateThemeButtonIcon();
     updateModeOptions();
+    scheduleModeCheck();
+    return resolved;
 }
 
 function updateThemeButtonIcon() {
     const btn = document.getElementById('theme-picker-btn');
     if (btn) btn.innerHTML = icon(state.mode === 'dark' ? 'moon' : 'sun', 18);
+}
+
+// Keeping the time based mode honest while the page stays open: one timer to
+// the next 09:00 or 18:00 rather than polling, plus a re-check when the tab
+// becomes visible again, since a laptop that slept through the boundary fires
+// its timer late.
+let modeTimer = null;
+let watchingVisibility = false;
+
+// Milliseconds until the next LIGHT_FROM_HOUR or LIGHT_UNTIL_HOUR, whichever comes first.
+function msUntilNextBoundary(now = new Date()) {
+    const next = new Date(now);
+    next.setMinutes(0, 0, 0);
+
+    const hour = now.getHours();
+    if (hour < LIGHT_FROM_HOUR) {
+        next.setHours(LIGHT_FROM_HOUR);
+    } else if (hour < LIGHT_UNTIL_HOUR) {
+        next.setHours(LIGHT_UNTIL_HOUR);
+    } else {
+        next.setDate(next.getDate() + 1);
+        next.setHours(LIGHT_FROM_HOUR);
+    }
+
+    // A second of slack, so a timer that fires a fraction early does not land
+    // back in the hour it just left and reschedule itself in a tight loop.
+    return Math.max(1000, next.getTime() - now.getTime() + 1000);
+}
+
+function scheduleModeCheck() {
+    if (modeTimer !== null) {
+        clearTimeout(modeTimer);
+        modeTimer = null;
+    }
+
+    if (getModePreference() !== 'time') return;
+
+    modeTimer = setTimeout(() => {
+        modeTimer = null;
+        refreshTimeMode();
+    }, msUntilNextBoundary());
+
+    if (!watchingVisibility) {
+        watchingVisibility = true;
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') refreshTimeMode();
+        });
+    }
+}
+
+function refreshTimeMode() {
+    if (getModePreference() !== 'time') return;
+
+    const resolved = resolveMode('time');
+    const current = document.documentElement.getAttribute('data-mode');
+
+    if (resolved !== current) {
+        state.mode = resolved;
+        document.documentElement.setAttribute('data-mode', resolved);
+        updateThemeColorMeta();
+        updateThemeButtonIcon();
+        document.dispatchEvent(new CustomEvent('gftv:modechange', {
+            detail: { mode: resolved, preference: 'time' },
+        }));
+    }
+
+    scheduleModeCheck();
 }
 
 // Migrate the old single-key theme value, then drop it, so nobody loses their pick
@@ -95,9 +209,10 @@ function migrateLegacyTheme() {
 function initTheme() {
     migrateLegacyTheme();
     const savedColorTheme = localStorage.getItem(COLOR_THEME_KEY);
-    const savedMode = localStorage.getItem(MODE_KEY);
     applyColorTheme(isValidColorTheme(savedColorTheme) ? savedColorTheme : DEFAULT_COLOR_THEME);
-    applyMode(savedMode === 'dark' ? 'dark' : DEFAULT_MODE);
+    // The preference, not the resolved mode. Passing the resolved one would
+    // quietly rewrite a stored "time" into "dark" the first evening.
+    applyMode(getModePreference());
 }
 
 // ===== ROUTER =====
@@ -276,7 +391,7 @@ function setupLoginPage() {
         const res = await Auth.login({ username, password, device_token, remember });
 
         if (res.ok && res.data.requires_2fa) {
-            // Server issued a TOTP challenge — show the 2FA modal
+            // Server issued a TOTP challenge, show the 2FA modal
             _totpChallengeToken = res.data.challenge_token;
             _totpLoginUsername = res.data.username || username.toLowerCase();
             _totpLoginRemember = remember;
@@ -487,7 +602,7 @@ function getFilteredSortedDirectoryLinks() {
 
 async function loadDirectory() {
     const container = document.getElementById('directory-table-wrap');
-    container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+    container.innerHTML = loadingHtml();
 
     const res = await Links.list('', 'keyword');
     if (!res.ok) {
@@ -520,7 +635,7 @@ function renderDirectoryTable() {
         return `<tr>
       <td class="td-slug">${slugCopyHtml(link.slug)}</td>
       <td class="td-dest"><span title="${link.destination}">${link.destination}</span></td>
-      <td class="td-user td-user-clickable" onclick="viewUserProfile('${user.id}')" title="View profile">${avatarHtml(user)}<span>${user.display_name || user.username || '—'}</span></td>
+      <td class="td-user td-user-clickable" onclick="viewUserProfile('${user.id}')" title="View profile">${avatarHtml(user)}<span>${user.display_name || user.username || '–'}</span></td>
       <td style="white-space:nowrap"><span class="badge ${link.is_active ? 'badge-active' : 'badge-inactive'}">${link.is_active ? '● Active' : '● Inactive'}</span></td>
       <td class="access-count" style="white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
@@ -646,7 +761,7 @@ window.viewUserProfile = async (userId) => {
     }
 };
 
-// View a profile by ID — used by viewer pills (looks up user from directoryData or fetches from API)
+// View a profile by ID, used by viewer pills (looks up user from directoryData or fetches from API)
 window.viewUserProfileById = async (userId) => {
     // Try to find user in already-loaded directory data first
     const fromDir = directoryData.map(l => l.gftvhello_users).find(u => u?.id === userId);
@@ -769,7 +884,7 @@ let dashSortOrder = 'date';
 async function loadDashboard() {
     const container = document.getElementById('dashboard-links-wrap');
     const statsEl = document.getElementById('dashboard-stats');
-    container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+    container.innerHTML = loadingHtml();
 
     const res = await Links.mine();
     if (!res.ok) {
@@ -1045,7 +1160,7 @@ async function loadApiIntegration() {
 
     const res = await ApiKeys.get();
     if (res.ok && res.data.api_key) {
-        // Key exists — show masked placeholder, don't reveal it
+        // Key exists: show masked placeholder, don't reveal it
         display.value = res.data.api_key;
         display.type = 'password';
         if (status) {
@@ -1056,7 +1171,7 @@ async function loadApiIntegration() {
         if (toggleBtn) toggleBtn.disabled = false;
     } else {
         display.value = '';
-        display.placeholder = 'No API key yet — click Regenerate to create one';
+        display.placeholder = 'No API key yet. Click Regenerate to create one';
         if (status) status.textContent = 'No API key generated yet.';
         if (copyBtn) copyBtn.disabled = true;
         if (toggleBtn) toggleBtn.disabled = true;
@@ -1083,7 +1198,7 @@ window.copyApiKey = async () => {
         await navigator.clipboard.writeText(display.value);
         toast('API key copied to clipboard', 'success');
     } catch {
-        toast('Failed to copy — please copy manually', 'error');
+        toast('Failed to copy, please copy manually', 'error');
     }
 };
 
@@ -1116,7 +1231,7 @@ window.regenerateApiKey = async () => {
             toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg> Hide`;
         }
         if (copyBtn) copyBtn.disabled = false;
-        if (status) status.textContent = 'Your new API key is shown above. Copy it now — it will be hidden once you leave this page.';
+        if (status) status.textContent = 'Your new API key is shown above. Copy it now; it will be hidden once you leave this page.';
         toast('API key regenerated successfully', 'success');
     } else {
         toast(res.data?.error || 'Failed to regenerate API key', 'error');
@@ -1126,7 +1241,7 @@ window.regenerateApiKey = async () => {
 // ===== OWNERSHIP REQUESTS =====
 async function loadOwnershipRequests() {
     const container = document.getElementById('ownership-list');
-    container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+    container.innerHTML = loadingHtml();
 
     const res = await Ownership.list();
     if (!res.ok) {
@@ -1143,7 +1258,7 @@ async function loadOwnershipRequests() {
     container.innerHTML = requests.map(r => `
     <div class="glass" style="padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
       <div style="flex:1;min-width:200px;">
-        <div style="font-weight:700;margin-bottom:2px;">${icon('link')} gftv.asia/${r.gftvlinks_links?.slug || '—'}</div>
+        <div style="font-weight:700;margin-bottom:2px;">${icon('link')} gftv.asia/${r.gftvlinks_links?.slug || '–'}</div>
         <div style="font-size:0.85rem;color:var(--text-muted);">Requested by <strong>${r.requester?.display_name || r.requester?.username || '?'}</strong> (@${r.requester?.username || '?'})</div>
         <div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">${fmtDate(r.created_at)}</div>
       </div>
@@ -1174,8 +1289,8 @@ let adminDeleteStep = 0;
 async function loadAdmin() {
     const container = document.getElementById('admin-users-wrap');
     const preapprovedContainer = document.getElementById('admin-preapproved-wrap');
-    container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
-    preapprovedContainer.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+    container.innerHTML = loadingHtml();
+    preapprovedContainer.innerHTML = loadingHtml();
 
     const [res, preapprovedRes] = await Promise.all([Admin.users(), Admin.preapproved()]);
     if (!res.ok) {
@@ -1254,7 +1369,7 @@ function renderPreapprovedSection(list) {
       <td>${roleBadge}</td>
       <td>${statusBadge}</td>
       <td>${fmtDate(e.preapproved_at)}</td>
-      <td>${e.activated_at ? fmtDate(e.activated_at) : '<span style="color:var(--text-muted)">—</span>'}</td>
+      <td>${e.activated_at ? fmtDate(e.activated_at) : '<span style="color:var(--text-muted)">–</span>'}</td>
       <td>
         <div class="action-btns">
           ${!e.activated_at ? `<button class="btn btn-sm btn-danger" onclick="removePreapproved('${e.id}')">${icon('x-circle')} Remove</button>` : ''}
@@ -1384,7 +1499,7 @@ window.openAdminManageModal = (user_id) => {
     document.getElementById('admin-manage-displayname').value = u.display_name;
     document.getElementById('admin-manage-email').value = u.email;
 
-    // Danger zone — delete row
+    // Danger zone: delete row
     const deleteRow = document.getElementById('admin-delete-user-row');
     if (isSelf) {
         deleteRow.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;margin:0;">You cannot delete your own account from here.</p>';
@@ -1719,7 +1834,7 @@ function setupProfilePage() {
 async function loadTrustedDevices() {
     const container = document.getElementById('trusted-devices-list');
     if (!container) return;
-    container.innerHTML = '<div style="color:var(--text-muted);font-size:0.88rem;">Loading…</div>';
+    container.innerHTML = loadingHtml('Loading trusted devices');
 
     const res = await TrustedDevices.list();
     if (!res.ok) {
@@ -1868,7 +1983,7 @@ window.copyBackupCodes = () => {
 
 window.downloadBackupCodes = () => {
     const text = (_backupCodes || []).join('\n');
-    const blob = new Blob([`GFTV Links Portal — 2FA Backup Codes\nGenerated: ${new Date().toUTCString()}\n\n${text}\n\nEach code can only be used once. Keep these safe.`], { type: 'text/plain' });
+    const blob = new Blob([`GFTV Links Portal: 2FA Backup Codes\nGenerated: ${new Date().toUTCString()}\n\n${text}\n\nEach code can only be used once. Keep these safe.`], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -1967,7 +2082,7 @@ window.copyModalBackupCodes = () => {
 
 window.downloadModalBackupCodes = () => {
     const text = (_modalBackupCodes || []).join('\n');
-    const blob = new Blob([`GFTV Links Portal — 2FA Backup Codes\nGenerated: ${new Date().toUTCString()}\n\n${text}\n\nEach code can only be used once. Keep these safe.`], { type: 'text/plain' });
+    const blob = new Blob([`GFTV Links Portal: 2FA Backup Codes\nGenerated: ${new Date().toUTCString()}\n\n${text}\n\nEach code can only be used once. Keep these safe.`], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -2140,10 +2255,25 @@ function renderThemeGrid() {
   `).join('');
 }
 
+// The pressed button follows the preference, the note says what the clock has
+// resolved it to, so "Time-based" stays pressed in the evening rather than "Dark".
 function updateModeOptions() {
+    const preference = state.modePreference;
     document.querySelectorAll('[data-mode-option]').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.modeOption === state.mode);
+        const pressed = btn.dataset.modeOption === preference;
+        btn.classList.toggle('active', pressed);
+        btn.setAttribute('aria-pressed', String(pressed));
     });
+    const note = document.getElementById('mode-note');
+    if (note) {
+        if (preference === 'time') {
+            note.textContent = `Light from ${LIGHT_FROM_HOUR}:00 to ${LIGHT_UNTIL_HOUR}:00 on this device's clock. Currently ${state.mode}.`;
+            note.hidden = false;
+        } else {
+            note.textContent = '';
+            note.hidden = true;
+        }
+    }
 }
 
 function setupThemePicker() {
@@ -2164,11 +2294,15 @@ function setupThemePicker() {
     document.getElementById('mode-options')?.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-mode-option]');
         if (!btn) return;
-        const mode = btn.dataset.modeOption;
-        if (mode === state.mode) return;
-        applyMode(mode);
-        toast(`Switched to ${mode} mode`, 'success');
+        const preference = btn.dataset.modeOption;
+        if (preference === state.modePreference) return;
+        applyMode(preference);
+        toast(preference === 'time' ? 'Following the clock: light by day, dark by night' : `Switched to ${preference} mode`, 'success');
     });
+
+    // A tab held open across 09:00 or 18:00 re-resolves itself; redraw the
+    // modal so it does not show the answer from before dinner.
+    document.addEventListener('gftv:modechange', updateModeOptions);
     updateModeOptions();
 }
 
@@ -2274,7 +2408,7 @@ window.openQrModal = async (slug) => {
     const url = `https://gftv.asia/${slug}`;
     document.getElementById('qr-modal-subtitle').textContent = url;
     const container = document.getElementById('qr-canvas-container');
-    container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+    container.innerHTML = loadingHtml();
     openModal('modal-qr');
 
     try {
@@ -2347,8 +2481,8 @@ window.openAnalyticsModal = async (id) => {
     if (!link) return;
 
     document.getElementById('analytics-modal-slug').textContent = 'https://gftv.asia/' + link.slug;
-    document.getElementById('analytics-total-clicks').textContent = '— total clicks';
-    document.getElementById('analytics-tab-content').innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+    document.getElementById('analytics-total-clicks').textContent = '– total clicks';
+    document.getElementById('analytics-tab-content').innerHTML = loadingHtml();
 
     // Reset tabs to first tab
     document.querySelectorAll('.analytics-tab-btn').forEach(b => b.classList.remove('active'));
@@ -2377,7 +2511,7 @@ window.switchAnalyticsTab = (tab, btn) => {
     if (analyticsData) {
         renderAnalyticsTabContent(tab);
     } else {
-        document.getElementById('analytics-tab-content').innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>';
+        document.getElementById('analytics-tab-content').innerHTML = loadingHtml();
     }
 };
 
@@ -2476,7 +2610,7 @@ function renderAnalyticsClicks(data) {
     return `
         <p style="font-size:0.95rem;font-weight:600;margin-bottom:6px;">How many users have visited your link in the past week?</p>
         <p style="margin-bottom:18px;">
-            <a href="#" onclick="window.downloadAllClicks(event,'${dlId}')" style="color:var(--brand-darker);font-size:0.83rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+            <a href="#" onclick="window.downloadAllClicks(event,'${dlId}')" style="color:var(--brand-text);font-size:0.83rem;display:inline-flex;align-items:center;gap:4px;">
                 Download full link click statistics here ${icon('download', 13)}
             </a>
         </p>
@@ -2493,7 +2627,7 @@ function renderAnalyticsClicks(data) {
 }
 
 function renderAnalyticsTraffic(data) {
-    // PostgreSQL DOW: 0=Sun, 1=Mon ... 6=Sat — display Mon first
+    // PostgreSQL DOW: 0=Sun, 1=Mon ... 6=Sat; display Mon first
     const DOW_ORDER = [1, 2, 3, 4, 5, 6, 0];
     const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const HOUR_LABELS = Array.from({ length: 24 }, (_, h) => {
@@ -2523,7 +2657,7 @@ function renderAnalyticsTraffic(data) {
             const bg = cnt > 0
                 ? `rgba(var(--heat-rgb),${(0.12 + intensity * 0.82).toFixed(2)})`
                 : 'var(--surface)';
-            const title = `${DOW_LABELS[rowIdx]} ${HOUR_LABELS[h]} — ${cnt} click${cnt !== 1 ? 's' : ''}`;
+            const title = `${DOW_LABELS[rowIdx]} ${HOUR_LABELS[h]}: ${cnt} click${cnt !== 1 ? 's' : ''}`;
             return `<td title="${title}" style="width:20px;height:20px;background:${bg};border:1px solid var(--border);border-radius:3px;"></td>`;
         }).join('');
         return `<tr>
@@ -2614,13 +2748,6 @@ window.downloadAllClicks = (e, id) => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 };
-
-// ===== SERVICE WORKER =====
-function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
-    }
-}
 
 // ===== BOOT =====
 document.addEventListener('DOMContentLoaded', () => {

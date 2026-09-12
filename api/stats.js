@@ -1,4 +1,4 @@
-// Public stats endpoint — no auth required
+// Public stats endpoint: no auth required
 import supabase from '../lib/supabase.js';
 import { ok, err, optionsResponse } from '../lib/response.js';
 

@@ -34,10 +34,10 @@ Clicking on a link creator's name or avatar takes you to their public [user prof
 
 Four controls at the top of the Directory let you narrow down and reorder results:
 
-* **Keyword search** — searches the slug, destination URL, display name, and username simultaneously.
-* **Tag filter** — narrows results to links carrying a specific tag.
-* **Status filter** — show All, Active, or Inactive links.
-* **Sort order** — sort by Date Created (newest first) or Most Visits.
+* **Keyword search**: searches the slug, destination URL, display name, and username simultaneously.
+* **Tag filter**: narrows results to links carrying a specific tag.
+* **Status filter**: show All, Active, or Inactive links.
+* **Sort order**: sort by Date Created (newest first) or Most Visits.
 
 All filtering and sorting happen client-side, so the controls respond instantly without reloading the page.
 

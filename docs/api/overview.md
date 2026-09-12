@@ -18,10 +18,10 @@ Every request must include your API key in the `Authorization` header using the 
 Authorization: ApiKey <your_api_key>
 ```
 
-You can generate or regenerate your API key from the **API Integration** page inside the portal. Copy it immediately — the full key is only shown once.
+You can generate or regenerate your API key from the **API Integration** page inside the portal. Copy it immediately: the full key is only shown once.
 
 {% hint style="warning" %}
-**Keep your API key secret.** Anyone who has your key can create and modify links on your behalf. If you believe your key has been compromised, regenerate it immediately from the API Integration page — the old key stops working instantly.
+**Keep your API key secret.** Anyone who has your key can create and modify links on your behalf. If you believe your key has been compromised, regenerate it immediately from the API Integration page: the old key stops working instantly.
 {% endhint %}
 
 ## Request format
@@ -54,12 +54,12 @@ All responses are JSON objects. A successful response includes `"success": true`
 
 | Code | Meaning |
 |------|---------|
-| `200` | OK — request succeeded |
-| `201` | Created — a new resource was successfully created |
-| `400` | Bad Request — missing or invalid parameters |
-| `401` | Unauthorized — API key is missing or invalid |
-| `403` | Forbidden — your account does not have permission |
-| `404` | Not Found — the requested resource does not exist |
-| `405` | Method Not Allowed — HTTP method is not supported on this endpoint |
-| `409` | Conflict — a resource with the same identifier already exists (e.g. duplicate slug) |
-| `500` | Internal Server Error — something went wrong on our end |
+| `200` | OK: request succeeded |
+| `201` | Created: a new resource was successfully created |
+| `400` | Bad Request: missing or invalid parameters |
+| `401` | Unauthorized: API key is missing or invalid |
+| `403` | Forbidden: your account does not have permission |
+| `404` | Not Found: the requested resource does not exist |
+| `405` | Method Not Allowed: HTTP method is not supported on this endpoint |
+| `409` | Conflict: a resource with the same identifier already exists (e.g. duplicate slug) |
+| `500` | Internal Server Error: something went wrong on our end |

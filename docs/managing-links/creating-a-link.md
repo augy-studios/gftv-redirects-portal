@@ -24,7 +24,7 @@ The slug is the part of the URL that comes after `gftv.asia/`. For example, a sl
 
 * May contain letters (`a–z`, `A–Z`), numbers (`0–9`), hyphens (`-`), and underscores (`_`).
 * Maximum 60 characters.
-* Must be unique — no two links can share the same slug.
+* Must be unique: no two links can share the same slug.
 * Case-sensitive: `gftv.asia/Discord` and `gftv.asia/discord` are treated as different slugs.
 
 If you leave the slug field blank, the platform will automatically generate a random 8-character slug for you.

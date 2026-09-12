@@ -35,11 +35,11 @@ Supported input formats include JPEG, PNG, and WebP. The recommended upload size
 
 ## Social links
 
-You can add up to several **social links** to your profile — for example, links to your Twitter/X, LinkedIn, or other platforms relevant to your GFTV work.
+You can add up to several **social links** to your profile: for example, links to your Twitter/X, LinkedIn, or other platforms relevant to your GFTV work.
 
 Each social link has two parts:
-- **Label** — a short display name for the link (e.g. `Twitter`, `Portfolio`).
-- **URL** — the full link (e.g. `https://twitter.com/yourhandle`).
+- **Label**: a short display name for the link (e.g. `Twitter`, `Portfolio`).
+- **URL**: the full link (e.g. `https://twitter.com/yourhandle`).
 
 To add or edit social links:
 1. Go to **Settings**.

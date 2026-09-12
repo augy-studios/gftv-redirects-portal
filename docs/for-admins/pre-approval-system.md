@@ -20,14 +20,14 @@ Pre-approvals are the recommended onboarding method for new GFTV officers. Add t
 2. Click **Add Pre-Approval**.
 3. Enter the officer's **email address**.
 4. Select the **role** to assign on registration:
-   * **Editor** — for officers who will create and manage links.
-   * **Viewer** — for officers who only need read access to the Directory.
+   * **Editor**: for officers who will create and manage links.
+   * **Viewer**: for officers who only need read access to the Directory.
 5. Click **Save**.
 
 The email address is now on the pre-approved list. Share the gftv.asia registration link with the officer. When they register using that email, their account will be immediately activated with the selected role.
 
 {% hint style="info" %}
-**Already-registered users:** If you add a pre-approval for an email address that already belongs to an existing approved user, the pre-approval record is immediately linked to that account. The entry will appear as **Activated** straight away — no further action is needed.
+**Already-registered users:** If you add a pre-approval for an email address that already belongs to an existing approved user, the pre-approval record is immediately linked to that account. The entry will appear as **Activated** straight away: no further action is needed.
 {% endhint %}
 
 ## Viewing pre-approvals

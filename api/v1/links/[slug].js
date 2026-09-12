@@ -1,4 +1,4 @@
-// Public API v1 — Get or update a specific link by slug
+// Public API v1: Get or update a specific link by slug
 // Authentication: Authorization: ApiKey <your_api_key>
 import supabase from '../../../lib/supabase.js';
 import { getApiKeyUser } from '../../../lib/auth.js';
@@ -23,13 +23,13 @@ export default async function handler(req, res) {
 
     if (!link) return err(res, 'Link not found', 404);
 
-    // GET /api/v1/links/:slug — retrieve a link (any user can read any link by slug)
+    // GET /api/v1/links/:slug: retrieve a link (any user can read any link by slug)
     if (req.method === 'GET') {
         const { user_id: _, ...publicLink } = link;
         return ok(res, { link: publicLink });
     }
 
-    // PUT /api/v1/links/:slug — update a link (must be the owner or admin)
+    // PUT /api/v1/links/:slug: update a link (must be the owner or admin)
     if (req.method === 'PUT') {
         const canEdit = (link.user_id === user.id && (user.is_editor || user.is_admin)) || user.is_admin;
         if (!canEdit) return err(res, 'Forbidden: you do not own this link', 403);

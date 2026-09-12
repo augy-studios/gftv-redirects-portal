@@ -30,7 +30,7 @@ export default async function handler(req, res) {
 
         if (!challenge) return err(res, 'Invalid or expired challenge', 401);
 
-        // Delete the challenge immediately — single use
+        // Delete the challenge immediately: single use
         await supabase.from('gftvhello_totp_challenges').delete().eq('token', challenge_token);
 
         const user = challenge.gftvhello_users;
@@ -50,10 +50,10 @@ export default async function handler(req, res) {
 
             if (!storedCode) return err(res, 'Invalid backup code', 401);
 
-            // Consume the backup code — single use
+            // Consume the backup code: single use
             await supabase.from('gftvhello_backup_codes').delete().eq('id', storedCode.id);
         } else {
-            // Verify the TOTP code — allow current and 1 previous cycle (±1 window)
+            // Verify the TOTP code: allow current and 1 previous cycle (±1 window)
             let isValid = false;
             try {
                 const totpWithWindow = authenticator.clone({ window: 1 });

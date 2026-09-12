@@ -10,18 +10,18 @@ Admins can edit, transfer, and delete **any link** on the platform, regardless o
 
 Admins can manage links in two ways:
 
-1. **Admin Panel** — Go to **Admin** > **Links** to see a full list of all links on the platform with edit and delete controls.
-2. **Directory** — When browsing the [Directory](../directory/browsing-the-directory.md) as a logged-in Admin, each link card includes an **Edit** button for quick access.
+1. **Admin Panel**: Go to **Admin** > **Links** to see a full list of all links on the platform with edit and delete controls.
+2. **Directory**: When browsing the [Directory](../directory/browsing-the-directory.md) as a logged-in Admin, each link card includes an **Edit** button for quick access.
 
 ## Editing any link
 
 1. Find the link in the Admin panel or the Directory.
 2. Click **Edit**.
 3. Modify any fields:
-   * **Slug** — Change the short link path.
-   * **Destination URL** — Update where the link points.
-   * **Active status** — Toggle the link on or off.
-   * **Tags** — Add or remove tags.
+   * **Slug**: Change the short link path.
+   * **Destination URL**: Update where the link points.
+   * **Active status**: Toggle the link on or off.
+   * **Tags**: Add or remove tags.
 4. Click **Save**.
 
 Changes take effect immediately.

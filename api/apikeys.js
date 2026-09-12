@@ -1,4 +1,4 @@
-// API key management — get or regenerate the user's API key
+// API key management: get or regenerate the user's API key
 import crypto from 'crypto';
 import supabase from '../lib/supabase.js';
 import { getSessionUser } from '../lib/auth.js';

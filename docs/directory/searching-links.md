@@ -6,10 +6,10 @@ The [Directory](browsing-the-directory.md) includes four independent controls at
 
 Type any text into the **Search by keyword** field to search across all of the following fields simultaneously:
 
-* **Slug** — the short link path (e.g. `discord`)
-* **Destination URL** — where the link redirects to
-* **Display name** — the creator's display name
-* **Username** — the creator's username
+* **Slug**: the short link path (e.g. `discord`)
+* **Destination URL**: where the link redirects to
+* **Display name**: the creator's display name
+* **Username**: the creator's username
 
 **Example:** Typing `telegram` returns links whose slug, destination, or creator contains the word "telegram".
 
@@ -48,7 +48,7 @@ Use the **Date Created / Most Visits** dropdown to change the order of results:
 
 ## Combining controls
 
-All four controls work together. For example, you can search for keyword `discord`, filter by tag `social`, show only Active links, and sort by Most Visits — the Directory will instantly show only links that satisfy all of those criteria at once.
+All four controls work together. For example, you can search for keyword `discord`, filter by tag `social`, show only Active links, and sort by Most Visits: the Directory will instantly show only links that satisfy all of those criteria at once.
 
 ## Clearing a search
 

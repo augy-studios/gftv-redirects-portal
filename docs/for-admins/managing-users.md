@@ -16,8 +16,8 @@ Admins have full control over user accounts on gftv.asia. The admin panel lets y
 
 The user list shows all accounts on the platform, separated into:
 
-- **Approved users** — active accounts with a role assigned.
-- **Pending users** — accounts awaiting approval (registered without a pre-approved email).
+- **Approved users**: active accounts with a role assigned.
+- **Pending users**: accounts awaiting approval (registered without a pre-approved email).
 
 Each row shows the user's username, email, display name, current role, and available actions.
 

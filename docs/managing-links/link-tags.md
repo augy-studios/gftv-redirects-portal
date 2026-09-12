@@ -1,6 +1,6 @@
 # Link Tags
 
-Tags let you categorise your short links and make them easier to find in the [Directory](../directory/browsing-the-directory.md). You can also use tags to group related links — for example, all links for a specific event or campaign.
+Tags let you categorise your short links and make them easier to find in the [Directory](../directory/browsing-the-directory.md). You can also use tags to group related links: for example, all links for a specific event or campaign.
 
 ## Tag rules
 

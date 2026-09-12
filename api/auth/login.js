@@ -44,7 +44,7 @@ export default async function handler(req, res) {
                     .single();
 
                 if (trusted) {
-                    // Trusted device — skip 2FA, create session directly
+                    // Trusted device: skip 2FA, create session directly
                     const token = crypto.randomBytes(48).toString('hex');
                     const expires_at = new Date(Date.now() + sessionMs).toISOString();
                     await supabase.from('gftvhello_sessions').insert({ user_id: user.id, token, expires_at });
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
                 }
             }
 
-            // Device not trusted — issue a short-lived challenge token
+            // Device not trusted: issue a short-lived challenge token
             const challenge_token = crypto.randomBytes(32).toString('hex');
             const expires_at = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
             await supabase.from('gftvhello_totp_challenges').insert({
@@ -67,7 +67,7 @@ export default async function handler(req, res) {
             return ok(res, { requires_2fa: true, challenge_token, username: user.username });
         }
 
-        // No 2FA — create session normally
+        // No 2FA: create session normally
         const token = crypto.randomBytes(48).toString('hex');
         const expires_at = new Date(Date.now() + sessionMs).toISOString();
         await supabase.from('gftvhello_sessions').insert({ user_id: user.id, token, expires_at });

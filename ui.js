@@ -42,6 +42,13 @@ export function icon(name, size = 16) {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:-3px;flex-shrink:0">${paths}</svg>`;
 }
 
+// ===== LOADING =====
+// A spinner announces nothing on its own, so it carries a label for screen
+// readers and a live region; .delayed keeps it invisible for the first 250ms.
+export function loadingHtml(label = 'Loading') {
+    return `<div class="loading-wrap delayed" role="status"><div class="spinner" aria-hidden="true"></div><span class="sr-only">${label}</span></div>`;
+}
+
 // ===== TOAST =====
 export function toast(msg, type = 'info', duration = 3000) {
     const toastIcons = {
@@ -240,7 +247,7 @@ export function compressToWebp(file, maxDim = 256, quality = 0.82) {
 
 // ===== FORMAT DATE =====
 export function fmtDate(iso) {
-    if (!iso) return '—';
+    if (!iso) return '–';
     const d = new Date(iso);
     return d.toLocaleDateString('en-SG', {
         day: '2-digit',
@@ -279,7 +286,7 @@ export function slugCopyHtml(slug) {
 
 // ===== TAGS HTML =====
 export function tagsHtml(tags) {
-    if (!tags || tags.length === 0) return '<span style="color:var(--text-light);font-size:0.8rem">—</span>';
+    if (!tags || tags.length === 0) return '<span style="color:var(--text-light);font-size:0.8rem">–</span>';
     return `<div class="tags-list">${tags.map(t => `<span class="tag-pill">${t}</span>`).join('')}</div>`;
 }
 

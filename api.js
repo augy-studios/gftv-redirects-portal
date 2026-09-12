@@ -15,7 +15,7 @@ export function setToken(token, remember) {
     clearToken();
     try {
         (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, token);
-    } catch { /* storage unavailable — session stays in memory only */ }
+    } catch { /* storage unavailable: session stays in memory only */ }
 }
 
 export function clearToken() {

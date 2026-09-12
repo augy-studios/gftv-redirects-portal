@@ -1,7 +1,7 @@
 {
     "name": "GFTV.asia Link Shortener",
     "short_name": "GFTV.asia",
-    "description": "GFTV.asia Link Shortener — The official short link manager for GFTV",
+    "description": "GFTV.asia Link Shortener, The official short link manager for GFTV",
     "icons": [{
             "src": "gsl-512.png",
             "type": "image/png",

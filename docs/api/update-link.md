@@ -18,7 +18,7 @@ Content-Type: application/json
 
 ### Request body
 
-All fields are optional — include only the fields you want to change.
+All fields are optional: include only the fields you want to change.
 
 ```json
 {

@@ -32,14 +32,14 @@ You can hand a link over to another Editor on the platform:
 Ownership transfers are immediate. Once transferred, the link will no longer appear in your Dashboard and you will not be able to edit it unless you request ownership back.
 {% endhint %}
 
-Alternatively, another user can initiate a request to take ownership of your link — see [Ownership Requests](ownership-requests.md).
+Alternatively, another user can initiate a request to take ownership of your link: see [Ownership Requests](ownership-requests.md).
 
 ## Editing someone else's link
 
 If you need to edit a link you don't own, you have two options:
 
-1. **Request ownership** — see [Ownership Requests](ownership-requests.md).
-2. **Ask an Admin** — Admins can edit any link directly.
+1. **Request ownership**: see [Ownership Requests](ownership-requests.md).
+2. **Ask an Admin**: Admins can edit any link directly.
 
 ## Frequently asked questions
 

@@ -21,11 +21,11 @@ The official link shortener for [GFTV (Global Furry Television)](https://globalf
 
 ## Introduction
 
-GFTV Shortlinks is the official link management platform for GFTV officers. It enables verified staff and volunteers to create short, trustworthy links under the `gftv.asia` domain — links that community members can click on with confidence.
+GFTV Shortlinks is the official link management platform for GFTV officers. It enables verified staff and volunteers to create short, trustworthy links under the `gftv.asia` domain, links that community members can click on with confidence.
 
 There are multiple reasons why we built a dedicated link shortener rather than relying on commercial services:
 
-- Generic shorteners (bit.ly, tinyurl) let **anyone** create links, including bad actors — making it impossible for the community to distinguish legitimate GFTV links from phishing attempts
+- Generic shorteners (bit.ly, tinyurl) let **anyone** create links, including bad actors, making it impossible for the community to distinguish legitimate GFTV links from phishing attempts
 - Commercial shorteners can be **blocked by spam filters** in emails and messaging platforms
 - A branded `gftv.asia` domain acts as a **trust signal**, the same way a `.gov` domain signals an official government site
 
@@ -35,42 +35,42 @@ With GFTV Shortlinks, community members know that any `gftv.asia/...` link was c
 
 ### For Everyone (No Account Required)
 
-- **Public Directory** — Browse and search all active short links on the platform. Filter by keyword, tag, or username.
-- **QR Code Scanning** — Every public short link has a scannable and downloadable QR code image.
-- **Fast Redirects** — Redirects are served via Vercel Edge Runtime for ultra-low latency, with native visit tracking.
+- **Public Directory**: Browse and search all active short links on the platform. Filter by keyword, tag, or username.
+- **QR Code Scanning**: Every public short link has a scannable and downloadable QR code image.
+- **Fast Redirects**: Redirects are served via Vercel Edge Runtime for ultra-low latency, with native visit tracking.
 
 ### For Logged-In Users (Viewers & Editors)
 
-- **Two-Factor Authentication (2FA)** — Secure your account with a TOTP authenticator app (Google Authenticator, Authy, 1Password, etc.).
-- **2FA Backup Codes** — Receive 8 one-time recovery codes when enabling 2FA. Regenerate them at any time with your password.
-- **Trusted Devices** — Skip the 2FA prompt on devices you trust for up to 30 days.
-- **Logout All Sessions** — Instantly invalidate every active session across all devices, including the current one, from your Profile page. You will be signed out everywhere.
-- **User Profiles** — Public profile pages showing role badge, avatar, link stats, and optional social links.
-- **Strong Password Enforcement** — Passwords are validated against real entropy requirements, not just length rules.
+- **Two-Factor Authentication (2FA)**: Secure your account with a TOTP authenticator app (Google Authenticator, Authy, 1Password, etc.).
+- **2FA Backup Codes**: Receive 8 one-time recovery codes when enabling 2FA. Regenerate them at any time with your password.
+- **Trusted Devices**: Skip the 2FA prompt on devices you trust for up to 30 days.
+- **Logout All Sessions**: Instantly invalidate every active session across all devices, including the current one, from your Profile page. You will be signed out everywhere.
+- **User Profiles**: Public profile pages showing role badge, avatar, link stats, and optional social links.
+- **Strong Password Enforcement**: Passwords are validated against real entropy requirements, not just length rules.
 
 ### For Editors (Officers)
 
-- **Link Creation** — Create short links with custom slugs (alphanumeric, hyphens, underscores; up to 60 characters).
-- **Link Editing** — Update the destination URL, active status, and tags on any link you own.
-- **Link Tags** — Label links with up to 5 tags each for easy organisation and discovery.
-- **Link Analytics** — Track cumulative view counts for every short link you own.
-- **QR Code Export** — Generate a downloadable composite PNG (QR code + printed URL) for any of your links.
-- **Ownership Transfer** — Hand off a link to another user directly from the edit panel.
-- **Ownership Requests** — Receive and respond to ownership requests from other officers.
+- **Link Creation**: Create short links with custom slugs (alphanumeric, hyphens, underscores; up to 60 characters).
+- **Link Editing**: Update the destination URL, active status, and tags on any link you own.
+- **Link Tags**: Label links with up to 5 tags each for easy organisation and discovery.
+- **Link Analytics**: Track cumulative view counts for every short link you own.
+- **QR Code Export**: Generate a downloadable composite PNG (QR code + printed URL) for any of your links.
+- **Ownership Transfer**: Hand off a link to another user directly from the edit panel.
+- **Ownership Requests**: Receive and respond to ownership requests from other officers.
 
 ### For Admins
 
-- **User Management** — Approve registrations, reset passwords, grant or revoke Editor access, toggle admin status, or delete accounts.
-- **Pre-Approval System** — Pre-authorise an email address with a role before the person registers. They are instantly activated on sign-up.
-- **Admin Link Management** — Edit the slug, destination, active status, and tags of any link on the platform. Delete links when necessary.
-- **Directory Edit Button** — Admins see an edit button on every link in the public directory for quick access.
+- **User Management**: Approve registrations, reset passwords, grant or revoke Editor access, toggle admin status, or delete accounts.
+- **Pre-Approval System**: Pre-authorise an email address with a role before the person registers. They are instantly activated on sign-up.
+- **Admin Link Management**: Edit the slug, destination, active status, and tags of any link on the platform. Delete links when necessary.
+- **Directory Edit Button**: Admins see an edit button on every link in the public directory for quick access.
 
 ### Platform
 
-- **Progressive Web App (PWA)** — Installable on mobile and desktop. Works offline for previously visited pages.
-- **7 Colour Themes** — Users can customise their interface with a built-in theme selector.
-- **Role-Based Access Control** — Three roles: Viewer (read-only), Editor (link management), Admin (full control).
-- **Invite-Only Registration** — New accounts are Pending until an Admin approves them, or a pre-approval is matched on sign-up.
+- **Progressive Web App (PWA)**: Installable on mobile and desktop. Works offline for previously visited pages.
+- **7 Colour Themes**: Users can customise their interface with a built-in theme selector.
+- **Role-Based Access Control**: Three roles: Viewer (read-only), Editor (link management), Admin (full control).
+- **Invite-Only Registration**: New accounts are Pending until an Admin approves them, or a pre-approval is matched on sign-up.
 
 ## Getting Started
 
@@ -116,7 +116,7 @@ GFTV Shortlinks is designed to deploy on [Vercel](https://vercel.com) with zero 
 vercel --prod
 ```
 
-Alternatively, connect the repository to a Vercel project and push to `main` — Vercel will build and deploy automatically.
+Alternatively, connect the repository to a Vercel project and push to `main`: Vercel will build and deploy automatically.
 
 The redirect handler (`api/redirect/[slug].js`) runs on **Vercel Edge Runtime** for globally distributed, low-latency redirects.
 
@@ -139,11 +139,14 @@ gftv-redirects-portal/
 │   ├── response.js         # Standardised API response helpers
 │   └── supabase.js         # Supabase client initialisation
 ├── docs/                   # GitBook documentation source
+├── assets/fonts/           # Self-hosted Proxima Nova (licensed, not on any CDN)
 ├── images/                 # Static image assets
 ├── .well-known/            # Android asset links (PWA)
 ├── index.html              # Main SPA entry point
-├── sw.js                   # Service worker (PWA offline support)
+├── sw.js                   # Service worker (PWA offline support); bump VERSION on every deploy
+├── sw-update.js            # Registers the worker and draws the "new version ready" bar
 ├── manifest.json           # PWA manifest
+├── gftv-flag.png           # 72x48 mark for the official site banner
 └── api.js                  # Client-side API wrapper
 ```
 

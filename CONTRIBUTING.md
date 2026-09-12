@@ -29,13 +29,13 @@ Before opening an issue or starting work on a change, please:
 
 A good bug report helps us reproduce and fix the problem quickly. When filing a bug, please include:
 
-- **A clear, descriptive title** — e.g. _"QR code download fails on iOS Safari 17"_, not _"QR broken"_
-- **Steps to reproduce** — numbered, minimal steps that reliably trigger the issue
-- **Expected behaviour** — what you expected to happen
-- **Actual behaviour** — what actually happened
-- **Environment** — browser name and version, operating system, and whether you are using the PWA install or the browser version
-- **Screenshots or screen recordings** — if the issue is visual or intermittent
-- **Console errors** — paste any relevant errors from the browser's developer console
+- **A clear, descriptive title**: e.g. _"QR code download fails on iOS Safari 17"_, not _"QR broken"_
+- **Steps to reproduce**: numbered, minimal steps that reliably trigger the issue
+- **Expected behaviour**: what you expected to happen
+- **Actual behaviour**: what actually happened
+- **Environment**: browser name and version, operating system, and whether you are using the PWA install or the browser version
+- **Screenshots or screen recordings**: if the issue is visual or intermittent
+- **Console errors**: paste any relevant errors from the browser's developer console
 
 > Security vulnerabilities should **not** be reported as public issues. See [Security Vulnerabilities](#security-vulnerabilities) below.
 
@@ -43,10 +43,10 @@ A good bug report helps us reproduce and fix the problem quickly. When filing a 
 
 Feature requests are welcome. A strong feature request includes:
 
-- **The problem you are trying to solve** — describe the context and motivation, not just the solution. _"As an editor, I want to bulk-create links because manually creating 20 links for a campaign takes too long"_ is more useful than _"add bulk link creation"_.
-- **What you have considered** — alternatives you have thought of, and why you prefer the proposed approach.
-- **Scope** — is this a small addition, a significant behaviour change, or a new workflow? Larger changes benefit from discussion before implementation.
-- **Affected roles** — which user roles (Viewer, Editor, Admin, or unauthenticated visitors) would this change affect?
+- **The problem you are trying to solve**: describe the context and motivation, not just the solution. _"As an editor, I want to bulk-create links because manually creating 20 links for a campaign takes too long"_ is more useful than _"add bulk link creation"_.
+- **What you have considered**: alternatives you have thought of, and why you prefer the proposed approach.
+- **Scope**: is this a small addition, a significant behaviour change, or a new workflow? Larger changes benefit from discussion before implementation.
+- **Affected roles**: which user roles (Viewer, Editor, Admin, or unauthenticated visitors) would this change affect?
 
 ## Contributing Code
 
@@ -82,8 +82,8 @@ Feature requests are welcome. A strong feature request includes:
 
 ### Branching Strategy
 
-- `main` — the stable production branch. Direct pushes are not permitted.
-- Feature branches — branch off `main` using a descriptive name:
+- `main`: the stable production branch. Direct pushes are not permitted.
+- Feature branches: branch off `main` using a descriptive name:
   - `feat/bulk-link-creation`
   - `fix/qr-download-ios-safari`
   - `docs/update-contributing-guide`
@@ -142,11 +142,13 @@ chore: upgrade otplib to v12.0.1
 
 4. **Remove build artefacts and debug code** before requesting review. Do not commit `node_modules`, `.env` files, or temporary test files.
 
-5. **Update documentation** if your change affects user-facing behaviour. This includes the docs under the `/docs` folder (synced to [guide.gftv.asia](https://guide.gftv.asia)) and inline code comments where relevant.
+5. **Bump `VERSION` in `sw.js`** whenever your change touches anything the service worker serves (`index.html`, `style.css`, any `.js`, fonts, images). The browser compares `sw.js` byte for byte: if it has not changed, no update is detected, readers keep the old cached build, and the "A new version is ready" bar never appears. Treat a missing bump as a build error, not a habit. Never add `skipWaiting()` or `clients.claim()` outside the `skip-waiting` message handler; that would swap the site under a reader mid-session, which is exactly what the update bar exists to ask about.
 
-6. **Address review feedback** promptly. If you disagree with a suggestion, explain your reasoning — a constructive discussion is always welcome.
+6. **Update documentation** if your change affects user-facing behaviour. This includes the docs under the `/docs` folder (synced to [guide.gftv.asia](https://guide.gftv.asia)) and inline code comments where relevant.
 
-7. Pull requests require at least **one approving review** from a project maintainer before merging.
+7. **Address review feedback** promptly. If you disagree with a suggestion, explain your reasoning; a constructive discussion is always welcome.
+
+8. Pull requests require at least **one approving review** from a project maintainer before merging.
 
 ## Security Vulnerabilities
 

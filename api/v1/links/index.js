@@ -1,4 +1,4 @@
-// Public API v1 — List user's links or create a new link
+// Public API v1: List user's links or create a new link
 // Authentication: Authorization: ApiKey <your_api_key>
 import supabase from '../../../lib/supabase.js';
 import { getApiKeyUser } from '../../../lib/auth.js';
@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     if (!user) return err(res, 'Unauthorized: provide a valid API key via "Authorization: ApiKey <key>"', 401);
     if (!user.is_editor && !user.is_admin) return err(res, 'Forbidden: your account does not have Editor or Admin access', 403);
 
-    // GET /api/v1/links — list all links owned by the API key holder
+    // GET /api/v1/links: list all links owned by the API key holder
     if (req.method === 'GET') {
         try {
             const url = new URL(req.url, 'http://localhost');
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // POST /api/v1/links — create a new link
+    // POST /api/v1/links: create a new link
     if (req.method === 'POST') {
         try {
             const body = await parseBody(req);

@@ -6,10 +6,10 @@ gftv.asia tracks detailed analytics for every short link, giving you a clear vie
 
 Each link in your **My Links** dashboard has an analytics button (bar chart icon). Clicking it opens the analytics modal for that link, with four tabs:
 
-- **Overview** — total visit count, device type breakdown, and a 7-day click trend chart.
-- **Heatmap** — a traffic heatmap showing clicks by day of the week and hour of the day (UTC), useful for identifying when your audience is most active.
-- **History** — a chronological log of events for the link: creation, status changes (active/inactive), and ownership transfers.
-- **Export** — download the complete all-time daily click history for the link as a CSV file.
+- **Overview**: total visit count, device type breakdown, and a 7-day click trend chart.
+- **Heatmap**: a traffic heatmap showing clicks by day of the week and hour of the day (UTC), useful for identifying when your audience is most active.
+- **History**: a chronological log of events for the link: creation, status changes (active/inactive), and ownership transfers.
+- **Export**: download the complete all-time daily click history for the link as a CSV file.
 
 The total visit count is also visible on link cards in the public [Directory](../directory/browsing-the-directory.md).
 
@@ -34,10 +34,10 @@ Every redirect through a `gftv.asia` short link increments the view count by 1, 
 
 Analytics can help you:
 
-- **Identify popular links** — high-traffic links may warrant more careful management (e.g. avoid changing their slug).
-- **Spot unused links** — links with very low or zero views over time may be candidates for cleanup.
-- **Measure campaign reach** — if you create a dedicated short link for a specific event or announcement, the view count and daily trend give you a measure of reach.
-- **Understand your audience** — the device breakdown and heatmap show what devices people use and when they are most active.
+- **Identify popular links**: high-traffic links may warrant more careful management (e.g. avoid changing their slug).
+- **Spot unused links**: links with very low or zero views over time may be candidates for cleanup.
+- **Measure campaign reach**: if you create a dedicated short link for a specific event or announcement, the view count and daily trend give you a measure of reach.
+- **Understand your audience**: the device breakdown and heatmap show what devices people use and when they are most active.
 
 ## Profile and directory statistics
 

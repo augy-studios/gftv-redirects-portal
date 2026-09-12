@@ -16,7 +16,7 @@ The generated image is a **composite PNG** that includes:
 * The **QR code** itself.
 * The **short link URL** (`gftv.asia/your-slug`) printed as text below the QR code.
 
-This makes the image suitable for print use — even if the QR code cannot be scanned, the text URL is still readable.
+This makes the image suitable for print use: even if the QR code cannot be scanned, the text URL is still readable.
 
 ## Saving and sharing
 

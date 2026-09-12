@@ -1,12 +1,12 @@
 # Introduction
 
-Welcome to the official guide for **gftv.asia** — the trusted short link platform for GFTV officers.
+Welcome to the official guide for **gftv.asia**: the trusted short link platform for GFTV officers.
 
 This guide contains everything you need to know about using gftv.asia, from creating your first short link to managing your account and understanding the platform's security model.
 
 ## What is gftv.asia?
 
-**gftv.asia** is the official link shortener for [GFTV (Global Furry Television)](https://globalfurrytv.news.blog/). It allows verified GFTV officers to create short, memorable links under the `gftv.asia` domain — links that the wider GFTV community can trust.
+**gftv.asia** is the official link shortener for [GFTV (Global Furry Television)](https://globalfurrytv.news.blog/). It allows verified GFTV officers to create short, memorable links under the `gftv.asia` domain, links that the wider GFTV community can trust.
 
 For example, a long destination URL like `https://www.youtube.com/watch?v=...` can become something clean and recognisable like `gftv.asia/youtube`.
 

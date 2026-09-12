@@ -1,4 +1,4 @@
-// Link analytics — devices, daily clicks, traffic heatmap, link history
+// Link analytics: devices, daily clicks, traffic heatmap, link history
 import supabase from '../../lib/supabase.js';
 import { getSessionUser } from '../../lib/auth.js';
 import { ok, err, optionsResponse } from '../../lib/response.js';

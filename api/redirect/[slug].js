@@ -1,4 +1,4 @@
-// Redirect short link to destination — kept on Edge for low-latency redirects
+// Redirect short link to destination: kept on Edge for low-latency redirects
 export const config = { runtime: 'edge' };
 import supabase from '../../lib/supabase.js';
 
@@ -6,7 +6,7 @@ const FALLBACK = 'https://globalfurrytv.news.blog';
 
 function detectDeviceType(ua) {
     if (!ua) return 'Others';
-    // Check tablet before mobile — many Android tablets include "android" but not "mobile"
+    // Check tablet before mobile: many Android tablets include "android" but not "mobile"
     if (/tablet|ipad|playbook|silk|(android(?!.*mobile))/i.test(ua)) return 'Tablet';
     if (/mobile|iphone|ipod|android.*mobile|blackberry|windows phone|iemobile/i.test(ua)) return 'Mobile';
     if (/windows|macintosh|linux|cros/i.test(ua)) return 'Desktop';

@@ -6,8 +6,8 @@ Every GFTV officer on gftv.asia has a profile page. Profiles help other logged-i
 
 You can reach a user's profile in two ways:
 
-1. **From the Directory** — Click the creator's name or avatar on any link card.
-2. **Direct URL** — Navigate to `gftv.asia` and look up the user by username.
+1. **From the Directory**: Click the creator's name or avatar on any link card.
+2. **Direct URL**: Navigate to `gftv.asia` and look up the user by username.
 
 Login (with at least Viewer access) is required to view profiles.
 
