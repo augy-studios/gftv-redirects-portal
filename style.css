@@ -481,6 +481,17 @@ body {
   line-height: 1.45;
 }
 
+/* The trusted sites link: a plain link after the body copy, token colour,
+   weight as the affordance like every other link in prose. */
+.gov-bar-point p + p {
+  margin-top: 4px;
+}
+
+.gov-bar-point a {
+  color: var(--link);
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .gov-bar-inner,
   .gov-bar-panel-inner {

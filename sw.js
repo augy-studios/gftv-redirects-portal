@@ -1,7 +1,7 @@
 // Bump on every deploy that changes anything the worker serves. The browser
 // compares this file byte for byte: if nothing here changes, no update is
 // detected and the update bar never appears, however much else has moved.
-const VERSION = "v9";
+const VERSION = "v10";
 const SHELL_CACHE = "gftvlinks-shell-" + VERSION;
 const API_CACHE = "gftvlinks-api-" + VERSION;
 const RUNTIME_CACHE = "gftvlinks-runtime-" + VERSION;
