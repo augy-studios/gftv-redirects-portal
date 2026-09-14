@@ -25,7 +25,8 @@ import {
     slugCopyHtml,
     tagsHtml,
     pwdStrength,
-    noSpaces,
+    rejectSpaces,
+    NO_SPACES_MSG,
     icon,
     loadingHtml
 } from './ui.js';
@@ -378,10 +379,18 @@ function setupLoginPage() {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         errEl.style.display = 'none';
+
+        const usernameInput = document.getElementById('login-username');
+        if (rejectSpaces(usernameInput)) {
+            errEl.textContent = `${NO_SPACES_MSG} in your username or email`;
+            errEl.style.display = 'flex';
+            return;
+        }
+
         btn.disabled = true;
         btn.textContent = 'Logging in…';
 
-        const username = document.getElementById('login-username').value.trim();
+        const username = usernameInput.value.trim();
         const password = document.getElementById('login-password').value;
         // Stay logged in for 30 days on this device, or just for this browser session
         const remember = document.getElementById('login-remember').checked;
@@ -515,7 +524,16 @@ function setupRegisterPage() {
         e.preventDefault();
         errEl.style.display = 'none';
 
-        const email = document.getElementById('reg-email').value.trim();
+        const usernameInput = document.getElementById('reg-username');
+        const emailInput = document.getElementById('reg-email');
+        const spaced = rejectSpaces(usernameInput, emailInput);
+        if (spaced) {
+            errEl.textContent = `${NO_SPACES_MSG} in your ${spaced === usernameInput ? 'username' : 'email address'}`;
+            errEl.style.display = 'flex';
+            return;
+        }
+
+        const email = emailInput.value.trim();
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             errEl.textContent = 'Please enter a valid email address';
             errEl.style.display = 'flex';
@@ -535,7 +553,7 @@ function setupRegisterPage() {
 
         try {
             const res = await Auth.register({
-                username: document.getElementById('reg-username').value.trim(),
+                username: usernameInput.value.trim(),
                 display_name: document.getElementById('reg-displayname').value.trim(),
                 email,
                 password,
@@ -853,7 +871,9 @@ function setupAdminManageLinkModal() {
         e.preventDefault();
         if (!adminManageLinkId) return;
         const btn = document.getElementById('admin-transfer-link-btn');
-        const new_owner_username = document.getElementById('admin-link-new-owner').value.trim();
+        const ownerInput = document.getElementById('admin-link-new-owner');
+        if (rejectSpaces(ownerInput)) { toast(`${NO_SPACES_MSG} in a username`, 'error'); return; }
+        const new_owner_username = ownerInput.value.trim();
         if (!new_owner_username) { toast('Enter a username to transfer to', 'error'); return; }
 
         btn.disabled = true;
@@ -1117,13 +1137,16 @@ function setupCreateLinkModal() {
 
     document.getElementById('edit-link-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const ownerInput = document.getElementById('edit-transfer-owner');
+        if (rejectSpaces(ownerInput)) { toast(`${NO_SPACES_MSG} in a username`, 'error'); return; }
+
         const btn = document.getElementById('edit-link-btn');
         btn.disabled = true;
         btn.textContent = 'Saving…';
 
         const slug = document.getElementById('edit-slug').value.trim();
         const destination = document.getElementById('edit-dest').value.trim();
-        const new_owner_username = document.getElementById('edit-transfer-owner').value.trim();
+        const new_owner_username = ownerInput.value.trim();
 
         const body = { slug, destination, tags: editTags };
         if (new_owner_username) body.new_owner_username = new_owner_username;
@@ -1411,7 +1434,13 @@ function setupAddPreapprovedModal() {
         e.preventDefault();
         errEl.style.display = 'none';
 
-        const email = document.getElementById('preapproved-email').value.trim();
+        const emailInput = document.getElementById('preapproved-email');
+        if (rejectSpaces(emailInput)) {
+            errEl.textContent = `${NO_SPACES_MSG} in an email address`;
+            errEl.style.display = 'flex';
+            return;
+        }
+        const email = emailInput.value.trim();
         const role = document.getElementById('preapproved-role').value;
 
         if (!email) {
@@ -1585,9 +1614,16 @@ function setupAdminModal() {
     document.getElementById('admin-manage-details-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!adminManageUserId) return;
-        const username = document.getElementById('admin-manage-username').value.trim();
+        const usernameInput = document.getElementById('admin-manage-username');
+        const emailInput = document.getElementById('admin-manage-email');
+        const spaced = rejectSpaces(usernameInput, emailInput);
+        if (spaced) {
+            toast(`${NO_SPACES_MSG} in the ${spaced === usernameInput ? 'username' : 'email address'}`, 'error');
+            return;
+        }
+        const username = usernameInput.value.trim();
         const display_name = document.getElementById('admin-manage-displayname').value.trim();
-        const email = document.getElementById('admin-manage-email').value.trim();
+        const email = emailInput.value.trim();
         const btn = document.getElementById('admin-manage-details-btn');
         btn.disabled = true;
         btn.textContent = 'Saving…';
@@ -2753,14 +2789,6 @@ window.downloadAllClicks = (e, id) => {
 // ===== BOOT =====
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
-    // Usernames and emails can never contain spaces, in any form that takes one
-    [
-        'login-username',
-        'reg-username', 'reg-email',
-        'admin-manage-username', 'admin-manage-email',
-        'preapproved-email',
-        'edit-transfer-owner', 'admin-link-new-owner',
-    ].forEach(id => noSpaces(document.getElementById(id)));
     setupLoginPage();
     setupRegisterPage();
     setupDirectoryPage();

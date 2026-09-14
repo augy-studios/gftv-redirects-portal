@@ -846,6 +846,23 @@ body {
   cursor: not-allowed;
 }
 
+.form-control.is-invalid,
+.form-control.is-invalid:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(224, 85, 85, 0.22);
+}
+
+.form-hint {
+  font-size: 0.76rem;
+  color: var(--text-light);
+  margin-top: 5px;
+}
+
+.form-control.is-invalid + .form-hint {
+  color: var(--danger);
+  font-weight: 600;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
