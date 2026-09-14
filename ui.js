@@ -290,6 +290,25 @@ export function tagsHtml(tags) {
     return `<div class="tags-list">${tags.map(t => `<span class="tag-pill">${t}</span>`).join('')}</div>`;
 }
 
+// ===== NO-SPACES INPUT =====
+// Username and email fields must never contain whitespace. Blocks the space
+// key outright and strips any whitespace that arrives some other way
+// (paste, drag-drop, mobile autocorrect/autocomplete inserting a trailing space).
+export function noSpaces(input) {
+    if (!input) return;
+    input.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.code === 'Space') e.preventDefault();
+    });
+    input.addEventListener('input', () => {
+        if (!/\s/.test(input.value)) return;
+        const pos = input.selectionStart;
+        const before = input.value.slice(0, pos).replace(/\s+/g, '');
+        input.value = input.value.replace(/\s+/g, '');
+        // type="email" inputs don't support selection APIs; caret restore is best-effort
+        try { input.setSelectionRange(before.length, before.length); } catch { /* noop */ }
+    });
+}
+
 // ===== PASSWORD STRENGTH =====
 export function pwdStrength(pwd) {
     let score = 0;

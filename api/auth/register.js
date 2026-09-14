@@ -14,8 +14,12 @@ export default async function handler(req, res) {
         if (!username || !display_name || !email || !password)
             return err(res, 'All fields are required');
 
+        if (/\s/.test(username)) return err(res, 'Username cannot contain spaces');
         if (!/^[a-zA-Z0-9_]{3,30}$/.test(username))
             return err(res, 'Username must be 3-30 alphanumeric characters or underscores');
+
+        if (/\s/.test(email)) return err(res, 'Email cannot contain spaces');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return err(res, 'Invalid email address');
 
         if (passwordEntropy(password) < 36)
             return err(res, 'Password is too weak. Use a longer password with a mix of uppercase, lowercase, numbers, and symbols.');

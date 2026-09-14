@@ -15,6 +15,7 @@ export default async function handler(req, res) {
     try {
         const { username, password, device_token, remember } = await parseBody(req);
         if (!username || !password) return err(res, 'Username and password required');
+        if (/\s/.test(username)) return err(res, 'Username or email cannot contain spaces');
 
         const sessionMs = remember ? REMEMBER_SESSION_MS : SHORT_SESSION_MS;
 

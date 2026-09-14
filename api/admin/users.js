@@ -59,6 +59,7 @@ export default async function handler(req, res) {
             if (username !== undefined) {
                 const trimmed = username.trim().toLowerCase();
                 if (!trimmed) return err(res, 'Username cannot be empty');
+                if (/\s/.test(trimmed)) return err(res, 'Username cannot contain spaces');
                 if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) return err(res, 'Username can only contain letters, numbers, hyphens and underscores');
                 const { data: existing } = await supabase
                     .from('gftvhello_users').select('id').eq('username', trimmed).single();
@@ -72,6 +73,8 @@ export default async function handler(req, res) {
             if (email !== undefined) {
                 const trimmedEmail = email.trim().toLowerCase();
                 if (!trimmedEmail) return err(res, 'Email cannot be empty');
+                if (/\s/.test(trimmedEmail)) return err(res, 'Email cannot contain spaces');
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) return err(res, 'Invalid email address');
                 const { data: existing } = await supabase
                     .from('gftvhello_users').select('id').eq('email', trimmedEmail).single();
                 if (existing && existing.id !== user_id) return err(res, 'Email already in use');

@@ -25,6 +25,7 @@ import {
     slugCopyHtml,
     tagsHtml,
     pwdStrength,
+    noSpaces,
     icon,
     loadingHtml
 } from './ui.js';
@@ -2752,6 +2753,14 @@ window.downloadAllClicks = (e, id) => {
 // ===== BOOT =====
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
+    // Usernames and emails can never contain spaces, in any form that takes one
+    [
+        'login-username',
+        'reg-username', 'reg-email',
+        'admin-manage-username', 'admin-manage-email',
+        'preapproved-email',
+        'edit-transfer-owner', 'admin-link-new-owner',
+    ].forEach(id => noSpaces(document.getElementById(id)));
     setupLoginPage();
     setupRegisterPage();
     setupDirectoryPage();
