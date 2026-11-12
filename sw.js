@@ -1,7 +1,7 @@
 // Bump on every deploy that changes anything the worker serves. The browser
 // compares this file byte for byte: if nothing here changes, no update is
 // detected and the update bar never appears, however much else has moved.
-const VERSION = "v12";
+const VERSION = "v13";
 const SHELL_CACHE = "gftvlinks-shell-" + VERSION;
 const API_CACHE = "gftvlinks-api-" + VERSION;
 const RUNTIME_CACHE = "gftvlinks-runtime-" + VERSION;
@@ -21,8 +21,11 @@ const SHELL_ASSETS = [
   "/assets/fonts/ProximaNova-Regular.woff2",
   "/gftv-flag.png",
   "/gsl-main.png",
+  "/gsl-180.png",
   "/gsl-192.png",
   "/gsl-512.png",
+  "/gsl-192-maskable.png",
+  "/gsl-512-maskable.png",
   "/gsl-qr.png",
   "/gsl-timg.png",
   "/images/screenshot_1.png",
