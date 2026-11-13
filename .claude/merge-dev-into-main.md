@@ -10,7 +10,7 @@ Context for whoever merges this repo's `dev` branch into `main`. Augy, give this
 
 Work through these in order, and stop to ask Augy wherever a step says so.
 
-1. **Read first:** this file, then `README.md`. Never read, print or copy a `.env` or `token.env` file; use the `.example` files.
+1. **Read first:** this file, then `README.md`. Never read, print or copy a `.env` or `token.env` file; this repo has no `.example` file; README's environment table names the two variables (`SUPABASE_URL`, `SUPABASE_SERVICE_KEY`).
 2. **Check `dev` matches this file:** `git fetch origin`, then `git log --oneline origin/main..origin/dev`. Every commit in the Jobs table below should be there. Commits titled "Merge context" only update this file. Read the message of any other commit the table doesn't list (`git show <sha>`) and tell Augy what it is.
 3. **Run the tests** on a checkout of `dev` (commands below). All must pass. If one fails, stop and tell Augy; don't fix it on `main`.
 4. **Go through "Before merging"** with Augy. Steps marked as his (Vercel settings, the database) are his to do by hand; ask him to confirm each one.
@@ -39,15 +39,18 @@ Each job's commit message lists what changed and how it was reviewed. The full b
 npm ci
 npm test            # all 28 API handlers against a fake Supabase
 npm run test:e2e    # Playwright baseline: 69 views, DOM snapshots and screenshots
+# The screenshot baselines are macOS ones. On another OS, run the e2e tests on the Mac mini,
+# or use `npx playwright test --update-snapshots=missing` and don't commit the PNGs it makes.
 ```
 
 They need no `.env`, network or real database.
 
 ## Before merging
 
-- **`main` moved since the last job?** Augy keeps pushing to `main`, so merge `main` into `dev` first and re-run the tests (the coordinator does this before each job lands).
-- **Service worker:** `sw.js`'s `VERSION` must differ from `main`'s (job 07 bumps it). If it doesn't, bump it in a commit on `dev` first.
-- **Release notes:** add the release to `CHANGELOG.md` and `RELEASE_NOTES.md` in this repo's date-code format, in a commit on `dev`, with Augy's OK on the wording.
+- **`main` moved since the last job?** Augy keeps pushing to `main`, so merge `main` into `dev` first and re-run the tests.
+- **Service worker:** `sw.js`'s `VERSION` is v14 on `dev` (job 07), v13 on `main`. If `main` changed a served file since, bump it again.
+- **Release notes:** add the release to `CHANGELOG.md` (date code `YYYY.MM.DD` in AEST, newest first) and `RELEASE_NOTES.md`, in a commit on `dev`, using the text in the pull request's description, with Augy's OK on the wording.
+- This release also adds `.vercelignore` (tests and the Playwright config stay out of the deploy) and fills in `package-lock.json` (it was missing `otplib` and `qrcode`; versions unchanged).
 
 ## After merging
 
@@ -61,9 +64,10 @@ The tests can't reach the real database, logins or messaging, so check these by 
 - Create and edit a link; open the short link and check the redirect.
 - An ownership transfer and an avatar upload.
 - The admin pages load for an admin.
+- The update bar: "A new version is ready" appears once on an installed copy, and Reload loads the new build (the tests block service workers, so this is the only check of `sw.js`).
 
 ## What users may notice
 
-- None meant: this chain only renames and rewrites for readability. Every page, API reply and redirect should behave as before.
+- None meant: this chain only renames and rewrites for readability. Every page, API reply and redirect behaves as before. Users see the update bar once, because the service worker version changed.
 
 Open questions and anything left for later are on help desk #20's review page, not here.
