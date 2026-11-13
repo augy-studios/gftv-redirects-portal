@@ -1,0 +1,22 @@
+html[data-color-theme=null][data-mode=null][data-mode-preference=null]
+body
+  h1.title-text
+  div.submarine
+    div.top
+      div.pipe
+        div.light
+    div.window.window-1
+      div.shine
+    div.window.window-2
+      div.shine
+    div.shadow
+    div.propeller
+      div.back
+      div.wing
+      div.bubble.bubble-1
+      div.bubble.bubble-2
+      div.bubble.bubble-3
+  div.wave
+    div.wave1
+    div.wave2
+  script

@@ -1,0 +1,166 @@
+html[data-color-theme=classic][data-mode=light][data-mode-preference=light]
+body
+  div#officialBar.gov-bar
+    div.gov-bar-inner
+      img.gov-bar-mark
+      p.gov-bar-line
+        span.gov-bar-long
+        span.gov-bar-short (hidden)
+      button#officialBarToggle.gov-bar-toggle
+        svg.gov-bar-chevron
+    div#officialBarPanel.gov-bar-panel (hidden)
+      div.gov-bar-panel-inner
+        div.gov-bar-point
+          svg
+          div
+            h2
+            p
+            p
+              a
+        div.gov-bar-point
+          svg
+          div
+            h2
+            p
+  script
+  header.site-header
+    nav#navbar
+      a.nav-brand
+        span.brand-dot
+      div#nav-links.nav-links
+        button.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          span.nav-btn-icon
+            svg
+        button.active.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          svg
+      div
+        button#theme-picker-btn.nav-theme-btn
+          svg
+        div#nav-user
+          div.avatar-placeholder
+        button#hamburger-btn.hamburger (hidden)
+          span
+          span
+          span
+    div#mobile-nav.mobile-nav-drawer (hidden)
+      button.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        span.nav-btn-icon
+          svg
+      button.active.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        svg
+  div#toast-container
+  main#app-container
+    div#page-home.page …
+    div#page-login.page …
+    div#page-register.page …
+    div#page-pending.page …
+    div#page-preapproved.page …
+    div#page-directory.page …
+    div#page-dashboard.page …
+    div#page-ownership.page …
+    div#page-admin.page …
+    div#page-profile.page …
+    div#page-apiintegration.active.page
+      div.page-header
+        div
+          h1.page-title
+            svg
+          p.page-subtitle
+      div.glass
+        p
+          a
+        div.form-group
+          label
+            span
+              svg
+          div
+            input#api-key-display.form-control
+            button#api-key-toggle-btn.btn.btn-secondary
+              svg
+            button#api-key-copy-btn.btn.btn-secondary
+              svg
+            button#api-key-regen-btn.btn.btn-primary
+              svg
+          p#api-key-status
+        div.alert.alert-warning
+          strong
+      div.glass
+        h2
+          svg
+        p
+          code
+          code
+        div
+          div.glass
+            div
+              span
+              code
+            p
+              code
+              code
+              code
+              code
+          div.glass
+            div
+              span
+              code
+            p
+          div.glass
+            div
+              span
+              code
+            p
+              code
+          div.glass
+            div
+              span
+              code
+            p
+              code
+              code
+              code
+        div
+          a.btn.btn-secondary
+  div#modal-theme.modal-overlay …
+  div#modal-totp-login.modal-overlay …
+  div#modal-regen-backup-codes.modal-overlay …
+  div#modal-backup-codes-display.modal-overlay …
+  div#modal-disable-2fa.modal-overlay …
+  div#modal-create-link.modal-overlay …
+  div#modal-edit-link.modal-overlay …
+  div#modal-analytics.modal-overlay …
+  div#modal-admin-manage-link.modal-overlay …
+  div#modal-view-profile.modal-overlay …
+  div#modal-logout-all.modal-overlay …
+  div#modal-delete-account.modal-overlay …
+  div#modal-admin-manage.modal-overlay …
+  div#modal-admin-delete-user.modal-overlay …
+  div#modal-add-preapproved.modal-overlay …
+  div#modal-delete-final.modal-overlay …
+  div#modal-qr.modal-overlay …
+  script
+  script

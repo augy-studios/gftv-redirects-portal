@@ -1,2 +1,9 @@
 node_modules/
 tools/*.ttf
+
+# Test output (Playwright)
+test-results/
+playwright-report/
+
+# Agent worktrees
+.claude/worktrees/

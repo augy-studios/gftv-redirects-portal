@@ -1,0 +1,109 @@
+html[data-color-theme=classic][data-mode=light][data-mode-preference=light]
+body
+  div#officialBar.gov-bar
+    div.gov-bar-inner
+      img.gov-bar-mark
+      p.gov-bar-line
+        span.gov-bar-long
+        span.gov-bar-short (hidden)
+      button#officialBarToggle.gov-bar-toggle
+        svg.gov-bar-chevron
+    div#officialBarPanel.gov-bar-panel (hidden)
+      div.gov-bar-panel-inner
+        div.gov-bar-point
+          svg
+          div
+            h2
+            p
+            p
+              a
+        div.gov-bar-point
+          svg
+          div
+            h2
+            p
+  script
+  header.site-header
+    nav#navbar
+      a.nav-brand
+        span.brand-dot
+      div#nav-links.nav-links
+        button.nav-btn-outline
+        button.nav-btn-outline
+        button.nav-btn-outline
+        button.nav-btn
+        button.active.nav-btn
+      div
+        button#theme-picker-btn.nav-theme-btn
+          svg
+        div#nav-user
+        button#hamburger-btn.hamburger (hidden)
+          span
+          span
+          span
+    div#mobile-nav.mobile-nav-drawer (hidden)
+      button.nav-btn-outline
+      button.nav-btn-outline
+      button.nav-btn-outline
+      button.nav-btn
+      button.active.nav-btn
+  div#toast-container
+  main#app-container
+    div#page-home.page …
+    div#page-login.page …
+    div#page-register.active.page
+      div.auth-wrap
+        div.auth-card.glass-strong
+          h2
+          p.subtitle
+          div#register-error.alert.alert-error
+          form#register-form
+            div.form-row
+              div.form-group
+                label
+                input#reg-username.form-control
+                div.form-hint
+              div.form-group
+                label
+                input#reg-displayname.form-control
+            div.form-group
+              label
+              input#reg-email.form-control
+              div.form-hint
+            div.form-group
+              label
+              input#reg-password.form-control
+              div#pwd-strength-bar.pwd-strength.pwd-strength-4
+            div.form-group
+              label
+              input#reg-confirm.form-control
+            button#register-btn.btn.btn-full.btn-primary
+          p.auth-switch
+            a
+    div#page-pending.page …
+    div#page-preapproved.page …
+    div#page-directory.page …
+    div#page-dashboard.page …
+    div#page-ownership.page …
+    div#page-admin.page …
+    div#page-profile.page …
+    div#page-apiintegration.page …
+  div#modal-theme.modal-overlay …
+  div#modal-totp-login.modal-overlay …
+  div#modal-regen-backup-codes.modal-overlay …
+  div#modal-backup-codes-display.modal-overlay …
+  div#modal-disable-2fa.modal-overlay …
+  div#modal-create-link.modal-overlay …
+  div#modal-edit-link.modal-overlay …
+  div#modal-analytics.modal-overlay …
+  div#modal-admin-manage-link.modal-overlay …
+  div#modal-view-profile.modal-overlay …
+  div#modal-logout-all.modal-overlay …
+  div#modal-delete-account.modal-overlay …
+  div#modal-admin-manage.modal-overlay …
+  div#modal-admin-delete-user.modal-overlay …
+  div#modal-add-preapproved.modal-overlay …
+  div#modal-delete-final.modal-overlay …
+  div#modal-qr.modal-overlay …
+  script
+  script
