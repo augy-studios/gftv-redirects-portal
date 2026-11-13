@@ -66,6 +66,7 @@
         <div class="wave2"></div>
     </div>
     <script>
+        // Register the service worker, where the browser supports one.
         if (typeof navigator.serviceWorker !== 'undefined') {
             navigator.serviceWorker.register('sw.js')
         }

@@ -1,28 +1,30 @@
-// Delete own account
+// DELETE /api/profile/delete: deletes the signed-in user's own account once their password checks
+// out.
+// Who can call it: any signed-in user except Admins (session token). Admins get 403.
 import supabase from '../../lib/supabase.js';
 import { getSessionUser } from '../../lib/auth.js';
-import { ok, err, optionsResponse, parseBody } from '../../lib/response.js';
+import { sendSuccess, sendError, sendOptionsResponse, parseBody } from '../../lib/response.js';
 import bcrypt from 'bcryptjs';
 
-export default async function handler(req, res) {
-    if (req.method === 'OPTIONS') return optionsResponse(res);
-    if (req.method !== 'DELETE') return err(res, 'Method not allowed', 405);
+export default async function handler(request, response) {
+    if (request.method === 'OPTIONS') return sendOptionsResponse(response);
+    if (request.method !== 'DELETE') return sendError(response, 'Method not allowed', 405);
 
-    const user = await getSessionUser(req);
-    if (!user) return err(res, 'Unauthorized', 401);
-    if (user.is_admin) return err(res, 'Admin account cannot be deleted via this endpoint', 403);
+    const user = await getSessionUser(request);
+    if (!user) return sendError(response, 'Unauthorized', 401);
+    if (user.is_admin) return sendError(response, 'Admin account cannot be deleted via this endpoint', 403);
 
     try {
-        const { password } = await parseBody(req);
-        if (!password) return err(res, 'Password required');
+        const { password } = await parseBody(request);
+        if (!password) return sendError(response, 'Password required');
 
         const valid = await bcrypt.compare(password, user.password_hash);
-        if (!valid) return err(res, 'Incorrect password');
+        if (!valid) return sendError(response, 'Incorrect password');
 
         await supabase.from('gftvhello_users').delete().eq('id', user.id);
 
-        return ok(res, { message: 'Account deleted' });
-    } catch (e) {
-        return err(res, 'Server error', 500);
+        return sendSuccess(response, { message: 'Account deleted' });
+    } catch (error) {
+        return sendError(response, 'Server error', 500);
     }
 }

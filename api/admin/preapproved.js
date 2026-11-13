@@ -1,36 +1,41 @@
-// Admin: manage pre-approved users
+// /api/admin/preapproved: emails an Admin has approved before the person registers.
+//   GET                    the list, newest first.
+//   POST { email, role }   adds an email as a viewer or an editor (201). If that email already
+//                          belongs to an approved account, it's linked to that account at once.
+//   DELETE ?id=<id>        removes one.
+// Who can call it: Admins only (session token).
 import supabase from '../../lib/supabase.js';
 import { getSessionUser } from '../../lib/auth.js';
-import { ok, err, optionsResponse, parseBody } from '../../lib/response.js';
+import { sendSuccess, sendError, sendOptionsResponse, parseBody } from '../../lib/response.js';
 
-export default async function handler(req, res) {
-    if (req.method === 'OPTIONS') return optionsResponse(res);
+export default async function handler(request, response) {
+    if (request.method === 'OPTIONS') return sendOptionsResponse(response);
 
-    const user = await getSessionUser(req);
-    if (!user) return err(res, 'Unauthorized', 401);
-    if (!user.is_admin) return err(res, 'Forbidden', 403);
+    const user = await getSessionUser(request);
+    if (!user) return sendError(response, 'Unauthorized', 401);
+    if (!user.is_admin) return sendError(response, 'Forbidden', 403);
 
     // GET - list all pre-approved users
-    if (req.method === 'GET') {
-        const { data, error } = await supabase
+    if (request.method === 'GET') {
+        const { data: preapprovedUsers, error } = await supabase
             .from('gftvhello_users_preapproved')
             .select('id, email, preapproved_role, user_id, preapproved_at, activated_at')
             .order('preapproved_at', { ascending: false });
 
-        if (error) return err(res, 'Failed to fetch pre-approved users');
-        return ok(res, { preapproved: data || [] });
+        if (error) return sendError(response, 'Failed to fetch pre-approved users');
+        return sendSuccess(response, { preapproved: preapprovedUsers || [] });
     }
 
     // POST - add a pre-approved user
-    if (req.method === 'POST') {
-        const { email, role } = await parseBody(req);
+    if (request.method === 'POST') {
+        const { email, role } = await parseBody(request);
 
-        if (!email || !role) return err(res, 'Email and role are required');
-        if (!['viewer', 'editor'].includes(role)) return err(res, 'Role must be viewer or editor');
+        if (!email || !role) return sendError(response, 'Email and role are required');
+        if (!['viewer', 'editor'].includes(role)) return sendError(response, 'Role must be viewer or editor');
 
         const trimmedEmail = email.trim().toLowerCase();
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail))
-            return err(res, 'Invalid email address');
+            return sendError(response, 'Invalid email address');
 
         // Check if already pre-approved
         const { data: existing } = await supabase
@@ -39,7 +44,7 @@ export default async function handler(req, res) {
             .eq('email', trimmedEmail)
             .maybeSingle();
 
-        if (existing) return err(res, 'This email is already pre-approved');
+        if (existing) return sendError(response, 'This email is already pre-approved');
 
         // Check if this email already belongs to a registered and approved user
         const { data: existingUser } = await supabase
@@ -64,23 +69,23 @@ export default async function handler(req, res) {
             .from('gftvhello_users_preapproved')
             .insert(insertData);
 
-        if (error) return err(res, 'Failed to add pre-approved user');
-        return ok(res, { message: 'User pre-approved successfully' }, 201);
+        if (error) return sendError(response, 'Failed to add pre-approved user');
+        return sendSuccess(response, { message: 'User pre-approved successfully' }, 201);
     }
 
     // DELETE - remove a pre-approved user
-    if (req.method === 'DELETE') {
-        const id = new URL(req.url, 'http://localhost').searchParams.get('id');
-        if (!id) return err(res, 'id required');
+    if (request.method === 'DELETE') {
+        const preapprovalId = new URL(request.url, 'http://localhost').searchParams.get('id');
+        if (!preapprovalId) return sendError(response, 'id required');
 
         const { error } = await supabase
             .from('gftvhello_users_preapproved')
             .delete()
-            .eq('id', id);
+            .eq('id', preapprovalId);
 
-        if (error) return err(res, 'Failed to remove pre-approval');
-        return ok(res, { message: 'Pre-approval removed' });
+        if (error) return sendError(response, 'Failed to remove pre-approval');
+        return sendSuccess(response, { message: 'Pre-approval removed' });
     }
 
-    return err(res, 'Method not allowed', 405);
+    return sendError(response, 'Method not allowed', 405);
 }

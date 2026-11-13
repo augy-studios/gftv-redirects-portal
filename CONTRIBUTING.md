@@ -69,7 +69,7 @@ Feature requests are welcome. A strong feature request includes:
 
    ```env
    SUPABASE_URL=https://your-project.supabase.co
-   SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_KEY=your-service-role-key
    ```
 
 4. **Start the local dev server** using the Vercel CLI (recommended, as it emulates edge functions and serverless routes correctly).

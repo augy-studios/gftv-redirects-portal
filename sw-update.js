@@ -11,6 +11,8 @@ let waitingWorker = null;
 let reloading = false;
 let dismissed = false; // this page view only, never stored
 
+// Draws, updates or removes the "new version" bar, depending on whether a
+// worker is waiting and whether the person has dismissed it.
 function render() {
     const existing = document.querySelector('.update-notice');
 
@@ -52,6 +54,8 @@ function render() {
     }
 }
 
+// Shows the bar for a worker that is already waiting, and watches for any new
+// worker that finishes installing while the page is open.
 function watchForUpdate() {
     if (!registration) return;
 
@@ -81,8 +85,8 @@ function watchForUpdate() {
 function register() {
     navigator.serviceWorker
         .register(SW_URL)
-        .then((reg) => {
-            registration = reg;
+        .then((serviceWorkerRegistration) => {
+            registration = serviceWorkerRegistration;
             watchForUpdate();
         })
         .catch((cause) => {

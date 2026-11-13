@@ -1,0 +1,138 @@
+html[data-color-theme=classic][data-mode=light][data-mode-preference=light]
+body
+  div#officialBar.gov-bar
+    div.gov-bar-inner
+      img.gov-bar-mark
+      p.gov-bar-line
+        span.gov-bar-long
+        span.gov-bar-short (hidden)
+      button#officialBarToggle.gov-bar-toggle
+        svg.gov-bar-chevron
+    div#officialBarPanel.gov-bar-panel (hidden)
+      div.gov-bar-panel-inner
+        div.gov-bar-point
+          svg
+          div
+            h2
+            p
+            p
+              a
+        div.gov-bar-point
+          svg
+          div
+            h2
+            p
+  script
+  header.site-header
+    nav#navbar
+      a.nav-brand
+        span.brand-dot
+      div#nav-links.nav-links
+        button.nav-btn-outline
+        button.nav-btn-outline
+        button.nav-btn-outline
+        button.nav-btn
+        button.nav-btn
+      div
+        button#theme-picker-btn.nav-theme-btn
+          svg
+        div#nav-user
+        button#hamburger-btn.hamburger (hidden)
+          span
+          span
+          span
+    div#mobile-nav.mobile-nav-drawer (hidden)
+      button.nav-btn-outline
+      button.nav-btn-outline
+      button.nav-btn-outline
+      button.nav-btn
+      button.nav-btn
+  div#toast-container
+  main#app-container
+    div#page-home.active.page
+      section.home-hero
+        div.home-hero-content
+          h1.home-hero-title
+            br
+          p.home-hero-subtitle
+          div.glass-strong.home-search-box
+            span.home-search-prefix
+            span#home-typing-slug.home-search-slug
+            span.home-typing-cursor
+          button.btn.btn-primary.home-cta-btn
+      section.home-section
+        h2.home-section-title
+        div.home-features-grid
+          div.glass.home-feature-card
+            div.home-feature-icon
+              svg
+            h3
+            p
+          div.glass.home-feature-card
+            div.home-feature-icon
+              svg
+            h3
+            p
+          div.glass.home-feature-card
+            div.home-feature-icon
+              svg
+            h3
+            p
+          div.glass.home-feature-card
+            div.home-feature-icon
+              svg
+            h3
+            p
+      section.home-section.home-stats-section
+        h2.home-section-title
+        div#home-stats-grid.home-stats-grid
+          div.glass-strong.home-stat-card
+            div#home-stat-officers.home-stat-number
+            div.home-stat-label
+          div.glass-strong.home-stat-card
+            div#home-stat-links.home-stat-number
+            div.home-stat-label
+          div.glass-strong.home-stat-card
+            div#home-stat-clicks.home-stat-number
+            div.home-stat-label
+      footer.home-footer
+        div.home-footer-inner
+          div.home-footer-left
+            svg
+            span.sr-only
+          div.home-footer-right
+            div.home-footer-links
+              a
+              a
+              a
+              a
+            div.home-footer-copy
+    div#page-login.page …
+    div#page-register.page …
+    div#page-pending.page …
+    div#page-preapproved.page …
+    div#page-directory.page …
+    div#page-dashboard.page …
+    div#page-ownership.page …
+    div#page-admin.page …
+    div#page-profile.page …
+    div#page-apiintegration.page …
+  div#modal-theme.modal-overlay …
+  div#modal-totp-login.modal-overlay …
+  div#modal-regen-backup-codes.modal-overlay …
+  div#modal-backup-codes-display.modal-overlay …
+  div#modal-disable-2fa.modal-overlay …
+  div#modal-create-link.modal-overlay …
+  div#modal-edit-link.modal-overlay …
+  div#modal-analytics.modal-overlay …
+  div#modal-admin-manage-link.modal-overlay …
+  div#modal-view-profile.modal-overlay …
+  div#modal-logout-all.modal-overlay …
+  div#modal-delete-account.modal-overlay …
+  div#modal-admin-manage.modal-overlay …
+  div#modal-admin-delete-user.modal-overlay …
+  div#modal-add-preapproved.modal-overlay …
+  div#modal-delete-final.modal-overlay …
+  div#modal-qr.modal-overlay …
+  script
+  script
