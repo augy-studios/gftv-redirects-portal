@@ -28,7 +28,7 @@ export default async function handler(request, response) {
     // GET /api/v1/links/:slug: retrieve a link (any user can read any link by slug)
     if (request.method === 'GET') {
         // Leave the owner's user_id out of the reply.
-        const { user_id: ownerUserId, ...publicLink } = link;
+        const { user_id: _ownerUserId, ...publicLink } = link;
         return sendSuccess(response, { link: publicLink });
     }
 

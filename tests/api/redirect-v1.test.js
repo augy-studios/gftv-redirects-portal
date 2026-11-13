@@ -15,7 +15,7 @@ import redirect, { config as redirectConfig } from '../../api/redirect/[slug].js
 import v1Index from '../../api/v1/links/index.js';
 import v1BySlug from '../../api/v1/links/[slug].js';
 
-// The handler's FALLBACK is 'https://globalfurrytv.news.blog'; Response.redirect() normalises it
+// The handler's FALLBACK_URL is 'https://globalfurrytv.news.blog'; Response.redirect() normalises it
 // through new URL(), which adds the trailing slash.
 const FALLBACK = 'https://globalfurrytv.news.blog/';
 const IPHONE_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148';
