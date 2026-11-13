@@ -1,0 +1,306 @@
+html[data-color-theme=classic][data-mode=light][data-mode-preference=light]
+body
+  div#officialBar.gov-bar
+    div.gov-bar-inner
+      img.gov-bar-mark
+      p.gov-bar-line
+        span.gov-bar-long
+        span.gov-bar-short (hidden)
+      button#officialBarToggle.gov-bar-toggle
+        svg.gov-bar-chevron
+    div#officialBarPanel.gov-bar-panel (hidden)
+      div.gov-bar-panel-inner
+        div.gov-bar-point
+          svg
+          div
+            h2
+            p
+            p
+              a
+        div.gov-bar-point
+          svg
+          div
+            h2
+            p
+  script
+  header.site-header
+    nav#navbar
+      a.nav-brand
+        span.brand-dot
+      div#nav-links.nav-links
+        button.active.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          svg
+      div
+        button#theme-picker-btn.nav-theme-btn
+          svg
+        div#nav-user
+          div.avatar-placeholder
+        button#hamburger-btn.hamburger (hidden)
+          span
+          span
+          span
+    div#mobile-nav.mobile-nav-drawer (hidden)
+      button.active.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        svg
+  div#toast-container
+  main#app-container
+    div#page-home.page …
+    div#page-login.page …
+    div#page-register.page …
+    div#page-pending.page …
+    div#page-preapproved.page …
+    div#page-directory.active.page
+      div.page-header
+        div
+          h1.page-title
+            svg
+          p.page-subtitle
+      div.search-bar
+        div.search-input-wrap
+          span.search-icon
+            svg
+          input#dir-search-keyword.search-input
+        div.search-input-wrap
+          span.search-icon
+            svg
+          input#dir-search-tag.search-input
+        select#dir-filter-status.search-type-select
+          option
+          option
+          option
+        select#dir-sort.search-type-select
+          option
+          option
+      div#directory-table-wrap
+        div.glass.table-wrap
+          table
+            thead
+              tr
+                th
+                th
+                th
+                th
+                th
+                th
+                th
+                th
+            tbody
+              tr
+                td.td-slug
+                  div
+                    button.copy-btn
+                      svg
+                    button.qr-btn
+                      svg
+                td.td-dest
+                  span
+                td.td-user.td-user-clickable
+                  div.td-avatar-ph
+                  span
+                td
+                  span.badge.badge-active
+                td.access-count
+                  svg
+                td
+                  div.tags-list
+                    span.tag-pill
+                    span.tag-pill
+                td
+                td
+                  div
+                    span
+              tr
+                td.td-slug
+                  div
+                    button.copy-btn
+                      svg
+                    button.qr-btn
+                      svg
+                td.td-dest
+                  span
+                td.td-user.td-user-clickable
+                  div.td-avatar-ph
+                  span
+                td
+                  span.badge.badge-active
+                td.access-count
+                  svg
+                td
+                  div.tags-list
+                    span.tag-pill
+                    span.tag-pill
+                td
+                td
+                  div
+                    button.btn.btn-secondary.btn-sm
+              tr
+                td.td-slug
+                  div
+                    button.copy-btn
+                      svg
+                    button.qr-btn
+                      svg
+                td.td-dest
+                  span
+                td.td-user.td-user-clickable
+                  div.td-avatar-ph
+                  span
+                td
+                  span.badge.badge-active
+                td.access-count
+                  svg
+                td
+                  div.tags-list
+                    span.tag-pill
+                td
+                td
+                  div
+                    span
+              tr
+                td.td-slug
+                  div
+                    button.copy-btn
+                      svg
+                    button.qr-btn
+                      svg
+                td.td-dest
+                  span
+                td.td-user.td-user-clickable
+                  img.td-avatar
+                  span
+                td
+                  span.badge.badge-active
+                td.access-count
+                  svg
+                td
+                  div.tags-list
+                    span.tag-pill
+                td
+                td
+                  div
+                    button.btn.btn-secondary.btn-sm
+              tr
+                td.td-slug
+                  div
+                    button.copy-btn
+                      svg
+                    button.qr-btn
+                      svg
+                td.td-dest
+                  span
+                td.td-user.td-user-clickable
+                  div.td-avatar-ph
+                  span
+                td
+                  span.badge.badge-active
+                td.access-count
+                  svg
+                td
+                  div.tags-list
+                    span.tag-pill
+                td
+                td
+                  div
+                    button.btn.btn-secondary.btn-sm
+              tr
+                td.td-slug
+                  div
+                    button.copy-btn
+                      svg
+                    button.qr-btn
+                      svg
+                td.td-dest
+                  span
+                td.td-user.td-user-clickable
+                  div.td-avatar-ph
+                  span
+                td
+                  span.badge.badge-inactive
+                td.access-count
+                  svg
+                td
+                  span
+                td
+                td
+                  div
+                    span
+    div#page-dashboard.page …
+    div#page-ownership.page …
+    div#page-admin.page …
+    div#page-profile.page …
+    div#page-apiintegration.page …
+  div#modal-theme.modal-overlay …
+  div#modal-totp-login.modal-overlay …
+  div#modal-regen-backup-codes.modal-overlay …
+  div#modal-backup-codes-display.modal-overlay …
+  div#modal-disable-2fa.modal-overlay …
+  div#modal-create-link.modal-overlay …
+  div#modal-edit-link.modal-overlay …
+  div#modal-analytics.modal-overlay …
+  div#modal-admin-manage-link.modal-overlay …
+  div#modal-view-profile.modal-overlay.open
+    div.glass-strong.modal
+      button.modal-close
+      div#view-profile-content
+        div
+        div
+        div
+        div
+        div
+          div
+            div
+            div
+          div
+            div
+            div
+        div
+          a
+            svg
+        div.profile-viewers
+          div.profile-viewers-label
+          div.profile-viewers-pills
+            button.viewer-pill
+              span.viewer-pill-avatar.viewer-pill-avatar-ph
+              span
+            button.viewer-pill
+              span.viewer-pill-avatar.viewer-pill-avatar-ph
+              span
+  div#modal-logout-all.modal-overlay …
+  div#modal-delete-account.modal-overlay …
+  div#modal-admin-manage.modal-overlay …
+  div#modal-admin-delete-user.modal-overlay …
+  div#modal-add-preapproved.modal-overlay …
+  div#modal-delete-final.modal-overlay …
+  div#modal-qr.modal-overlay …
+  script
+  script

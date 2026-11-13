@@ -1,0 +1,261 @@
+html[data-color-theme=classic][data-mode=light][data-mode-preference=light]
+body
+  div#officialBar.gov-bar
+    div.gov-bar-inner
+      img.gov-bar-mark
+      p.gov-bar-line
+        span.gov-bar-long
+        span.gov-bar-short (hidden)
+      button#officialBarToggle.gov-bar-toggle
+        svg.gov-bar-chevron
+    div#officialBarPanel.gov-bar-panel (hidden)
+      div.gov-bar-panel-inner
+        div.gov-bar-point
+          svg
+          div
+            h2
+            p
+            p
+              a
+        div.gov-bar-point
+          svg
+          div
+            h2
+            p
+  script
+  header.site-header
+    nav#navbar
+      a.nav-brand
+        span.brand-dot
+      div#nav-links.nav-links
+        button.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          span.nav-btn-icon
+            svg
+        button.active.nav-btn
+          span.nav-btn-icon
+            svg
+        button.nav-btn
+          svg
+      div
+        button#theme-picker-btn.nav-theme-btn
+          svg
+        div#nav-user
+          img.nav-avatar
+        button#hamburger-btn.hamburger (hidden)
+          span
+          span
+          span
+    div#mobile-nav.mobile-nav-drawer (hidden)
+      button.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        span.nav-btn-icon
+          svg
+      button.active.nav-btn
+        span.nav-btn-icon
+          svg
+      button.nav-btn
+        svg
+  div#toast-container
+  main#app-container
+    div#page-home.page …
+    div#page-login.page …
+    div#page-register.page …
+    div#page-pending.page …
+    div#page-preapproved.page …
+    div#page-directory.page …
+    div#page-dashboard.page …
+    div#page-ownership.page …
+    div#page-admin.page …
+    div#page-profile.active.page
+      div.page-header
+        div
+          h1.page-title
+            svg
+          p.page-subtitle
+      div.glass.profile-header
+        div#profile-avatar-wrap
+          div.profile-avatar-wrap
+            img.profile-avatar
+            div.profile-avatar-edit
+              svg
+        div.profile-info
+          div#profile-display-name.profile-display-name
+          div#profile-username.profile-username
+          div#profile-social-links.profile-social
+            span
+          div#profile-viewers-wrap
+            div.profile-viewers
+              div.profile-viewers-label
+              div.profile-viewers-pills
+                button.viewer-pill
+                  span.viewer-pill-avatar.viewer-pill-avatar-ph
+                  span
+                button.viewer-pill
+                  span.viewer-pill-avatar.viewer-pill-avatar-ph
+                  span
+      input#avatar-file-input (hidden)
+      div.tabs
+        button.tab-btn
+          svg
+        button.tab-btn
+          svg
+        button.active.tab-btn
+          svg
+        button.tab-btn
+          svg
+      div#profile-tab-edit.glass (hidden)
+        form#edit-profile-form
+          div.form-group
+            label
+              span
+            input#profile-username-display.form-control
+          div.form-group
+            label
+            input#edit-displayname.form-control
+          div.form-group
+            label
+            div#social-links-editor.social-links-editor
+            button.btn.btn-secondary.btn-sm
+          div
+            button#save-profile-btn.btn.btn-primary
+      div#profile-tab-password.glass (hidden)
+        form#change-password-form
+          div.form-group
+            label
+            input#current-password.form-control
+          div.form-group
+            label
+            input#new-password.form-control
+            div#new-pwd-strength.pwd-strength.pwd-strength-0
+          div.form-group
+            label
+            input#confirm-new-password.form-control
+          div
+            button#change-pwd-btn.btn.btn-primary
+      div#profile-tab-2fa.glass
+        div#totp-enabled-view
+          div
+            div.totp-status-badge.totp-status-on
+              svg
+          p
+          div
+            div
+            p
+            button.btn.btn-secondary.btn-sm
+          div
+            button.btn.btn-danger
+        div#totp-disabled-view (hidden)
+          h3.section-title
+            svg
+          p
+          button.btn.btn-primary
+        div#totp-setup-step1 (hidden)
+          h3.section-title
+          p
+          div.totp-qr-wrap
+            img#totp-qr-img.totp-qr-img
+            div#totp-qr-spinner.delayed.totp-spinner (hidden)
+              div.spinner
+              span.sr-only
+          div
+            div
+            div#totp-manual-key.totp-manual-key
+          div
+            button.btn.btn-secondary
+            button#totp-next-btn.btn.btn-primary
+        div#totp-setup-step2 (hidden)
+          h3.section-title
+          p
+          div.form-group
+            label
+            input#totp-verify-code.form-control.totp-code-input
+          div#totp-enable-error.alert.alert-error (hidden)
+          div
+            button.btn.btn-secondary
+            button#totp-enable-btn.btn.btn-primary
+        div#totp-setup-step3 (hidden)
+          h3.section-title
+          p
+            strong
+          div#backup-codes-grid.backup-codes-grid
+          div
+            button.btn.btn-secondary
+              svg
+            button.btn.btn-secondary
+              svg
+          div
+            button.btn.btn-primary
+        div#totp-regen-view (hidden)
+          div
+            div
+            p
+            button.btn.btn-secondary.btn-sm
+      div#profile-tab-danger.glass (hidden)
+        h3.section-title
+          svg
+        div
+          div
+          div
+          div#trusted-devices-list
+        div
+        div
+          div
+            div
+            div
+          button.btn.btn-danger
+        div
+        div
+          div
+            div
+            div
+          button.btn.btn-danger
+    div#page-apiintegration.page …
+  div#modal-theme.modal-overlay …
+  div#modal-totp-login.modal-overlay …
+  div#modal-regen-backup-codes.modal-overlay …
+  div#modal-backup-codes-display.modal-overlay …
+  div#modal-disable-2fa.modal-overlay.open
+    div.glass-strong.modal
+      button.modal-close
+      h3
+        svg
+      p.modal-subtitle
+      form#disable-2fa-form
+        div.form-group
+          label
+          input#disable-2fa-password.form-control
+        div#disable-2fa-error.alert.alert-error (hidden)
+        div.modal-footer
+          button.btn.btn-secondary
+          button#disable-2fa-btn.btn.btn-danger
+  div#modal-create-link.modal-overlay …
+  div#modal-edit-link.modal-overlay …
+  div#modal-analytics.modal-overlay …
+  div#modal-admin-manage-link.modal-overlay …
+  div#modal-view-profile.modal-overlay …
+  div#modal-logout-all.modal-overlay …
+  div#modal-delete-account.modal-overlay …
+  div#modal-admin-manage.modal-overlay …
+  div#modal-admin-delete-user.modal-overlay …
+  div#modal-add-preapproved.modal-overlay …
+  div#modal-delete-final.modal-overlay …
+  div#modal-qr.modal-overlay …
+  script
+  script
