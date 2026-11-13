@@ -20,11 +20,11 @@ import {
     closeAllModals,
     initTagsInput,
     compressToWebp,
-    fmtDate,
+    formatDate,
     avatarHtml,
     slugCopyHtml,
     tagsHtml,
-    pwdStrength,
+    getPasswordStrength,
     rejectSpaces,
     NO_SPACES_MSG,
     icon,
@@ -516,7 +516,7 @@ function setupRegisterPage() {
     const strengthBar = document.getElementById('pwd-strength-bar');
 
     pwdInput.addEventListener('input', () => {
-        const s = pwdStrength(pwdInput.value);
+        const s = getPasswordStrength(pwdInput.value);
         strengthBar.className = `pwd-strength pwd-strength-${s}`;
     });
 
@@ -658,7 +658,7 @@ function renderDirectoryTable() {
       <td style="white-space:nowrap"><span class="badge ${link.is_active ? 'badge-active' : 'badge-inactive'}">${link.is_active ? '● Active' : '● Inactive'}</span></td>
       <td class="access-count" style="white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
-      <td style="white-space:nowrap">${fmtDate(link.created_at)}</td>
+      <td style="white-space:nowrap">${formatDate(link.created_at)}</td>
       <td style="white-space:nowrap">
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           ${state.user?.is_admin ? `<button class="btn btn-sm btn-secondary" onclick="openAdminManageLink('${link.id}')">${icon('edit')} Edit</button>` : ''}
@@ -972,7 +972,7 @@ function renderDashboardTable() {
       </td>
       <td class="access-count" style="white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
-      <td>${fmtDate(link.created_at)}</td>
+      <td>${formatDate(link.created_at)}</td>
       <td style="white-space:nowrap">
         <div style="display:flex;gap:6px;align-items:center">
           <button class="btn btn-sm btn-secondary" onclick="openAnalyticsModal('${link.id}')" title="View analytics">${icon('bar-chart')}</button>
@@ -1188,7 +1188,7 @@ async function loadApiIntegration() {
         display.value = res.data.api_key;
         display.type = 'password';
         if (status) {
-            const updated = res.data.updated_at ? ` Last regenerated: ${fmtDate(res.data.updated_at)}.` : '';
+            const updated = res.data.updated_at ? ` Last regenerated: ${formatDate(res.data.updated_at)}.` : '';
             status.textContent = `You have an active API key.${updated} Regenerate to get a new one (your old key will stop working immediately).`;
         }
         if (copyBtn) copyBtn.disabled = false;
@@ -1284,7 +1284,7 @@ async function loadOwnershipRequests() {
       <div style="flex:1;min-width:200px;">
         <div style="font-weight:700;margin-bottom:2px;">${icon('link')} gftv.asia/${r.gftvlinks_links?.slug || '–'}</div>
         <div style="font-size:0.85rem;color:var(--text-muted);">Requested by <strong>${r.requester?.display_name || r.requester?.username || '?'}</strong> (@${r.requester?.username || '?'})</div>
-        <div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">${fmtDate(r.created_at)}</div>
+        <div style="font-size:0.78rem;color:var(--text-light);margin-top:2px;">${formatDate(r.created_at)}</div>
       </div>
       <div style="display:flex;gap:8px;">
         ${r.status === 'pending' ? `
@@ -1343,7 +1343,7 @@ async function loadAdmin() {
       </td>
       <td>${userRoleBadge(u)}</td>
       <td>${u.is_approved ? '<span class="badge badge-active">Approved</span>' : '<span class="badge badge-pending">Pending</span>'}</td>
-      <td>${fmtDate(u.created_at)}</td>
+      <td>${formatDate(u.created_at)}</td>
       <td>
         <div class="action-btns">
           <button class="btn btn-sm btn-secondary" onclick="openAdminManageModal('${u.id}')">${icon('edit')} Edit</button>
@@ -1392,8 +1392,8 @@ function renderPreapprovedSection(list) {
       </td>
       <td>${roleBadge}</td>
       <td>${statusBadge}</td>
-      <td>${fmtDate(e.preapproved_at)}</td>
-      <td>${e.activated_at ? fmtDate(e.activated_at) : '<span style="color:var(--text-muted)">–</span>'}</td>
+      <td>${formatDate(e.preapproved_at)}</td>
+      <td>${e.activated_at ? formatDate(e.activated_at) : '<span style="color:var(--text-muted)">–</span>'}</td>
       <td>
         <div class="action-btns">
           ${!e.activated_at ? `<button class="btn btn-sm btn-danger" onclick="removePreapproved('${e.id}')">${icon('x-circle')} Remove</button>` : ''}
@@ -1837,7 +1837,7 @@ function setupProfilePage() {
 
     // New pwd strength
     document.getElementById('new-password').addEventListener('input', function () {
-        const s = pwdStrength(this.value);
+        const s = getPasswordStrength(this.value);
         document.getElementById('new-pwd-strength').className = `pwd-strength pwd-strength-${s}`;
     });
 
@@ -1888,8 +1888,8 @@ async function loadTrustedDevices() {
     container.innerHTML = devices.map(d => `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
             <div>
-                <div style="font-size:0.9rem;font-weight:500;">Trusted on ${fmtDate(d.created_at)}</div>
-                <div style="font-size:0.82rem;color:var(--text-muted);">Expires ${fmtDate(d.expires_at)}</div>
+                <div style="font-size:0.9rem;font-weight:500;">Trusted on ${formatDate(d.created_at)}</div>
+                <div style="font-size:0.82rem;color:var(--text-muted);">Expires ${formatDate(d.expires_at)}</div>
             </div>
             <button class="btn btn-danger btn-sm" onclick="removeTrustedDevice('${d.id}')">Remove</button>
         </div>
