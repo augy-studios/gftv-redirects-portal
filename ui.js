@@ -50,56 +50,56 @@ export function loadingHtml(label = 'Loading') {
 }
 
 // ===== TOAST =====
-export function toast(msg, type = 'info', duration = 3000) {
+export function toast(message, type = 'info', duration = 3000) {
     const toastIcons = {
         success: icon('check-circle'),
         error: icon('x-circle'),
         info: icon('info'),
     };
-    const el = document.createElement('div');
-    el.className = `toast toast-${type}`;
-    el.innerHTML = `<span>${toastIcons[type] || ''}</span><span>${msg}</span>`;
+    const toastElement = document.createElement('div');
+    toastElement.className = `toast toast-${type}`;
+    toastElement.innerHTML = `<span>${toastIcons[type] || ''}</span><span>${message}</span>`;
     const container = document.getElementById('toast-container');
-    container.appendChild(el);
+    container.appendChild(toastElement);
     setTimeout(() => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateX(24px)';
-        el.style.transition = 'all 0.3s';
-        setTimeout(() => el.remove(), 300);
+        toastElement.style.opacity = '0';
+        toastElement.style.transform = 'translateX(24px)';
+        toastElement.style.transition = 'all 0.3s';
+        setTimeout(() => toastElement.remove(), 300);
     }, duration);
 }
 
 // ===== MODAL =====
 export function openModal(id) {
-    const m = document.getElementById(id);
-    if (m) m.classList.add('open');
+    const modalElement = document.getElementById(id);
+    if (modalElement) modalElement.classList.add('open');
 }
 export function closeModal(id) {
-    const m = document.getElementById(id);
-    if (m) m.classList.remove('open');
+    const modalElement = document.getElementById(id);
+    if (modalElement) modalElement.classList.remove('open');
 }
 export function closeAllModals() {
-    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.modal-overlay').forEach(modalElement => modalElement.classList.remove('open'));
 }
 
 // Click outside to close
-document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('modal-overlay')) {
-        e.target.classList.remove('open');
+document.addEventListener('click', (event) => {
+    if (event.target.classList.contains('modal-overlay')) {
+        event.target.classList.remove('open');
     }
 });
 
 // ===== COPY TO CLIPBOARD =====
-export async function copyText(text, btn = null) {
+export async function copyText(text, button = null) {
     try {
         await navigator.clipboard.writeText(text);
-        if (btn) {
-            const orig = btn.innerHTML;
-            btn.innerHTML = `${icon('check-circle')} Copied!`;
-            btn.classList.add('copied');
+        if (button) {
+            const originalHtml = button.innerHTML;
+            button.innerHTML = `${icon('check-circle')} Copied!`;
+            button.classList.add('copied');
             setTimeout(() => {
-                btn.innerHTML = orig;
-                btn.classList.remove('copied');
+                button.innerHTML = originalHtml;
+                button.classList.remove('copied');
             }, 1800);
         }
         return true;
@@ -109,19 +109,22 @@ export async function copyText(text, btn = null) {
 }
 
 // ===== TAGS INPUT =====
+// Sets up the tag chips inside `container`: typing a comma or pressing Enter
+// adds a tag (lowercase, up to 24 characters, at most 5), Backspace on an empty
+// field removes the last one. Returns getTags, setTags and reset helpers.
 export function initTagsInput(container, onChange) {
     const wrap = container.querySelector('.tags-input-wrap');
     const input = container.querySelector('.tags-input');
     let tags = [];
 
     function renderTags() {
-        wrap.querySelectorAll('.tag-chip').forEach(c => c.remove());
-        tags.forEach((tag, i) => {
+        wrap.querySelectorAll('.tag-chip').forEach(oldChip => oldChip.remove());
+        tags.forEach((tag, index) => {
             const chip = document.createElement('span');
             chip.className = 'tag-chip';
             chip.innerHTML = `${tag}<button type="button" aria-label="Remove tag">×</button>`;
             chip.querySelector('button').onclick = () => {
-                tags.splice(i, 1);
+                tags.splice(index, 1);
                 renderTags();
                 onChange(tags);
             };
@@ -139,9 +142,9 @@ export function initTagsInput(container, onChange) {
     input.setAttribute('spellcheck', 'false');
 
     function addTag(raw) {
-        const val = raw.trim().replace(/,/g, '').toLowerCase().slice(0, 24);
-        if (val && tags.length < 5 && !tags.includes(val)) {
-            tags.push(val);
+        const tagValue = raw.trim().replace(/,/g, '').toLowerCase().slice(0, 24);
+        if (tagValue && tags.length < 5 && !tags.includes(tagValue)) {
+            tags.push(tagValue);
             renderTags();
         }
     }
@@ -171,9 +174,9 @@ export function initTagsInput(container, onChange) {
     // Backspace on an empty field removes the last tag. Guard against the
     // keydown and beforeinput fallbacks both firing for the same keypress.
     let backspaceHandled = false;
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
             if (input.value.trim()) {
                 addTag(input.value);
                 input.value = '';
@@ -184,28 +187,28 @@ export function initTagsInput(container, onChange) {
             }
             return;
         }
-        if (e.key === ',' && input.value.trim()) {
-            e.preventDefault();
+        if (event.key === ',' && input.value.trim()) {
+            event.preventDefault();
             addTag(input.value);
             input.value = '';
             return;
         }
-        if (e.key === 'Backspace' && !input.value) {
+        if (event.key === 'Backspace' && !input.value) {
             backspaceHandled = true;
             removeLastTag();
             setTimeout(() => { backspaceHandled = false; }, 0);
         }
     });
-    input.addEventListener('beforeinput', (e) => {
-        if (e.inputType === 'deleteContentBackward' && !input.value && !backspaceHandled) {
+    input.addEventListener('beforeinput', (event) => {
+        if (event.inputType === 'deleteContentBackward' && !input.value && !backspaceHandled) {
             removeLastTag();
         }
     });
 
     return {
         getTags: () => tags,
-        setTags: (t) => {
-            tags = [...t];
+        setTags: (newTags) => {
+            tags = [...newTags];
             renderTags();
         },
         reset: () => {
@@ -216,6 +219,9 @@ export function initTagsInput(container, onChange) {
 }
 
 // ===== AVATAR COMPRESSION TO WEBP =====
+// Reads an image file, scales it down so neither side is larger than maxDim,
+// and resolves with a WebP data URL. Rejects if the file isn't an image or
+// can't be read.
 export function compressToWebp(file, maxDim = 256, quality = 0.82) {
     return new Promise((resolve, reject) => {
         if (!file.type.startsWith('image/')) {
@@ -223,22 +229,22 @@ export function compressToWebp(file, maxDim = 256, quality = 0.82) {
             return;
         }
         const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
+        reader.onload = (loadEvent) => {
+            const image = new Image();
+            image.onload = () => {
                 const canvas = document.createElement('canvas');
-                let w = img.width,
-                    h = img.height;
-                const ratio = Math.min(maxDim / w, maxDim / h, 1);
-                canvas.width = Math.round(w * ratio);
-                canvas.height = Math.round(h * ratio);
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const width = image.width;
+                const height = image.height;
+                const ratio = Math.min(maxDim / width, maxDim / height, 1);
+                canvas.width = Math.round(width * ratio);
+                canvas.height = Math.round(height * ratio);
+                const canvasContext = canvas.getContext('2d');
+                canvasContext.drawImage(image, 0, 0, canvas.width, canvas.height);
                 const webp = canvas.toDataURL('image/webp', quality);
                 resolve(webp);
             };
-            img.onerror = () => reject(new Error('Image load failed'));
-            img.src = e.target.result;
+            image.onerror = () => reject(new Error('Image load failed'));
+            image.src = loadEvent.target.result;
         };
         reader.onerror = () => reject(new Error('File read failed'));
         reader.readAsDataURL(file);
@@ -246,10 +252,10 @@ export function compressToWebp(file, maxDim = 256, quality = 0.82) {
 }
 
 // ===== FORMAT DATE =====
-export function fmtDate(iso) {
-    if (!iso) return '–';
-    const d = new Date(iso);
-    return d.toLocaleDateString('en-SG', {
+export function formatDate(isoString) {
+    if (!isoString) return '–';
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-SG', {
         day: '2-digit',
         month: 'short',
         year: 'numeric'
@@ -258,14 +264,23 @@ export function fmtDate(iso) {
 
 // ===== AVATAR HTML =====
 export function avatarHtml(user, size = 'sm') {
-    const dim = size === 'sm' ? 26 : 90;
-    const cls = size === 'sm' ? 'td-avatar' : 'profile-avatar';
-    const clsPh = size === 'sm' ? 'td-avatar-ph' : 'profile-avatar-ph';
+    let dimension;
+    let avatarClass;
+    let placeholderClass;
+    if (size === 'sm') {
+        dimension = 26;
+        avatarClass = 'td-avatar';
+        placeholderClass = 'td-avatar-ph';
+    } else {
+        dimension = 90;
+        avatarClass = 'profile-avatar';
+        placeholderClass = 'profile-avatar-ph';
+    }
     const letter = (user.display_name || user.username || '?')[0].toUpperCase();
     if (user.avatar_url) {
-        return `<img src="${user.avatar_url}" class="${cls}" width="${dim}" height="${dim}" alt="${letter}" onerror="this.outerHTML=\`<div class='${clsPh}'>${letter}</div>\`">`;
+        return `<img src="${user.avatar_url}" class="${avatarClass}" width="${dimension}" height="${dimension}" alt="${letter}" onerror="this.outerHTML=\`<div class='${placeholderClass}'>${letter}</div>\`">`;
     }
-    return `<div class="${clsPh}">${letter}</div>`;
+    return `<div class="${placeholderClass}">${letter}</div>`;
 }
 
 // ===== SLUG COPY HTML =====
@@ -275,10 +290,10 @@ export function slugCopyHtml(slug) {
     const qrIcon = icon('qr', 14);
     return `<div style="display:inline-flex;gap:4px;align-items:center;">
       <button class="copy-btn" onclick="(async()=>{
-        const btn=this;
+        const button=this;
         await navigator.clipboard.writeText('${url}');
-        const orig=btn.innerHTML; btn.innerHTML='Copied!'; btn.classList.add('copied');
-        setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove('copied');},1800);
+        const originalHtml=button.innerHTML; button.innerHTML='Copied!'; button.classList.add('copied');
+        setTimeout(()=>{button.innerHTML=originalHtml;button.classList.remove('copied');},1800);
       })()" title="${url}">${linkIcon} ${slug}</button>
       <button class="qr-btn" onclick="window.openQrModal('${slug}')" title="Generate QR code">${qrIcon}</button>
     </div>`;
@@ -287,7 +302,7 @@ export function slugCopyHtml(slug) {
 // ===== TAGS HTML =====
 export function tagsHtml(tags) {
     if (!tags || tags.length === 0) return '<span style="color:var(--text-light);font-size:0.8rem">–</span>';
-    return `<div class="tags-list">${tags.map(t => `<span class="tag-pill">${t}</span>`).join('')}</div>`;
+    return `<div class="tags-list">${tags.map(tag => `<span class="tag-pill">${tag}</span>`).join('')}</div>`;
 }
 
 // ===== NO-SPACES VALIDATION =====
@@ -314,12 +329,14 @@ export function rejectSpaces(...inputs) {
 }
 
 // ===== PASSWORD STRENGTH =====
-export function pwdStrength(pwd) {
+// Scores a password from 0 to 4: one point each for 8+ characters, 12+
+// characters, an uppercase letter, a digit and a symbol, capped at 4.
+export function getPasswordStrength(password) {
     let score = 0;
-    if (pwd.length >= 8) score++;
-    if (pwd.length >= 12) score++;
-    if (/[A-Z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd)) score++;
-    if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^a-zA-Z0-9]/.test(password)) score++;
     return Math.min(score, 4);
 }
