@@ -76,13 +76,19 @@ const MODE_PREFERENCES = ['light', 'dark', 'time'];
 const LIGHT_FROM_HOUR = 9;
 const LIGHT_UNTIL_HOUR = 18;
 
-function isValidColorTheme(id) {
-    return COLOR_THEMES.some(t => t.id === id);
+function isValidColorTheme(themeId) {
+    return COLOR_THEMES.some(theme => theme.id === themeId);
 }
 
+// The stored mode preference (light, dark or time), or the default when
+// nothing valid is stored.
 function getModePreference() {
-    const v = localStorage.getItem(MODE_KEY);
-    return MODE_PREFERENCES.includes(v) ? v : DEFAULT_MODE;
+    const savedMode = localStorage.getItem(MODE_KEY);
+    if (MODE_PREFERENCES.includes(savedMode)) {
+        return savedMode;
+    } else {
+        return DEFAULT_MODE;
+    }
 }
 
 function isDaylightHours(now = new Date()) {
@@ -90,21 +96,33 @@ function isDaylightHours(now = new Date()) {
     return hour >= LIGHT_FROM_HOUR && hour < LIGHT_UNTIL_HOUR;
 }
 
+// Turns a preference into the mode the page shows: "time" follows the clock,
+// "dark" is dark, and anything else is light.
 function resolveMode(preference) {
-    if (preference === 'time') return isDaylightHours() ? 'light' : 'dark';
-    return preference === 'dark' ? 'dark' : 'light';
+    if (preference === 'time') {
+        if (isDaylightHours()) {
+            return 'light';
+        } else {
+            return 'dark';
+        }
+    }
+    if (preference === 'dark') {
+        return 'dark';
+    } else {
+        return 'light';
+    }
 }
 
 function updateThemeColorMeta() {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', THEME_COLOR[`${state.colorTheme}:${state.mode}`] || '#ffffff');
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeColorMeta) themeColorMeta.setAttribute('content', THEME_COLOR[`${state.colorTheme}:${state.mode}`] || '#ffffff');
 }
 
-function applyColorTheme(id) {
-    if (!isValidColorTheme(id)) id = DEFAULT_COLOR_THEME;
-    state.colorTheme = id;
-    localStorage.setItem(COLOR_THEME_KEY, id);
-    document.documentElement.setAttribute('data-color-theme', id);
+function applyColorTheme(themeId) {
+    if (!isValidColorTheme(themeId)) themeId = DEFAULT_COLOR_THEME;
+    state.colorTheme = themeId;
+    localStorage.setItem(COLOR_THEME_KEY, themeId);
+    document.documentElement.setAttribute('data-color-theme', themeId);
     updateThemeColorMeta();
 }
 
@@ -112,7 +130,12 @@ function applyColorTheme(id) {
 // mode to the document. Never stores the resolved value: writing "dark" over a
 // stored "time" on a winter evening would silently end the setting chosen.
 function applyMode(preference) {
-    const chosen = MODE_PREFERENCES.includes(preference) ? preference : DEFAULT_MODE;
+    let chosen;
+    if (MODE_PREFERENCES.includes(preference)) {
+        chosen = preference;
+    } else {
+        chosen = DEFAULT_MODE;
+    }
     const resolved = resolveMode(chosen);
     state.modePreference = chosen;
     state.mode = resolved;
@@ -126,9 +149,17 @@ function applyMode(preference) {
     return resolved;
 }
 
+// The navbar's theme button shows a moon in dark mode and a sun in light mode.
 function updateThemeButtonIcon() {
-    const btn = document.getElementById('theme-picker-btn');
-    if (btn) btn.innerHTML = icon(state.mode === 'dark' ? 'moon' : 'sun', 18);
+    const themeButton = document.getElementById('theme-picker-btn');
+    if (!themeButton) return;
+    let iconName;
+    if (state.mode === 'dark') {
+        iconName = 'moon';
+    } else {
+        iconName = 'sun';
+    }
+    themeButton.innerHTML = icon(iconName, 18);
 }
 
 // Keeping the time based mode honest while the page stays open: one timer to
@@ -139,7 +170,7 @@ let modeTimer = null;
 let watchingVisibility = false;
 
 // Milliseconds until the next LIGHT_FROM_HOUR or LIGHT_UNTIL_HOUR, whichever comes first.
-function msUntilNextBoundary(now = new Date()) {
+function millisecondsUntilNextBoundary(now = new Date()) {
     const next = new Date(now);
     next.setMinutes(0, 0, 0);
 
@@ -169,7 +200,7 @@ function scheduleModeCheck() {
     modeTimer = setTimeout(() => {
         modeTimer = null;
         refreshTimeMode();
-    }, msUntilNextBoundary());
+    }, millisecondsUntilNextBoundary());
 
     if (!watchingVisibility) {
         watchingVisibility = true;
@@ -202,7 +233,12 @@ function refreshTimeMode() {
 function migrateLegacyTheme() {
     const legacy = localStorage.getItem('gftv_theme');
     if (legacy === null) return;
-    const migrated = isValidColorTheme(legacy) ? legacy : DEFAULT_COLOR_THEME;
+    let migrated;
+    if (isValidColorTheme(legacy)) {
+        migrated = legacy;
+    } else {
+        migrated = DEFAULT_COLOR_THEME;
+    }
     if (!localStorage.getItem(COLOR_THEME_KEY)) localStorage.setItem(COLOR_THEME_KEY, migrated);
     if (!localStorage.getItem(MODE_KEY)) localStorage.setItem(MODE_KEY, DEFAULT_MODE);
     localStorage.removeItem('gftv_theme');
@@ -211,24 +247,28 @@ function migrateLegacyTheme() {
 function initTheme() {
     migrateLegacyTheme();
     const savedColorTheme = localStorage.getItem(COLOR_THEME_KEY);
-    applyColorTheme(isValidColorTheme(savedColorTheme) ? savedColorTheme : DEFAULT_COLOR_THEME);
+    if (isValidColorTheme(savedColorTheme)) {
+        applyColorTheme(savedColorTheme);
+    } else {
+        applyColorTheme(DEFAULT_COLOR_THEME);
+    }
     // The preference, not the resolved mode. Passing the resolved one would
     // quietly rewrite a stored "time" into "dark" the first evening.
     applyMode(getModePreference());
 }
 
 // ===== ROUTER =====
-function showPage(id) {
+function showPage(pageId) {
     // Clean up typing animation when leaving home
-    if (state.currentPage === 'home' && id !== 'home' && homeTypingInterval) {
+    if (state.currentPage === 'home' && pageId !== 'home' && homeTypingInterval) {
         clearInterval(homeTypingInterval);
         homeTypingInterval = null;
     }
 
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const page = document.getElementById('page-' + id);
-    if (page) page.classList.add('active');
-    state.currentPage = id;
+    document.querySelectorAll('.page').forEach(pageElement => pageElement.classList.remove('active'));
+    const targetPage = document.getElementById('page-' + pageId);
+    if (targetPage) targetPage.classList.add('active');
+    state.currentPage = pageId;
     updateNav();
 }
 
@@ -236,6 +276,9 @@ function isEditor() {
     return state.user && (state.user.is_editor || state.user.is_admin);
 }
 
+// Goes to a page, if the person may see it, and loads its data. Signed-out
+// visitors only get the public pages; viewers only get the directory and
+// their profile; everyone else is sent to the home page or the directory.
 function navigate(page) {
     // Auth guard
     const publicPages = ['home', 'login', 'register', 'pending', 'preapproved'];
@@ -274,51 +317,75 @@ function navigate(page) {
 }
 
 // ===== NAV =====
+// Redraws the navbar and the mobile menu for whoever is signed in, with the
+// current page's button marked active, and the avatar at the right.
 function updateNav() {
-    const navLinks = document.getElementById('nav-links');
-    const mobileNav = document.getElementById('mobile-nav');
-    if (!navLinks) return;
+    const desktopNavigation = document.getElementById('nav-links');
+    const mobileNavigation = document.getElementById('mobile-nav');
+    if (!desktopNavigation) return;
 
-    const links = state.user ? [
-        { id: 'directory', icon: icon('list'), label: 'Directory' },
-        ...(isEditor() ? [
-            { id: 'dashboard', icon: icon('home'), label: 'My Links' },
-            { id: 'ownership', icon: icon('inbox'), label: 'Requests' },
-            { id: 'apiintegration', icon: icon('api'), label: 'API' },
-        ] : []),
-        ...(state.user.is_admin ? [{ id: 'admin', icon: icon('settings'), label: 'Admin' }] : []),
-        { id: 'profile', icon: icon('user'), label: 'Profile' },
-    ] : [];
+    // The pages a signed-in person can go to: everyone gets the directory and
+    // their profile, editors also get their links, requests and the API page,
+    // and admins get the admin page.
+    const navigationItems = [];
+    if (state.user) {
+        navigationItems.push({ id: 'directory', icon: icon('list'), label: 'Directory' });
+        if (isEditor()) {
+            navigationItems.push(
+                { id: 'dashboard', icon: icon('home'), label: 'My Links' },
+                { id: 'ownership', icon: icon('inbox'), label: 'Requests' },
+                { id: 'apiintegration', icon: icon('api'), label: 'API' },
+            );
+        }
+        if (state.user.is_admin) {
+            navigationItems.push({ id: 'admin', icon: icon('settings'), label: 'Admin' });
+        }
+        navigationItems.push({ id: 'profile', icon: icon('user'), label: 'Profile' });
+    }
 
-    const renderLinks = (container) => {
+    // "active" for the button of the page that's showing, nothing for the rest
+    const getActiveClass = (pageId) => {
+        if (state.currentPage === pageId) {
+            return 'active';
+        } else {
+            return '';
+        }
+    };
+
+    const renderNavigationButtons = (container) => {
         if (!state.user) {
+            const loginActiveClass = getActiveClass('login');
+            const registerActiveClass = getActiveClass('register');
             container.innerHTML = `
         <button class="nav-btn-outline" onclick="window.open('https://gftv.asia/user-support','_blank')">Send us feedback</button>
         <button class="nav-btn-outline" onclick="window.open('https://guide.gftv.asia','_blank')">Guide</button>
         <button class="nav-btn-outline" onclick="window.open('https://github.com/augy-studios/gftv-redirects-portal','_blank')">Contribute</button>
-        <button class="nav-btn ${state.currentPage==='login'?'active':''}" onclick="nav('login')">Log In</button>
-        <button class="nav-btn ${state.currentPage==='register'?'active':''}" onclick="nav('register')">Register</button>
+        <button class="nav-btn ${loginActiveClass}" onclick="nav('login')">Log In</button>
+        <button class="nav-btn ${registerActiveClass}" onclick="nav('register')">Register</button>
       `;
         } else {
-            container.innerHTML = links.map(l =>
-                `<button class="nav-btn ${state.currentPage===l.id?'active':''}" onclick="nav('${l.id}')"><span class="nav-btn-icon">${l.icon}</span>${l.label}</button>`
-            ).join('') + `<button class="nav-btn" onclick="handleLogout()">${icon('logout')} Logout</button>`;
+            container.innerHTML = navigationItems.map(item => {
+                const activeClass = getActiveClass(item.id);
+                return `<button class="nav-btn ${activeClass}" onclick="nav('${item.id}')"><span class="nav-btn-icon">${item.icon}</span>${item.label}</button>`;
+            }).join('') + `<button class="nav-btn" onclick="handleLogout()">${icon('logout')} Logout</button>`;
         }
     };
 
-    renderLinks(navLinks);
-    if (mobileNav) renderLinks(mobileNav);
+    renderNavigationButtons(desktopNavigation);
+    if (mobileNavigation) renderNavigationButtons(mobileNavigation);
 
     // User avatar in nav
-    const navUser = document.getElementById('nav-user');
-    if (navUser) {
+    const navigationUser = document.getElementById('nav-user');
+    if (navigationUser) {
         if (state.user) {
             const letter = (state.user.display_name || state.user.username)[0].toUpperCase();
-            navUser.innerHTML = state.user.avatar_url ?
-                `<img src="${state.user.avatar_url}" class="nav-avatar" onclick="nav('profile')" alt="${letter}">` :
-                `<div class="avatar-placeholder" onclick="nav('profile')">${letter}</div>`;
+            if (state.user.avatar_url) {
+                navigationUser.innerHTML = `<img src="${state.user.avatar_url}" class="nav-avatar" onclick="nav('profile')" alt="${letter}">`;
+            } else {
+                navigationUser.innerHTML = `<div class="avatar-placeholder" onclick="nav('profile')">${letter}</div>`;
+            }
         } else {
-            navUser.innerHTML = '';
+            navigationUser.innerHTML = '';
         }
     }
 }
@@ -329,10 +396,14 @@ window.openModal = openModal;
 // ===== AUTH =====
 async function init() {
     if (state.token) {
-        const res = await Auth.me();
-        if (res.ok) {
-            state.user = res.data.user;
-            navigate(isEditor() ? 'dashboard' : 'directory');
+        const response = await Auth.me();
+        if (response.ok) {
+            state.user = response.data.user;
+            if (isEditor()) {
+                navigate('dashboard');
+            } else {
+                navigate('directory');
+            }
         } else {
             clearToken();
             state.token = null;
@@ -363,32 +434,36 @@ let _totpChallengeToken = null;
 let _totpLoginUsername = null;
 let _totpLoginRemember = false;
 
+// Wires up the sign-in form. A correct password signs the person in, unless
+// the account has 2FA on and this device isn't trusted: then the 2FA modal
+// opens, and the challenge is kept for submitTotpLogin. An account that is
+// waiting for approval goes to the waiting page.
 function setupLoginPage() {
     const form = document.getElementById('login-form');
-    const errEl = document.getElementById('login-error');
-    const btn = document.getElementById('login-btn');
+    const errorElement = document.getElementById('login-error');
+    const loginButton = document.getElementById('login-btn');
 
     // Allow Enter key in TOTP modal code inputs to submit
-    document.getElementById('totp-login-code')?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); window.submitTotpLogin(); }
+    document.getElementById('totp-login-code')?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') { event.preventDefault(); window.submitTotpLogin(); }
     });
-    document.getElementById('totp-login-backup-code')?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); window.submitTotpLogin(); }
+    document.getElementById('totp-login-backup-code')?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') { event.preventDefault(); window.submitTotpLogin(); }
     });
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        errEl.style.display = 'none';
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        errorElement.style.display = 'none';
 
         const usernameInput = document.getElementById('login-username');
         if (rejectSpaces(usernameInput)) {
-            errEl.textContent = `${NO_SPACES_MSG} in your username or email`;
-            errEl.style.display = 'flex';
+            errorElement.textContent = `${NO_SPACES_MSG} in your username or email`;
+            errorElement.style.display = 'flex';
             return;
         }
 
-        btn.disabled = true;
-        btn.textContent = 'Logging in…';
+        loginButton.disabled = true;
+        loginButton.textContent = 'Logging in…';
 
         const username = usernameInput.value.trim();
         const password = document.getElementById('login-password').value;
@@ -396,32 +471,32 @@ function setupLoginPage() {
         const remember = document.getElementById('login-remember').checked;
 
         // Send stored device token so trusted devices skip 2FA
-        const device_token = localStorage.getItem(`gftv_device_${username.toLowerCase()}`) || undefined;
+        const deviceToken = localStorage.getItem(`gftv_device_${username.toLowerCase()}`) || undefined;
 
-        const res = await Auth.login({ username, password, device_token, remember });
+        const response = await Auth.login({ username, password, device_token: deviceToken, remember });
 
-        if (res.ok && res.data.requires_2fa) {
+        if (response.ok && response.data.requires_2fa) {
             // Server issued a TOTP challenge, show the 2FA modal
-            _totpChallengeToken = res.data.challenge_token;
-            _totpLoginUsername = res.data.username || username.toLowerCase();
+            _totpChallengeToken = response.data.challenge_token;
+            _totpLoginUsername = response.data.username || username.toLowerCase();
             _totpLoginRemember = remember;
             document.getElementById('totp-login-code').value = '';
             document.getElementById('totp-trust-device').checked = false;
             document.getElementById('totp-login-error').style.display = 'none';
             openModal('modal-totp-login');
             setTimeout(() => document.getElementById('totp-login-code').focus(), 100);
-        } else if (res.ok) {
-            finishLogin(res.data.token, res.data.user, remember);
-            toast(`Welcome back, ${res.data.user.display_name}!`, 'success');
-        } else if (res.status === 403 && res.data.error === 'PENDING_APPROVAL') {
+        } else if (response.ok) {
+            finishLogin(response.data.token, response.data.user, remember);
+            toast(`Welcome back, ${response.data.user.display_name}!`, 'success');
+        } else if (response.status === 403 && response.data.error === 'PENDING_APPROVAL') {
             navigate('pending');
         } else {
-            errEl.textContent = res.data.error || 'Login failed';
-            errEl.style.display = 'flex';
+            errorElement.textContent = response.data.error || 'Login failed';
+            errorElement.style.display = 'flex';
         }
 
-        btn.disabled = false;
-        btn.textContent = 'Log In';
+        loginButton.disabled = false;
+        loginButton.textContent = 'Log In';
     });
 }
 
@@ -430,7 +505,11 @@ function finishLogin(token, user, remember) {
     state.user = user;
     setToken(token, remember);
     closeAllModals();
-    navigate(isEditor() ? 'dashboard' : 'directory');
+    if (isEditor()) {
+        navigate('dashboard');
+    } else {
+        navigate('directory');
+    }
 }
 
 window.cancelTotpLogin = () => {
@@ -459,113 +538,127 @@ window.switchToTotpLogin = () => {
     setTimeout(() => document.getElementById('totp-login-code').focus(), 50);
 };
 
+// Sends the 2FA modal's code, either the 6-digit app code or a backup code,
+// with the challenge from setupLoginPage. On success it signs the person in,
+// and, if they ticked "trust this device", stores the device token the server
+// returns, so the next sign-in on this device skips 2FA.
 window.submitTotpLogin = async () => {
-    const trust = document.getElementById('totp-trust-device').checked;
-    const errEl = document.getElementById('totp-login-error');
-    const btn = document.getElementById('totp-login-btn');
+    const trustDevice = document.getElementById('totp-trust-device').checked;
+    const errorElement = document.getElementById('totp-login-error');
+    const verifyButton = document.getElementById('totp-login-btn');
     const isBackupMode = document.getElementById('totp-login-backup-section').style.display !== 'none';
 
-    errEl.style.display = 'none';
-    btn.disabled = true;
-    btn.textContent = 'Verifying…';
+    errorElement.style.display = 'none';
+    verifyButton.disabled = true;
+    verifyButton.textContent = 'Verifying…';
 
-    let res;
+    let response;
     if (isBackupMode) {
         const backupCode = document.getElementById('totp-login-backup-code').value.trim();
         if (!backupCode) {
-            errEl.textContent = 'Please enter a backup code';
-            errEl.style.display = 'flex';
-            btn.disabled = false;
-            btn.textContent = 'Verify';
+            errorElement.textContent = 'Please enter a backup code';
+            errorElement.style.display = 'flex';
+            verifyButton.disabled = false;
+            verifyButton.textContent = 'Verify';
             return;
         }
-        res = await Totp.verifyBackup(_totpChallengeToken, backupCode, trust, _totpLoginRemember);
+        response = await Totp.verifyBackup(_totpChallengeToken, backupCode, trustDevice, _totpLoginRemember);
     } else {
         const code = document.getElementById('totp-login-code').value.trim();
         if (!code || code.length !== 6) {
-            errEl.textContent = 'Please enter the 6-digit code';
-            errEl.style.display = 'flex';
-            btn.disabled = false;
-            btn.textContent = 'Verify';
+            errorElement.textContent = 'Please enter the 6-digit code';
+            errorElement.style.display = 'flex';
+            verifyButton.disabled = false;
+            verifyButton.textContent = 'Verify';
             return;
         }
-        res = await Totp.verify(_totpChallengeToken, code, trust, _totpLoginRemember);
+        response = await Totp.verify(_totpChallengeToken, code, trustDevice, _totpLoginRemember);
     }
 
-    btn.disabled = false;
-    btn.textContent = 'Verify';
+    verifyButton.disabled = false;
+    verifyButton.textContent = 'Verify';
 
-    if (res.ok) {
-        if (trust && res.data.device_token && _totpLoginUsername) {
-            localStorage.setItem(`gftv_device_${_totpLoginUsername}`, res.data.device_token);
+    if (response.ok) {
+        if (trustDevice && response.data.device_token && _totpLoginUsername) {
+            localStorage.setItem(`gftv_device_${_totpLoginUsername}`, response.data.device_token);
         }
-        finishLogin(res.data.token, res.data.user, _totpLoginRemember);
-        toast(`Welcome back, ${res.data.user.display_name}!`, 'success');
+        finishLogin(response.data.token, response.data.user, _totpLoginRemember);
+        toast(`Welcome back, ${response.data.user.display_name}!`, 'success');
     } else {
-        errEl.textContent = res.data.error || 'Verification failed';
-        errEl.style.display = 'flex';
+        errorElement.textContent = response.data.error || 'Verification failed';
+        errorElement.style.display = 'flex';
     }
 };
 
 // ===== REGISTER PAGE =====
+// Wires up the registration form: the password strength bar, then on submit
+// the checks (no spaces, a valid email, matching passwords) and the request.
+// A pre-approved email is signed in straight away and shown the
+// congratulations page; anyone else goes to the waiting page.
 function setupRegisterPage() {
     const form = document.getElementById('register-form');
-    const errEl = document.getElementById('register-error');
-    const btn = document.getElementById('register-btn');
-    const pwdInput = document.getElementById('reg-password');
+    const errorElement = document.getElementById('register-error');
+    const registerButton = document.getElementById('register-btn');
+    const passwordInput = document.getElementById('reg-password');
     const strengthBar = document.getElementById('pwd-strength-bar');
 
-    pwdInput.addEventListener('input', () => {
-        const s = getPasswordStrength(pwdInput.value);
-        strengthBar.className = `pwd-strength pwd-strength-${s}`;
+    passwordInput.addEventListener('input', () => {
+        const strength = getPasswordStrength(passwordInput.value);
+        strengthBar.className = `pwd-strength pwd-strength-${strength}`;
     });
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        errEl.style.display = 'none';
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        errorElement.style.display = 'none';
 
         const usernameInput = document.getElementById('reg-username');
         const emailInput = document.getElementById('reg-email');
-        const spaced = rejectSpaces(usernameInput, emailInput);
-        if (spaced) {
-            errEl.textContent = `${NO_SPACES_MSG} in your ${spaced === usernameInput ? 'username' : 'email address'}`;
-            errEl.style.display = 'flex';
+        const inputWithSpaces = rejectSpaces(usernameInput, emailInput);
+        if (inputWithSpaces) {
+            let fieldName;
+            if (inputWithSpaces === usernameInput) {
+                fieldName = 'username';
+            } else {
+                fieldName = 'email address';
+            }
+            errorElement.textContent = `${NO_SPACES_MSG} in your ${fieldName}`;
+            errorElement.style.display = 'flex';
             return;
         }
 
         const email = emailInput.value.trim();
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            errEl.textContent = 'Please enter a valid email address';
-            errEl.style.display = 'flex';
+            errorElement.textContent = 'Please enter a valid email address';
+            errorElement.style.display = 'flex';
             return;
         }
 
-        const password = pwdInput.value;
-        const confirm = document.getElementById('reg-confirm').value;
-        if (password !== confirm) {
-            errEl.textContent = 'Passwords do not match';
-            errEl.style.display = 'flex';
+        const password = passwordInput.value;
+        const passwordConfirmation = document.getElementById('reg-confirm').value;
+        if (password !== passwordConfirmation) {
+            errorElement.textContent = 'Passwords do not match';
+            errorElement.style.display = 'flex';
             return;
         }
 
-        btn.disabled = true;
-        btn.textContent = 'Creating account…';
+        registerButton.disabled = true;
+        registerButton.textContent = 'Creating account…';
 
         try {
-            const res = await Auth.register({
+            const response = await Auth.register({
                 username: usernameInput.value.trim(),
                 display_name: document.getElementById('reg-displayname').value.trim(),
                 email,
                 password,
             });
 
-            if (res.ok) {
-                if (res.data.preapproved) {
+            if (response.ok) {
+                if (response.data.preapproved) {
                     // Auto-login and show congratulations screen
-                    state.token = res.data.token;
-                    state.user = res.data.user;
-                    state.preapprovedRole = res.data.preapproved_role;
-                    setToken(res.data.token, true);
+                    state.token = response.data.token;
+                    state.user = response.data.user;
+                    state.preapprovedRole = response.data.preapproved_role;
+                    setToken(response.data.token, true);
                     updateNav();
                     showPage('preapproved');
                     renderPreapprovedPage();
@@ -575,46 +668,48 @@ function setupRegisterPage() {
                     navigate('pending');
                 }
             } else {
-                errEl.textContent = res.data.error || 'Registration failed';
-                errEl.style.display = 'flex';
+                errorElement.textContent = response.data.error || 'Registration failed';
+                errorElement.style.display = 'flex';
             }
         } finally {
-            btn.disabled = false;
-            btn.textContent = 'Create Account';
+            registerButton.disabled = false;
+            registerButton.textContent = 'Create Account';
         }
     });
 }
 
 // ===== DIRECTORY PAGE =====
 let directoryData = [];
-let dirFilterKeyword = '';
-let dirFilterTag = '';
-let dirFilterStatus = 'all';
-let dirSortOrder = 'date';
+let directoryFilterKeyword = '';
+let directoryFilterTag = '';
+let directoryFilterStatus = 'all';
+let directorySortOrder = 'date';
 
+// The directory's links after the search box, tag box and status filter, in
+// the chosen order: most visits first, or newest first.
 function getFilteredSortedDirectoryLinks() {
     let links = directoryData.filter(link => {
-        if (dirFilterKeyword) {
-            const kw = dirFilterKeyword.toLowerCase();
+        if (directoryFilterKeyword) {
+            const keyword = directoryFilterKeyword.toLowerCase();
             const user = link.gftvhello_users || {};
-            if (!link.slug.toLowerCase().includes(kw) &&
-                !link.destination.toLowerCase().includes(kw) &&
-                !(user.display_name || '').toLowerCase().includes(kw) &&
-                !(user.username || '').toLowerCase().includes(kw)) return false;
+            if (!link.slug.toLowerCase().includes(keyword) &&
+                !link.destination.toLowerCase().includes(keyword) &&
+                !(user.display_name || '').toLowerCase().includes(keyword) &&
+                !(user.username || '').toLowerCase().includes(keyword)) return false;
         }
-        if (dirFilterTag) {
-            const tag = dirFilterTag.toLowerCase();
-            if (!link.tags || !link.tags.some(t => t.toLowerCase().includes(tag))) return false;
+        if (directoryFilterTag) {
+            const tag = directoryFilterTag.toLowerCase();
+            if (!link.tags || !link.tags.some(linkTag => linkTag.toLowerCase().includes(tag))) return false;
         }
-        if (dirFilterStatus === 'active' && !link.is_active) return false;
-        if (dirFilterStatus === 'inactive' && link.is_active) return false;
+        if (directoryFilterStatus === 'active' && !link.is_active) return false;
+        if (directoryFilterStatus === 'inactive' && link.is_active) return false;
         return true;
     });
 
-    if (dirSortOrder === 'visits') {
-        links.sort((a, b) => (b.access_count ?? 0) - (a.access_count ?? 0));
+    if (directorySortOrder === 'visits') {
+        links.sort((firstLink, secondLink) => (secondLink.access_count ?? 0) - (firstLink.access_count ?? 0));
     } else {
-        links.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        links.sort((firstLink, secondLink) => new Date(secondLink.created_at) - new Date(firstLink.created_at));
     }
     return links;
 }
@@ -623,16 +718,19 @@ async function loadDirectory() {
     const container = document.getElementById('directory-table-wrap');
     container.innerHTML = loadingHtml();
 
-    const res = await Links.list('', 'keyword');
-    if (!res.ok) {
+    const response = await Links.list('', 'keyword');
+    if (!response.ok) {
         container.innerHTML = '<p style="color:var(--danger);padding:20px">Failed to load links.</p>';
         return;
     }
 
-    directoryData = res.data.links || [];
+    directoryData = response.data.links || [];
     renderDirectoryTable();
 }
 
+// Draws the directory table, or an empty state when there are no links or
+// none match the filters. Each row shows an Edit button to admins, and either
+// "You own this" or a Request Ownership button to editors.
 function renderDirectoryTable() {
     const container = document.getElementById('directory-table-wrap');
 
@@ -641,33 +739,55 @@ function renderDirectoryTable() {
         return;
     }
 
-    const data = getFilteredSortedDirectoryLinks();
+    const matchingLinks = getFilteredSortedDirectoryLinks();
 
-    if (data.length === 0) {
+    if (matchingLinks.length === 0) {
         container.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('link', 32)}</div><h3>No links match</h3><p>Try adjusting your search or filters.</p></div>`;
         return;
     }
 
-    const rows = data.map(link => {
+    const rows = matchingLinks.map(link => {
         const user = link.gftvhello_users || {};
         const isOwner = state.user && link.gftvhello_users?.id === state.user.id;
+
+        let statusClass;
+        let statusLabel;
+        if (link.is_active) {
+            statusClass = 'badge-active';
+            statusLabel = '● Active';
+        } else {
+            statusClass = 'badge-inactive';
+            statusLabel = '● Inactive';
+        }
+
+        let adminEditButtonHtml;
+        if (state.user?.is_admin) {
+            adminEditButtonHtml = `<button class="btn btn-sm btn-secondary" onclick="openAdminManageLink('${link.id}')">${icon('edit')} Edit</button>`;
+        } else {
+            adminEditButtonHtml = '';
+        }
+
+        let ownershipHtml;
+        if (isOwner) {
+            ownershipHtml = `<span style="color:var(--text-light);font-size:0.8rem">You own this</span>`;
+        } else if (isEditor()) {
+            ownershipHtml = `<button class="btn btn-sm btn-secondary" onclick="requestOwnership('${link.id}')">Request Ownership</button>`;
+        } else {
+            ownershipHtml = '';
+        }
+
         return `<tr>
       <td class="td-slug">${slugCopyHtml(link.slug)}</td>
       <td class="td-dest"><span title="${link.destination}">${link.destination}</span></td>
       <td class="td-user td-user-clickable" onclick="viewUserProfile('${user.id}')" title="View profile">${avatarHtml(user)}<span>${user.display_name || user.username || '–'}</span></td>
-      <td style="white-space:nowrap"><span class="badge ${link.is_active ? 'badge-active' : 'badge-inactive'}">${link.is_active ? '● Active' : '● Inactive'}</span></td>
+      <td style="white-space:nowrap"><span class="badge ${statusClass}">${statusLabel}</span></td>
       <td class="access-count" style="white-space:nowrap">${icon('eye')} ${link.access_count ?? 0}</td>
       <td>${tagsHtml(link.tags)}</td>
       <td style="white-space:nowrap">${formatDate(link.created_at)}</td>
       <td style="white-space:nowrap">
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          ${state.user?.is_admin ? `<button class="btn btn-sm btn-secondary" onclick="openAdminManageLink('${link.id}')">${icon('edit')} Edit</button>` : ''}
-          ${isOwner
-            ? `<span style="color:var(--text-light);font-size:0.8rem">You own this</span>`
-            : isEditor()
-              ? `<button class="btn btn-sm btn-secondary" onclick="requestOwnership('${link.id}')">Request Ownership</button>`
-              : ''
-          }
+          ${adminEditButtonHtml}
+          ${ownershipHtml}
         </div>
       </td>
     </tr>`;
@@ -685,6 +805,9 @@ function renderDirectoryTable() {
     </div>`;
 }
 
+// Wires up the directory's search and filters. Typing in the keyword or tag
+// box redraws the table 200ms after the last key; the status and sort menus
+// redraw it straight away.
 function setupDirectoryPage() {
     const keywordInput = document.getElementById('dir-search-keyword');
     const tagInput = document.getElementById('dir-search-tag');
@@ -693,60 +816,83 @@ function setupDirectoryPage() {
 
     let debounceTimer;
     keywordInput.addEventListener('input', () => {
-        dirFilterKeyword = keywordInput.value.trim();
+        directoryFilterKeyword = keywordInput.value.trim();
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(renderDirectoryTable, 200);
     });
     tagInput.addEventListener('input', () => {
-        dirFilterTag = tagInput.value.trim();
+        directoryFilterTag = tagInput.value.trim();
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(renderDirectoryTable, 200);
     });
     statusSelect.addEventListener('change', () => {
-        dirFilterStatus = statusSelect.value;
+        directoryFilterStatus = statusSelect.value;
         renderDirectoryTable();
     });
     sortSelect.addEventListener('change', () => {
-        dirSortOrder = sortSelect.value;
+        directorySortOrder = sortSelect.value;
         renderDirectoryTable();
     });
 }
 
+// One "recent viewers" pill: the viewer's photo (or first letter) and name.
+// Clicking it opens their profile. Used by the profile modal and the profile page.
+function buildViewerPillHtml(viewer) {
+    const viewerLetter = (viewer.display_name || viewer.username || '?')[0].toUpperCase();
+    let viewerAvatarHtml;
+    if (viewer.avatar_url) {
+        viewerAvatarHtml = `<img src="${viewer.avatar_url}" class="viewer-pill-avatar" alt="${viewerLetter}">`;
+    } else {
+        viewerAvatarHtml = `<span class="viewer-pill-avatar viewer-pill-avatar-ph">${viewerLetter}</span>`;
+    }
+    return `<button class="viewer-pill" onclick="viewUserProfileById('${viewer.id}')" title="@${viewer.username}">${viewerAvatarHtml}<span>${viewer.display_name || viewer.username}</span></button>`;
+}
+
+// The contents of the "view profile" modal opened from the directory: the
+// person's photo (or first letter), name, @username, an Admin badge, their
+// link and view counts, their social links, and recent viewers if any.
 function buildProfileModalHtml(user, userLinks, viewers) {
-    const totalViews = userLinks.reduce((a, l) => a + (l.access_count || 0), 0);
+    const totalViews = userLinks.reduce((total, link) => total + (link.access_count || 0), 0);
     const letter = (user.display_name || user.username || '?')[0].toUpperCase();
-    const avHtml = user.avatar_url
-        ? `<img src="${user.avatar_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;margin-bottom:10px;" alt="${letter}">`
-        : `<div style="width:72px;height:72px;border-radius:50%;background:var(--brand);color:var(--brand-text);font-size:1.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">${letter}</div>`;
+
+    let profileAvatarHtml;
+    if (user.avatar_url) {
+        profileAvatarHtml = `<img src="${user.avatar_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;margin-bottom:10px;" alt="${letter}">`;
+    } else {
+        profileAvatarHtml = `<div style="width:72px;height:72px;border-radius:50%;background:var(--brand);color:var(--brand-text);font-size:1.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">${letter}</div>`;
+    }
 
     const socials = user.social_links || [];
-    const socialsHtml = socials.length > 0
-        ? `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;">
-            ${socials.map(s => `<a href="${s.url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-size:0.82rem;color:var(--text-muted);text-decoration:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">${icon('external-link')} ${s.label}</a>`).join('')}
-          </div>`
-        : '';
+    let socialsHtml;
+    if (socials.length > 0) {
+        socialsHtml = `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;">
+            ${socials.map(social => `<a href="${social.url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-size:0.82rem;color:var(--text-muted);text-decoration:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">${icon('external-link')} ${social.label}</a>`).join('')}
+          </div>`;
+    } else {
+        socialsHtml = '';
+    }
 
-    const viewerPillsHtml = viewers && viewers.length > 0
-        ? `<div class="profile-viewers">
+    let viewerPillsHtml;
+    if (viewers && viewers.length > 0) {
+        viewerPillsHtml = `<div class="profile-viewers">
             <div class="profile-viewers-label">Recent viewers</div>
             <div class="profile-viewers-pills">
-              ${viewers.map(v => {
-                const vLetter = (v.display_name || v.username || '?')[0].toUpperCase();
-                const vAvatar = v.avatar_url
-                    ? `<img src="${v.avatar_url}" class="viewer-pill-avatar" alt="${vLetter}">`
-                    : `<span class="viewer-pill-avatar viewer-pill-avatar-ph">${vLetter}</span>`;
-                return `<button class="viewer-pill" onclick="viewUserProfileById('${v.id}')" title="@${v.username}">${vAvatar}<span>${v.display_name || v.username}</span></button>`;
-              }).join('')}
+              ${viewers.map(viewer => buildViewerPillHtml(viewer)).join('')}
             </div>
-          </div>`
-        : '';
+          </div>`;
+    } else {
+        viewerPillsHtml = '';
+    }
 
-    const roleBadge = user.is_admin
-        ? `<span class="badge badge-admin" style="margin-bottom:16px;display:inline-block;">Admin</span>`
-        : `<div style="margin-bottom:16px"></div>`;
+    let roleBadge;
+    if (user.is_admin) {
+        roleBadge = `<span class="badge badge-admin" style="margin-bottom:16px;display:inline-block;">Admin</span>`;
+    } else {
+        roleBadge = `<div style="margin-bottom:16px"></div>`;
+    }
 
     return `
-        ${avHtml}
+        ${profileAvatarHtml}
         <div style="font-size:1.15rem;font-weight:700;margin-bottom:2px;">${user.display_name || user.username}</div>
         <div style="color:var(--text-muted);font-size:0.88rem;margin-bottom:8px;">@${user.username}</div>
         ${roleBadge}
@@ -760,10 +906,10 @@ function buildProfileModalHtml(user, userLinks, viewers) {
 }
 
 window.viewUserProfile = async (userId) => {
-    const user = directoryData.map(l => l.gftvhello_users).find(u => u?.id === userId);
+    const user = directoryData.map(link => link.gftvhello_users).find(linkOwner => linkOwner?.id === userId);
     if (!user) return;
 
-    const userLinks = directoryData.filter(l => l.gftvhello_users?.id === userId);
+    const userLinks = directoryData.filter(link => link.gftvhello_users?.id === userId);
 
     // Show modal immediately with loading viewers placeholder
     document.getElementById('view-profile-content').innerHTML = buildProfileModalHtml(user, userLinks, []);
@@ -773,43 +919,43 @@ window.viewUserProfile = async (userId) => {
     ProfileViews.record(userId);
 
     // Fetch recent viewers and update modal
-    const viewRes = await ProfileViews.getViewers(userId);
-    if (viewRes.ok && viewRes.data.viewers?.length > 0) {
+    const viewersResponse = await ProfileViews.getViewers(userId);
+    if (viewersResponse.ok && viewersResponse.data.viewers?.length > 0) {
         document.getElementById('view-profile-content').innerHTML =
-            buildProfileModalHtml(user, userLinks, viewRes.data.viewers);
+            buildProfileModalHtml(user, userLinks, viewersResponse.data.viewers);
     }
 };
 
 // View a profile by ID, used by viewer pills (looks up user from directoryData or fetches from API)
 window.viewUserProfileById = async (userId) => {
     // Try to find user in already-loaded directory data first
-    const fromDir = directoryData.map(l => l.gftvhello_users).find(u => u?.id === userId);
-    if (fromDir) {
+    const userFromDirectory = directoryData.map(link => link.gftvhello_users).find(linkOwner => linkOwner?.id === userId);
+    if (userFromDirectory) {
         await window.viewUserProfile(userId);
         return;
     }
     // Fallback: fetch from directory (reload)
-    const res = await Links.list('', 'keyword');
-    if (res.ok) {
-        directoryData = res.data.links || [];
+    const response = await Links.list('', 'keyword');
+    if (response.ok) {
+        directoryData = response.data.links || [];
     }
     await window.viewUserProfile(userId);
 };
 
-window.requestOwnership = async (link_id) => {
-    const res = await Ownership.request(link_id);
-    if (res.ok) toast('Ownership request sent!', 'success');
-    else toast(res.data.error || 'Failed to send request', 'error');
+window.requestOwnership = async (linkId) => {
+    const response = await Ownership.request(linkId);
+    if (response.ok) toast('Ownership request sent!', 'success');
+    else toast(response.data.error || 'Failed to send request', 'error');
 };
 
 // ===== ADMIN MANAGE SHORT LINK MODAL =====
 let adminManageLinkId = null;
 let adminLinkTagsManager = null;
 
-window.openAdminManageLink = (id) => {
-    const link = directoryData.find(l => l.id === id);
+window.openAdminManageLink = (linkId) => {
+    const link = directoryData.find(candidate => candidate.id === linkId);
     if (!link) return;
-    adminManageLinkId = id;
+    adminManageLinkId = linkId;
 
     document.getElementById('admin-manage-link-subtitle').textContent = `gftv.asia/${link.slug}`;
     document.getElementById('admin-link-slug').value = link.slug;
@@ -823,73 +969,76 @@ window.openAdminManageLink = (id) => {
 
 window.adminDeleteLink = async () => {
     if (!adminManageLinkId) return;
-    const link = directoryData.find(l => l.id === adminManageLinkId);
+    const link = directoryData.find(candidate => candidate.id === adminManageLinkId);
     const slug = link?.slug || adminManageLinkId;
     if (!confirm(`Delete gftv.asia/${slug}? This cannot be undone.`)) return;
 
-    const res = await Links.delete(adminManageLinkId);
-    if (res.ok) {
+    const response = await Links.delete(adminManageLinkId);
+    if (response.ok) {
         toast('Link deleted', 'success');
         closeModal('modal-admin-manage-link');
         loadDirectory();
     } else {
-        toast(res.data.error || 'Failed to delete link', 'error');
+        toast(response.data.error || 'Failed to delete link', 'error');
     }
 };
 
+// Wires up the admin's "manage short link" modal, opened from a directory
+// row: the tags box, the form that saves the slug, destination, status and
+// tags, and the form that transfers the link to another username.
 function setupAdminManageLinkModal() {
     const tagsContainer = document.getElementById('admin-link-tags-container');
     let adminLinkTags = [];
-    adminLinkTagsManager = initTagsInput(tagsContainer, (t) => {
-        adminLinkTags = t;
+    adminLinkTagsManager = initTagsInput(tagsContainer, (tags) => {
+        adminLinkTags = tags;
     });
 
-    document.getElementById('admin-manage-link-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
+    document.getElementById('admin-manage-link-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
         if (!adminManageLinkId) return;
-        const btn = document.getElementById('admin-manage-link-save-btn');
-        btn.disabled = true;
-        btn.textContent = 'Saving…';
+        const saveButton = document.getElementById('admin-manage-link-save-btn');
+        saveButton.disabled = true;
+        saveButton.textContent = 'Saving…';
 
         const slug = document.getElementById('admin-link-slug').value.trim();
         const destination = document.getElementById('admin-link-dest').value.trim();
-        const is_active = document.getElementById('admin-link-status').value === 'true';
+        const isActive = document.getElementById('admin-link-status').value === 'true';
 
-        const res = await Links.update(adminManageLinkId, { slug, destination, is_active, tags: adminLinkTags });
-        if (res.ok) {
+        const response = await Links.update(adminManageLinkId, { slug, destination, is_active: isActive, tags: adminLinkTags });
+        if (response.ok) {
             toast('Link updated!', 'success');
             closeModal('modal-admin-manage-link');
             loadDirectory();
         } else {
-            toast(res.data.error || 'Failed to update link', 'error');
+            toast(response.data.error || 'Failed to update link', 'error');
         }
-        btn.disabled = false;
-        btn.textContent = 'Save Changes';
+        saveButton.disabled = false;
+        saveButton.textContent = 'Save Changes';
     });
 
-    document.getElementById('admin-transfer-link-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
+    document.getElementById('admin-transfer-link-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
         if (!adminManageLinkId) return;
-        const btn = document.getElementById('admin-transfer-link-btn');
+        const transferButton = document.getElementById('admin-transfer-link-btn');
         const ownerInput = document.getElementById('admin-link-new-owner');
         if (rejectSpaces(ownerInput)) { toast(`${NO_SPACES_MSG} in a username`, 'error'); return; }
-        const new_owner_username = ownerInput.value.trim();
-        if (!new_owner_username) { toast('Enter a username to transfer to', 'error'); return; }
+        const newOwnerUsername = ownerInput.value.trim();
+        if (!newOwnerUsername) { toast('Enter a username to transfer to', 'error'); return; }
 
-        btn.disabled = true;
-        btn.textContent = 'Transferring…';
+        transferButton.disabled = true;
+        transferButton.textContent = 'Transferring…';
 
-        const res = await Links.update(adminManageLinkId, { new_owner_username });
-        if (res.ok) {
-            toast(`Ownership transferred to @${new_owner_username}`, 'success');
+        const response = await Links.update(adminManageLinkId, { new_owner_username: newOwnerUsername });
+        if (response.ok) {
+            toast(`Ownership transferred to @${newOwnerUsername}`, 'success');
             document.getElementById('admin-link-new-owner').value = '';
             closeModal('modal-admin-manage-link');
             loadDirectory();
         } else {
-            toast(res.data.error || 'Failed to transfer ownership', 'error');
+            toast(response.data.error || 'Failed to transfer ownership', 'error');
         }
-        btn.disabled = false;
-        btn.textContent = 'Transfer Ownership';
+        transferButton.disabled = false;
+        transferButton.textContent = 'Transfer Ownership';
     });
 }
 
@@ -1646,61 +1795,66 @@ function setupAdminModal() {
 }
 
 // ===== PROFILE PAGE =====
+// Fills the profile page from the signed-in user: the photo (or first
+// letter), name, @username and social links at the top, the recent viewers,
+// the 2FA tab, and the edit form.
 function renderProfile() {
-    const u = state.user;
-    if (!u) return;
+    const user = state.user;
+    if (!user) return;
 
     // Header
+    let profileAvatarHtml;
+    if (user.avatar_url) {
+        profileAvatarHtml = `<img src="${user.avatar_url}" class="profile-avatar" alt="${user.display_name}">`;
+    } else {
+        profileAvatarHtml = `<div class="profile-avatar-ph">${(user.display_name || user.username)[0].toUpperCase()}</div>`;
+    }
     document.getElementById('profile-avatar-wrap').innerHTML = `
     <div class="profile-avatar-wrap">
-      ${u.avatar_url
-        ? `<img src="${u.avatar_url}" class="profile-avatar" alt="${u.display_name}">`
-        : `<div class="profile-avatar-ph">${(u.display_name || u.username)[0].toUpperCase()}</div>`
-      }
+      ${profileAvatarHtml}
       <div class="profile-avatar-edit" onclick="document.getElementById('avatar-file-input').click()" title="Change photo">${icon('camera')}</div>
     </div>`;
 
-    document.getElementById('profile-display-name').textContent = u.display_name;
-    document.getElementById('profile-username').textContent = `@${u.username}`;
+    document.getElementById('profile-display-name').textContent = user.display_name;
+    document.getElementById('profile-username').textContent = `@${user.username}`;
 
-    const socials = u.social_links || [];
-    document.getElementById('profile-social-links').innerHTML = socials.length > 0 ?
-        socials.map(s => `<a class="social-link" href="${s.url}" target="_blank" rel="noopener">${icon('external-link')} ${s.label}</a>`).join('') :
-        '<span style="color:var(--text-light);font-size:0.85rem">No social links added</span>';
+    const socials = user.social_links || [];
+    const socialLinksElement = document.getElementById('profile-social-links');
+    if (socials.length > 0) {
+        socialLinksElement.innerHTML = socials.map(social => `<a class="social-link" href="${social.url}" target="_blank" rel="noopener">${icon('external-link')} ${social.label}</a>`).join('');
+    } else {
+        socialLinksElement.innerHTML = '<span style="color:var(--text-light);font-size:0.85rem">No social links added</span>';
+    }
 
     // Load recent profile viewers
-    loadProfilePageViewers(u.id);
+    loadProfilePageViewers(user.id);
 
     // Render 2FA tab state
     render2FATab();
 
     // Fill edit form
-    document.getElementById('edit-displayname').value = u.display_name;
+    document.getElementById('edit-displayname').value = user.display_name;
 
     // Social links editor
     renderSocialLinksEditor(socials);
 }
 
+// Shows the "recent viewers" pills on the profile page, or nothing when no
+// one has viewed it yet or the request fails.
 async function loadProfilePageViewers(profileId) {
-    const wrap = document.getElementById('profile-viewers-wrap');
-    if (!wrap) return;
-    wrap.innerHTML = '';
+    const viewersContainer = document.getElementById('profile-viewers-wrap');
+    if (!viewersContainer) return;
+    viewersContainer.innerHTML = '';
 
-    const res = await ProfileViews.getViewers(profileId);
-    if (!res.ok || !res.data.viewers?.length) return;
+    const response = await ProfileViews.getViewers(profileId);
+    if (!response.ok || !response.data.viewers?.length) return;
 
-    const viewers = res.data.viewers;
-    wrap.innerHTML = `
+    const viewers = response.data.viewers;
+    viewersContainer.innerHTML = `
         <div class="profile-viewers">
             <div class="profile-viewers-label">Recent viewers</div>
             <div class="profile-viewers-pills">
-              ${viewers.map(v => {
-                const vLetter = (v.display_name || v.username || '?')[0].toUpperCase();
-                const vAvatar = v.avatar_url
-                    ? `<img src="${v.avatar_url}" class="viewer-pill-avatar" alt="${vLetter}">`
-                    : `<span class="viewer-pill-avatar viewer-pill-avatar-ph">${vLetter}</span>`;
-                return `<button class="viewer-pill" onclick="viewUserProfileById('${v.id}')" title="@${v.username}">${vAvatar}<span>${v.display_name || v.username}</span></button>`;
-              }).join('')}
+              ${viewers.map(viewer => buildViewerPillHtml(viewer)).join('')}
             </div>
         </div>`;
 }
@@ -1708,13 +1862,13 @@ async function loadProfilePageViewers(profileId) {
 function renderSocialLinksEditor(socials) {
     const container = document.getElementById('social-links-editor');
     container.innerHTML = '';
-    socials.forEach((s, i) => {
+    socials.forEach((social, index) => {
         const row = document.createElement('div');
         row.className = 'social-link-row';
         row.innerHTML = `
-      <input class="form-control" placeholder="Label (e.g. Twitter)" value="${s.label}" data-index="${i}" data-field="label">
-      <input class="form-control" placeholder="URL" value="${s.url}" data-index="${i}" data-field="url">
-      <button type="button" class="btn btn-icon btn-danger" onclick="removeSocialLink(${i})">×</button>
+      <input class="form-control" placeholder="Label (e.g. Twitter)" value="${social.label}" data-index="${index}" data-field="label">
+      <input class="form-control" placeholder="URL" value="${social.url}" data-index="${index}" data-field="url">
+      <button type="button" class="btn btn-icon btn-danger" onclick="removeSocialLink(${index})">×</button>
     `;
         container.appendChild(row);
     });
@@ -1729,27 +1883,33 @@ window.addSocialLink = () => {
     renderSocialLinksEditor(socials);
 };
 
-window.removeSocialLink = (i) => {
+window.removeSocialLink = (index) => {
     const socials = getSocialLinksFromEditor();
-    socials.splice(i, 1);
+    socials.splice(index, 1);
     renderSocialLinksEditor(socials);
 };
 
+// Reads the social links editor back into a list of { label, url }, using
+// each input's data-index and data-field to put it in the right place.
 function getSocialLinksFromEditor() {
     const container = document.getElementById('social-links-editor');
     const inputs = container.querySelectorAll('input');
     const socials = [];
-    inputs.forEach(inp => {
-        const i = parseInt(inp.dataset.index);
-        if (!socials[i]) socials[i] = {
+    inputs.forEach(input => {
+        const index = parseInt(input.dataset.index);
+        if (!socials[index]) socials[index] = {
             label: '',
             url: ''
         };
-        socials[i][inp.dataset.field] = inp.value.trim();
+        socials[index][input.dataset.field] = input.value.trim();
     });
     return socials;
 }
 
+// Wires up everything on the profile page that the person can change: the
+// avatar upload (compressed to WebP first), the edit profile form (display
+// name and social links), the change password form and its strength bar, the
+// delete account steps, and "log out all devices".
 function setupProfilePage() {
     // Avatar upload
     const avatarInput = document.getElementById('avatar-file-input');
@@ -1758,87 +1918,87 @@ function setupProfilePage() {
         if (!file) return;
         try {
             toast('Compressing image…', 'info');
-            const webp = await compressToWebp(file);
-            const res = await Profile.avatar(webp);
-            if (res.ok) {
-                state.user.avatar_url = res.data.avatar_url;
+            const webpDataUrl = await compressToWebp(file);
+            const response = await Profile.avatar(webpDataUrl);
+            if (response.ok) {
+                state.user.avatar_url = response.data.avatar_url;
                 toast('Avatar updated!', 'success');
                 renderProfile();
                 updateNav();
             } else {
-                toast(res.data.error || 'Upload failed', 'error');
+                toast(response.data.error || 'Upload failed', 'error');
             }
-        } catch (err) {
-            toast('Image processing failed: ' + err.message, 'error');
+        } catch (error) {
+            toast('Image processing failed: ' + error.message, 'error');
         }
         avatarInput.value = '';
     });
 
     // Edit profile form
-    document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('save-profile-btn');
-        btn.disabled = true;
-        btn.textContent = 'Saving…';
+    document.getElementById('edit-profile-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const saveButton = document.getElementById('save-profile-btn');
+        saveButton.disabled = true;
+        saveButton.textContent = 'Saving…';
 
-        const display_name = document.getElementById('edit-displayname').value.trim();
-        const social_links = getSocialLinksFromEditor().filter(s => s.label && s.url);
+        const displayName = document.getElementById('edit-displayname').value.trim();
+        const socialLinks = getSocialLinksFromEditor().filter(social => social.label && social.url);
 
-        const res = await Profile.update({
-            display_name,
-            social_links
+        const response = await Profile.update({
+            display_name: displayName,
+            social_links: socialLinks
         });
-        if (res.ok) {
-            state.user.display_name = display_name;
-            state.user.social_links = social_links;
+        if (response.ok) {
+            state.user.display_name = displayName;
+            state.user.social_links = socialLinks;
             toast('Profile updated!', 'success');
             renderProfile();
             updateNav();
         } else {
-            toast(res.data.error || 'Failed to update profile', 'error');
+            toast(response.data.error || 'Failed to update profile', 'error');
         }
-        btn.disabled = false;
-        btn.textContent = 'Save Changes';
+        saveButton.disabled = false;
+        saveButton.textContent = 'Save Changes';
     });
 
     // Change password form
-    document.getElementById('change-password-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const current = document.getElementById('current-password').value;
-        const newPwd = document.getElementById('new-password').value;
-        const confirm = document.getElementById('confirm-new-password').value;
+    document.getElementById('change-password-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const currentPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        const newPasswordConfirmation = document.getElementById('confirm-new-password').value;
 
-        if (newPwd !== confirm) {
+        if (newPassword !== newPasswordConfirmation) {
             toast('Passwords do not match', 'error');
             return;
         }
-        if (newPwd.length < 8) {
+        if (newPassword.length < 8) {
             toast('Password must be at least 8 characters', 'error');
             return;
         }
 
-        const btn = document.getElementById('change-pwd-btn');
-        btn.disabled = true;
-        btn.textContent = 'Changing…';
+        const changeButton = document.getElementById('change-pwd-btn');
+        changeButton.disabled = true;
+        changeButton.textContent = 'Changing…';
 
-        const res = await Profile.update({
-            current_password: current,
-            new_password: newPwd
+        const response = await Profile.update({
+            current_password: currentPassword,
+            new_password: newPassword
         });
-        if (res.ok) {
+        if (response.ok) {
             toast('Password changed!', 'success');
             document.getElementById('change-password-form').reset();
         } else {
-            toast(res.data.error || 'Failed to change password', 'error');
+            toast(response.data.error || 'Failed to change password', 'error');
         }
-        btn.disabled = false;
-        btn.textContent = 'Change Password';
+        changeButton.disabled = false;
+        changeButton.textContent = 'Change Password';
     });
 
-    // New pwd strength
+    // New password strength
     document.getElementById('new-password').addEventListener('input', function () {
-        const s = getPasswordStrength(this.value);
-        document.getElementById('new-pwd-strength').className = `pwd-strength pwd-strength-${s}`;
+        const strength = getPasswordStrength(this.value);
+        document.getElementById('new-pwd-strength').className = `pwd-strength pwd-strength-${strength}`;
     });
 
     // Delete account
@@ -1847,14 +2007,14 @@ function setupProfilePage() {
     // Log out all devices
     window.startLogoutAll = () => openModal('modal-logout-all');
     window.confirmLogoutAll = async () => {
-        const btn = document.getElementById('logout-all-confirm-btn');
-        btn.disabled = true;
-        btn.textContent = 'Signing out…';
-        const res = await Auth.logoutAll();
-        btn.disabled = false;
-        btn.textContent = 'Log Out All Devices';
+        const confirmButton = document.getElementById('logout-all-confirm-btn');
+        confirmButton.disabled = true;
+        confirmButton.textContent = 'Signing out…';
+        const response = await Auth.logoutAll();
+        confirmButton.disabled = false;
+        confirmButton.textContent = 'Log Out All Devices';
         closeModal('modal-logout-all');
-        if (res.ok) {
+        if (response.ok) {
             clearToken();
             state.user = null;
             state.token = null;
@@ -1862,7 +2022,7 @@ function setupProfilePage() {
             navigate('home');
             toast('Logged out of all devices.', 'success');
         } else {
-            toast(res.data.error || 'Failed to sign out all devices', 'error');
+            toast(response.data.error || 'Failed to sign out all devices', 'error');
         }
     };
 }
@@ -2282,24 +2442,32 @@ function animateCounter(elementId, target) {
 function renderThemeGrid() {
     const grid = document.getElementById('theme-grid');
     if (!grid) return;
-    grid.innerHTML = COLOR_THEMES.map(t => `
-    <button type="button" class="appearance-option theme-swatch ${state.colorTheme === t.id ? 'active' : ''}"
-      data-theme-id="${t.id}">
-      <span class="theme-swatch-dot" style="background:${t.color};"></span>
-      <span class="theme-swatch-name">${t.label}</span>
-      <span class="theme-swatch-hex">${t.color}</span>
+    grid.innerHTML = COLOR_THEMES.map(theme => {
+        let activeClass;
+        if (state.colorTheme === theme.id) {
+            activeClass = 'active';
+        } else {
+            activeClass = '';
+        }
+        return `
+    <button type="button" class="appearance-option theme-swatch ${activeClass}"
+      data-theme-id="${theme.id}">
+      <span class="theme-swatch-dot" style="background:${theme.color};"></span>
+      <span class="theme-swatch-name">${theme.label}</span>
+      <span class="theme-swatch-hex">${theme.color}</span>
     </button>
-  `).join('');
+  `;
+    }).join('');
 }
 
 // The pressed button follows the preference, the note says what the clock has
 // resolved it to, so "Time-based" stays pressed in the evening rather than "Dark".
 function updateModeOptions() {
     const preference = state.modePreference;
-    document.querySelectorAll('[data-mode-option]').forEach(btn => {
-        const pressed = btn.dataset.modeOption === preference;
-        btn.classList.toggle('active', pressed);
-        btn.setAttribute('aria-pressed', String(pressed));
+    document.querySelectorAll('[data-mode-option]').forEach(modeButton => {
+        const pressed = modeButton.dataset.modeOption === preference;
+        modeButton.classList.toggle('active', pressed);
+        modeButton.setAttribute('aria-pressed', String(pressed));
     });
     const note = document.getElementById('mode-note');
     if (note) {
@@ -2313,28 +2481,37 @@ function updateModeOptions() {
     }
 }
 
+// Wires up the theme modal: clicking a colour swatch applies that theme, and
+// clicking a mode button (light, dark, time) applies that preference. Each
+// change says so in a toast.
 function setupThemePicker() {
     renderThemeGrid();
 
     const grid = document.getElementById('theme-grid');
-    grid?.addEventListener('click', (e) => {
-        const swatch = e.target.closest('.theme-swatch');
+    grid?.addEventListener('click', (event) => {
+        const swatch = event.target.closest('.theme-swatch');
         if (!swatch) return;
-        const id = swatch.dataset.themeId;
-        applyColorTheme(id);
-        document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
+        const themeId = swatch.dataset.themeId;
+        applyColorTheme(themeId);
+        document.querySelectorAll('.theme-swatch').forEach(otherSwatch => otherSwatch.classList.remove('active'));
         swatch.classList.add('active');
-        const theme = COLOR_THEMES.find(t => t.id === id);
+        const theme = COLOR_THEMES.find(candidate => candidate.id === themeId);
         toast(`Theme changed to ${theme.label}`, 'success');
     });
 
-    document.getElementById('mode-options')?.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-mode-option]');
-        if (!btn) return;
-        const preference = btn.dataset.modeOption;
+    document.getElementById('mode-options')?.addEventListener('click', (event) => {
+        const modeButton = event.target.closest('[data-mode-option]');
+        if (!modeButton) return;
+        const preference = modeButton.dataset.modeOption;
         if (preference === state.modePreference) return;
         applyMode(preference);
-        toast(preference === 'time' ? 'Following the clock: light by day, dark by night' : `Switched to ${preference} mode`, 'success');
+        let message;
+        if (preference === 'time') {
+            message = 'Following the clock: light by day, dark by night';
+        } else {
+            message = `Switched to ${preference} mode`;
+        }
+        toast(message, 'success');
     });
 
     // A tab held open across 09:00 or 18:00 re-resolves itself; redraw the
@@ -2344,14 +2521,16 @@ function setupThemePicker() {
 }
 
 // ===== HAMBURGER MENU =====
+// The mobile menu: the hamburger button opens and closes the drawer, and a
+// click anywhere outside both closes it.
 function setupHamburger() {
-    const btn = document.getElementById('hamburger-btn');
+    const hamburgerButton = document.getElementById('hamburger-btn');
     const drawer = document.getElementById('mobile-nav');
-    btn?.addEventListener('click', () => {
+    hamburgerButton?.addEventListener('click', () => {
         drawer.classList.toggle('open');
     });
-    document.addEventListener('click', (e) => {
-        if (!btn?.contains(e.target) && !drawer?.contains(e.target)) {
+    document.addEventListener('click', (event) => {
+        if (!hamburgerButton?.contains(event.target) && !drawer?.contains(event.target)) {
             drawer?.classList.remove('open');
         }
     });
