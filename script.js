@@ -26,7 +26,7 @@ import {
     tagsHtml,
     getPasswordStrength,
     rejectSpaces,
-    NO_SPACES_MSG,
+    NO_SPACES_MESSAGE,
     icon,
     loadingHtml
 } from './ui.js';
@@ -457,7 +457,7 @@ function setupLoginPage() {
 
         const usernameInput = document.getElementById('login-username');
         if (rejectSpaces(usernameInput)) {
-            errorElement.textContent = `${NO_SPACES_MSG} in your username or email`;
+            errorElement.textContent = `${NO_SPACES_MESSAGE} in your username or email`;
             errorElement.style.display = 'flex';
             return;
         }
@@ -621,7 +621,7 @@ function setupRegisterPage() {
             } else {
                 fieldName = 'email address';
             }
-            errorElement.textContent = `${NO_SPACES_MSG} in your ${fieldName}`;
+            errorElement.textContent = `${NO_SPACES_MESSAGE} in your ${fieldName}`;
             errorElement.style.display = 'flex';
             return;
         }
@@ -1021,7 +1021,7 @@ function setupAdminManageLinkModal() {
         if (!adminManageLinkId) return;
         const transferButton = document.getElementById('admin-transfer-link-btn');
         const ownerInput = document.getElementById('admin-link-new-owner');
-        if (rejectSpaces(ownerInput)) { toast(`${NO_SPACES_MSG} in a username`, 'error'); return; }
+        if (rejectSpaces(ownerInput)) { toast(`${NO_SPACES_MESSAGE} in a username`, 'error'); return; }
         const newOwnerUsername = ownerInput.value.trim();
         if (!newOwnerUsername) { toast('Enter a username to transfer to', 'error'); return; }
 
@@ -1346,7 +1346,7 @@ function setupCreateLinkModal() {
     document.getElementById('edit-link-form').addEventListener('submit', async (event) => {
         event.preventDefault();
         const ownerInput = document.getElementById('edit-transfer-owner');
-        if (rejectSpaces(ownerInput)) { toast(`${NO_SPACES_MSG} in a username`, 'error'); return; }
+        if (rejectSpaces(ownerInput)) { toast(`${NO_SPACES_MESSAGE} in a username`, 'error'); return; }
 
         const saveButton = document.getElementById('edit-link-btn');
         saveButton.disabled = true;
@@ -1731,7 +1731,7 @@ function setupAddPreapprovedModal() {
 
         const emailInput = document.getElementById('preapproved-email');
         if (rejectSpaces(emailInput)) {
-            errorElement.textContent = `${NO_SPACES_MSG} in an email address`;
+            errorElement.textContent = `${NO_SPACES_MESSAGE} in an email address`;
             errorElement.style.display = 'flex';
             return;
         }
@@ -1966,7 +1966,7 @@ function setupAdminModal() {
             } else {
                 fieldName = 'email address';
             }
-            toast(`${NO_SPACES_MSG} in the ${fieldName}`, 'error');
+            toast(`${NO_SPACES_MESSAGE} in the ${fieldName}`, 'error');
             return;
         }
         const username = usernameInput.value.trim();

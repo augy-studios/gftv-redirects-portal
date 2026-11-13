@@ -306,7 +306,7 @@ export function tagsHtml(tags) {
 }
 
 // ===== NO-SPACES VALIDATION =====
-export const NO_SPACES_MSG = 'No spaces are allowed';
+export const NO_SPACES_MESSAGE = 'No spaces are allowed';
 
 // Username and email fields must never contain whitespace. Call on submit with
 // the inputs to check: any whose (trimmed) value contains a space is marked
