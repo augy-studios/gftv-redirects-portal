@@ -1,9 +1,10 @@
 // Fake Node request/response objects for calling the Vercel API handlers directly.
 // Run the tests with `npm test`.
 //
-// The handlers use req.method, req.url, req.headers, req.query (trusted-devices only) and read
-// the body as a stream through lib/response.js parseBody (req.on('data'|'end'|'error')).
-// They reply with res.writeHead(status, headers) + res.end(json).
+// The handlers use request.method, request.url, request.headers, request.query (trusted-devices
+// only) and read the body as a stream through lib/response.js parseBody
+// (request.on('data'|'end'|'error')). They reply with response.writeHead(status, headers) +
+// response.end(json).
 
 import assert from 'node:assert/strict';
 import { Readable } from 'node:stream';

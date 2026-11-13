@@ -1,13 +1,15 @@
-// Public stats endpoint: no auth required
+// GET /api/stats: public counts for the home page: officers (approved Editors and Admins), links,
+// and total clicks across every link.
+// Who can call it: anyone; no sign-in needed.
 import supabase from '../lib/supabase.js';
-import { ok, err, optionsResponse } from '../lib/response.js';
+import { sendSuccess, sendError, sendOptionsResponse } from '../lib/response.js';
 
-export default async function handler(req, res) {
-    if (req.method === 'OPTIONS') return optionsResponse(res);
-    if (req.method !== 'GET') return err(res, 'Method not allowed', 405);
+export default async function handler(request, response) {
+    if (request.method === 'OPTIONS') return sendOptionsResponse(response);
+    if (request.method !== 'GET') return sendError(response, 'Method not allowed', 405);
 
     try {
-        const [editorsRes, linksRes, clicksRes] = await Promise.all([
+        const [editorsResult, linksResult, clicksResult] = await Promise.all([
             supabase
                 .from('gftvhello_users')
                 .select('*', { count: 'exact', head: true })
@@ -21,18 +23,18 @@ export default async function handler(req, res) {
                 .select('access_count'),
         ]);
 
-        if (editorsRes.error || linksRes.error || clicksRes.error) {
-            return err(res, 'Failed to fetch stats', 500);
+        if (editorsResult.error || linksResult.error || clicksResult.error) {
+            return sendError(response, 'Failed to fetch stats', 500);
         }
 
-        const totalClicks = (clicksRes.data || []).reduce((sum, l) => sum + (l.access_count || 0), 0);
+        const totalClicks = (clicksResult.data || []).reduce((sum, link) => sum + (link.access_count || 0), 0);
 
-        return ok(res, {
-            officers: editorsRes.count || 0,
-            links: linksRes.count || 0,
+        return sendSuccess(response, {
+            officers: editorsResult.count || 0,
+            links: linksResult.count || 0,
             clicks: totalClicks,
         });
     } catch (error) {
-        return err(res, 'Internal server error', 500);
+        return sendError(response, 'Internal server error', 500);
     }
 }

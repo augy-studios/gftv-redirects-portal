@@ -119,7 +119,7 @@ Create a `.env` file (or configure via the Vercel dashboard) with the following 
 | Variable | Required | Description |
 |---|:---:|---|
 | `SUPABASE_URL` | Yes | Your Supabase project URL |
-| `SUPABASE_ANON_KEY` | Yes | Your Supabase anonymous (public) API key |
+| `SUPABASE_SERVICE_KEY` | Yes | Your Supabase `service_role` key. It bypasses row-level security, so it stays server-side: never put it in browser code |
 
 All other configuration (session management, link limits, etc.) is handled at the application level using Supabase's built-in features.
 
@@ -151,7 +151,7 @@ gftv-redirects-portal/
 │   ├── redirect/           # Edge runtime redirect handler
 │   └── stats.js            # Platform statistics endpoint
 ├── lib/                    # Shared server-side utilities
-│   ├── auth.js             # Session resolution helper
+│   ├── auth.js             # Finds the user behind a session token or an API key
 │   ├── response.js         # Standardised API response helpers
 │   └── supabase.js         # Supabase client initialisation
 ├── docs/                   # GitBook documentation source

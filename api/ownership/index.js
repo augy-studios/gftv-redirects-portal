@@ -1,17 +1,20 @@
-// Ownership requests
+// /api/ownership: link ownership requests.
+//   GET                the requests sent to the signed-in user for links they own, newest first.
+//   POST { link_id }   asks a link's owner to hand the link over (201).
+// Who can call it: any signed-in user (session token).
 import supabase from '../../lib/supabase.js';
 import { getSessionUser } from '../../lib/auth.js';
-import { ok, err, optionsResponse, parseBody } from '../../lib/response.js';
+import { sendSuccess, sendError, sendOptionsResponse, parseBody } from '../../lib/response.js';
 
-export default async function handler(req, res) {
-    if (req.method === 'OPTIONS') return optionsResponse(res);
+export default async function handler(request, response) {
+    if (request.method === 'OPTIONS') return sendOptionsResponse(response);
 
-    const user = await getSessionUser(req);
-    if (!user) return err(res, 'Unauthorized', 401);
+    const user = await getSessionUser(request);
+    if (!user) return sendError(response, 'Unauthorized', 401);
 
     // GET - get ownership requests for current user (as owner)
-    if (req.method === 'GET') {
-        const { data, error } = await supabase
+    if (request.method === 'GET') {
+        const { data: ownershipRequests, error } = await supabase
             .from('gftvlinks_ownership_requests')
             .select(`
                 id, status, created_at,
@@ -21,47 +24,47 @@ export default async function handler(req, res) {
             .eq('owner_id', user.id)
             .order('created_at', { ascending: false });
 
-        if (error) return err(res, 'Failed to fetch requests');
-        return ok(res, { requests: data || [] });
+        if (error) return sendError(response, 'Failed to fetch requests');
+        return sendSuccess(response, { requests: ownershipRequests || [] });
     }
 
     // POST - submit ownership request
-    if (req.method === 'POST') {
+    if (request.method === 'POST') {
         try {
-            const { link_id } = await parseBody(req);
-            if (!link_id) return err(res, 'Link ID required');
+            const { link_id: linkId } = await parseBody(request);
+            if (!linkId) return sendError(response, 'Link ID required');
 
             const { data: link } = await supabase
                 .from('gftvlinks_links')
                 .select('user_id')
-                .eq('id', link_id)
+                .eq('id', linkId)
                 .single();
 
-            if (!link) return err(res, 'Link not found');
-            if (link.user_id === user.id) return err(res, 'You already own this link');
+            if (!link) return sendError(response, 'Link not found');
+            if (link.user_id === user.id) return sendError(response, 'You already own this link');
 
             const { data: existing } = await supabase
                 .from('gftvlinks_ownership_requests')
                 .select('id')
-                .eq('link_id', link_id)
+                .eq('link_id', linkId)
                 .eq('requester_id', user.id)
                 .eq('status', 'pending')
                 .single();
 
-            if (existing) return err(res, 'You already have a pending request for this link');
+            if (existing) return sendError(response, 'You already have a pending request for this link');
 
             await supabase.from('gftvlinks_ownership_requests').insert({
-                link_id,
+                link_id: linkId,
                 requester_id: user.id,
                 owner_id: link.user_id,
                 status: 'pending',
             });
 
-            return ok(res, { message: 'Ownership request submitted' }, 201);
-        } catch (e) {
-            return err(res, 'Server error', 500);
+            return sendSuccess(response, { message: 'Ownership request submitted' }, 201);
+        } catch (error) {
+            return sendError(response, 'Server error', 500);
         }
     }
 
-    return err(res, 'Method not allowed', 405);
+    return sendError(response, 'Method not allowed', 405);
 }

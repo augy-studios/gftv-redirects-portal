@@ -35,7 +35,7 @@ export function expectReply(reply, status, expectedShape) {
     assert.deepStrictEqual(shape(reply.json), expectedShape, 'reply shape');
 }
 
-// Shape of every error reply from lib/response.js err().
+// Shape of every error reply from lib/response.js sendError().
 export const ERROR_SHAPE = { success: 'boolean', error: 'string' };
-// Shape of the many replies that are just ok(res, { message }).
+// Shape of the many replies that are just sendSuccess(response, { message }).
 export const MESSAGE_SHAPE = { success: 'boolean', message: 'string' };
