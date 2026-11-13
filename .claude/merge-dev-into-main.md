@@ -2,9 +2,9 @@
 
 Context for whoever merges this repo's `dev` branch into `main`. Augy, give this file to Claude: "Read `.claude/merge-dev-into-main.md` and help me merge `dev` into `main`."
 
-- **What's on `dev`:** the readable-refactor chain for help desk #20, one squash commit per job. 4 of 7 jobs have landed so far.
+- **What's on `dev`:** the readable-refactor chain for help desk #20, one squash commit per job. 5 of 7 jobs have landed so far.
 - **What merging does:** Merging into `main` deploys the site, API and redirects on Vercel.
-- **Kept up to date:** the coordinator (Thomas's workspace) updates this file each time a job lands, and once more just before opening the pull request. Last updated 13 Nov, 15:58 SGT.
+- **Kept up to date:** the coordinator (Thomas's workspace) updates this file each time a job lands, and once more just before opening the pull request. Last updated 13 Nov, 16:46 SGT.
 
 ## Claude: how to run the merge
 
@@ -16,7 +16,7 @@ Work through these in order, and stop to ask Augy wherever a step says so.
 4. **Go through "Before merging"** with Augy. Steps marked as his (Vercel settings, the database) are his to do by hand; ask him to confirm each one.
 5. **The pull request:** `gh pr list --base main --head dev`. Thomas's side opens it once the last job lands. If Augy wants to ship before that, open it yourself: `gh pr create --base main --head dev`, titled "Help desk #20: readable refactor", with the Jobs table as its body.
 6. **Merge with a merge commit, never squash or rebase**: `gh pr merge <number> --merge`. Squashing would drop the one-commit-per-job history, and each commit's `Archived-As` line points to the job's full branch. Ask Augy before running it: **merging is deploying.**
-7. **Go through "After merging"**, then the smoke test with Augy on the live site.
+7. **Go through "After merging"**, then the smoke test with Augy (unless this file says to run it before merging).
 8. **If something breaks:** in Vercel, promote the previous production deployment to roll back at once. Then revert the merge on `main` through a pull request (`git revert -m 1 <merge sha>`), and tell Thomas. Never force-push.
 
 ## Jobs
@@ -27,7 +27,7 @@ Work through these in order, and stop to ask Augy wherever a step says so.
 | 02 | Readability: shared browser files | `49ec031` |
 | 03 | Readability: API handlers and lib/ | `09aaa50` |
 | 04 | Readability: script.js, part 1 | `1f60619` |
-| 05 | Readability: script.js, part 2 | to come |
+| 05 | Readability: script.js, part 2 | `cdf81cf` |
 | 06 | Readability: inline scripts and tools | to come |
 | 07 | Final sweep | to come |
 
