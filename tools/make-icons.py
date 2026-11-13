@@ -49,11 +49,11 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Design units. Coordinates below are written for a 1024 canvas and drawn at
-# K times that, so the downscale does the antialiasing.
-S = 1024
-K = 4
+# SUPERSAMPLE times that, so the downscale does the antialiasing.
+CANVAS_SIZE = 1024
+SUPERSAMPLE = 4
 
-BG = '#fedc00'
+BACKGROUND = '#fedc00'
 INK = '#2e2800'        # outline colour for the wordmark, as in OneLink
 WHITE = '#ffffff'
 BLUE = '#2cabe1'       # cloud blue, shared with OneLink
@@ -79,6 +79,9 @@ FONT_CANDIDATES = [
 
 
 def find_font():
+    """Return the path of the wordmark font: the command-line argument if
+    given, otherwise the first candidate that exists. Exits with a message
+    when none is found."""
     if len(sys.argv) > 1:
         return sys.argv[1]
     for path in FONT_CANDIDATES:
@@ -88,78 +91,98 @@ def find_font():
              'python3 tools/make-icons.py path/to/font.ttf')
 
 
-def u(v):
+def to_pixels(units):
     """Design units to drawing pixels."""
-    return round(v * K)
+    return round(units * SUPERSAMPLE)
 
 
-def box(x0, y0, x1, y1):
-    return (u(x0), u(y0), u(x1), u(y1))
+def box(left, top, right, bottom):
+    """A bounding box given in design units, returned in drawing pixels."""
+    return (to_pixels(left), to_pixels(top), to_pixels(right), to_pixels(bottom))
 
 
-def circle(d, cx, cy, r, fill):
-    d.ellipse(box(cx - r, cy - r, cx + r, cy + r), fill=fill)
+def circle(draw, centre_x, centre_y, radius, fill):
+    """Draw a filled circle, with its centre and radius in design units."""
+    draw.ellipse(box(centre_x - radius, centre_y - radius, centre_x + radius, centre_y + radius), fill=fill)
 
 
-def cloud(d, inset, fill):
+def cloud(draw, inset, fill):
     """The cloud silhouette, grown or shrunk by `inset` design units, so one
     shape can be stacked as outline, middle band and face."""
-    g = -inset
+    grow = -inset
     # A flat bottom between the two end bumps, which are tangent to it, so
     # the outline runs smoothly round both bottom corners.
-    d.rectangle(box(372, 330 - g, 648, 450 + g), fill=fill)
-    circle(d, 372, 372, 78 + g, fill)    # left bump
-    circle(d, 498, 290, 120 + g, fill)   # big middle bump
-    circle(d, 648, 362, 88 + g, fill)    # right bump
+    draw.rectangle(box(372, 330 - grow, 648, 450 + grow), fill=fill)
+    circle(draw, 372, 372, 78 + grow, fill)    # left bump
+    circle(draw, 498, 290, 120 + grow, fill)   # big middle bump
+    circle(draw, 648, 362, 88 + grow, fill)    # right bump
 
 
-def chain(d):
+def chain(draw):
     """Two chain links joined by a bar, on one white halo like a sticker."""
-    cy = 540
-    h = 100          # link height
-    w = 168          # link width
+    centre_y = 540
+    link_height = 100
+    link_width = 168
     gap = 28
     band = 24
     halo = 16
-    left = 512 - w - gap / 2
-    right = 512 + gap / 2
-    d.rounded_rectangle(box(left - halo, cy - h / 2 - halo, right + w + halo, cy + h / 2 + halo),
-                        radius=u(h / 2 + halo), fill=WHITE)
-    for a in (left, right):
-        d.rounded_rectangle(box(a, cy - h / 2, a + w, cy + h / 2), radius=u(h / 2), fill=GOLD)
-        d.rounded_rectangle(box(a + band, cy - h / 2 + band, a + w - band, cy + h / 2 - band),
-                            radius=u(h / 2 - band), fill=GOLD_LIGHT)
+    left_link = 512 - link_width - gap / 2
+    right_link = 512 + gap / 2
+    draw.rounded_rectangle(
+        box(left_link - halo, centre_y - link_height / 2 - halo,
+            right_link + link_width + halo, centre_y + link_height / 2 + halo),
+        radius=to_pixels(link_height / 2 + halo), fill=WHITE)
+    for link_left in (left_link, right_link):
+        draw.rounded_rectangle(
+            box(link_left, centre_y - link_height / 2, link_left + link_width, centre_y + link_height / 2),
+            radius=to_pixels(link_height / 2), fill=GOLD)
+        draw.rounded_rectangle(
+            box(link_left + band, centre_y - link_height / 2 + band,
+                link_left + link_width - band, centre_y + link_height / 2 - band),
+            radius=to_pixels(link_height / 2 - band), fill=GOLD_LIGHT)
     # The bar runs from inside one link to inside the other, over both bands.
     bar = 13
-    d.rounded_rectangle(box(left + w / 2, cy - bar, right + w / 2, cy + bar), radius=u(bar), fill=GOLD_DARK)
+    draw.rounded_rectangle(
+        box(left_link + link_width / 2, centre_y - bar, right_link + link_width / 2, centre_y + bar),
+        radius=to_pixels(bar), fill=GOLD_DARK)
 
 
 def wordmark(layer, font_path):
     """GFTV, one colour per letter, each outlined so the yellow F reads on
     the yellow ground. Drawn on its own layer and then centred on x = 512 by
     its inked extent, because glyph advance widths are not symmetric."""
-    font = ImageFont.truetype(font_path, u(172))
+    font = ImageFont.truetype(font_path, to_pixels(172))
     word = Image.new('RGBA', layer.size, (0, 0, 0, 0))
-    d = ImageDraw.Draw(word)
+    draw = ImageDraw.Draw(word)
     x = 0
-    for ch, colour in zip('GFTV', WORD):
-        d.text((x, u(628)), ch, font=font, fill=colour, stroke_width=u(9), stroke_fill=INK)
-        x += d.textlength(ch, font=font) + u(4)
-    x0, _, x1, _ = word.getbbox()
-    layer.alpha_composite(word, (round(u(S / 2) - (x0 + x1) / 2), 0))
+    for letter, colour in zip('GFTV', WORD):
+        draw.text((x, to_pixels(628)), letter, font=font, fill=colour,
+                  stroke_width=to_pixels(9), stroke_fill=INK)
+        x += draw.textlength(letter, font=font) + to_pixels(4)
+    left, _, right, _ = word.getbbox()
+    layer.alpha_composite(word, (round(to_pixels(CANVAS_SIZE / 2) - (left + right) / 2), 0))
 
 
 def draw_artwork(font_path):
-    layer = Image.new('RGBA', (u(S), u(S)), (0, 0, 0, 0))
-    d = ImageDraw.Draw(layer)
+    """Draw the whole artwork (cloud, chain and wordmark) on a transparent
+    layer at SUPERSAMPLE times the design size."""
+    layer = Image.new('RGBA', (to_pixels(CANVAS_SIZE), to_pixels(CANVAS_SIZE)), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(layer)
 
-    cloud(d, -22, BLUE)        # outline
-    cloud(d, 0, BLUE_MID)      # middle band
-    cloud(d, 22, BLUE_LIGHT)   # face
+    cloud(draw, -22, BLUE)        # outline
+    cloud(draw, 0, BLUE_MID)      # middle band
+    cloud(draw, 22, BLUE_LIGHT)   # face
 
-    chain(d)
+    chain(draw)
     wordmark(layer, font_path)
     return layer
+
+
+def alpha_to_mask(alpha_value):
+    """Treat any alpha above 8 as painted (255) and the rest as empty (0)."""
+    if alpha_value > 8:
+        return 255
+    return 0
 
 
 def painted(layer):
@@ -167,10 +190,10 @@ def painted(layer):
     symmetric about the vertical centre line (x = 512) every shape is drawn
     on. Centring the crop then centres the artwork exactly: vertically by its
     painted extent, horizontally on its axis."""
-    x0, y0, x1, y1 = layer.getchannel('A').point(lambda a: 255 if a > 8 else 0).getbbox()
-    axis = u(S / 2)
-    half = max(axis - x0, x1 - axis)
-    return layer.crop((axis - half, y0, axis + half, y1))
+    left, top, right, bottom = layer.getchannel('A').point(alpha_to_mask).getbbox()
+    axis = to_pixels(CANVAS_SIZE / 2)
+    half_width = max(axis - left, right - axis)
+    return layer.crop((axis - half_width, top, axis + half_width, bottom))
 
 
 def farthest_from_centre(art):
@@ -178,46 +201,52 @@ def farthest_from_centre(art):
     on a reduced copy because the full one is tens of millions of pixels."""
     step = 4
     small = art.getchannel('A').resize((art.width // step, art.height // step))
-    px = small.load()
-    ox, oy = small.width / 2, small.height / 2
-    far = 0.0
+    pixel_access = small.load()
+    centre_x, centre_y = small.width / 2, small.height / 2
+    farthest = 0.0
     for y in range(small.height):
         for x in range(small.width):
-            if px[x, y] > 8:
-                far = max(far, math.hypot(abs(x + 0.5 - ox) + 0.5, abs(y + 0.5 - oy) + 0.5))
-    return far * step
+            if pixel_access[x, y] > 8:
+                farthest = max(farthest, math.hypot(abs(x + 0.5 - centre_x) + 0.5, abs(y + 0.5 - centre_y) + 0.5))
+    return farthest * step
 
 
 def compose(art, size, scale):
-    """Scale the cropped artwork and centre it on a BG square of `size`."""
-    w, h = round(art.width * scale), round(art.height * scale)
-    scaled = art.resize((w, h), Image.LANCZOS)
-    icon = Image.new('RGBA', (size, size), BG)
-    icon.alpha_composite(scaled, ((size - w) // 2, (size - h) // 2))
+    """Scale the cropped artwork and centre it on a BACKGROUND square of `size`."""
+    width, height = round(art.width * scale), round(art.height * scale)
+    scaled = art.resize((width, height), Image.LANCZOS)
+    icon = Image.new('RGBA', (size, size), BACKGROUND)
+    icon.alpha_composite(scaled, ((size - width) // 2, (size - height) // 2))
     return icon.convert('RGB')
 
 
 def render():
+    """Draw the artwork once, then write every icon file into the project root."""
     art = painted(draw_artwork(find_font()))
-    far = farthest_from_centre(art)
-    any_scale = ANY_RADIUS / far          # per unit of icon size
-    mask_scale = SAFE_RADIUS / far
+    farthest = farthest_from_centre(art)
+    any_scale = ANY_RADIUS / farthest          # per unit of icon size
+    mask_scale = SAFE_RADIUS / farthest
 
     def any_icon(size):
+        """The icon for the "any" purpose, at `size` pixels."""
         return compose(art, size, any_scale * size)
 
     def mask_icon(size):
+        """The icon for the "maskable" purpose, at `size` pixels."""
         return compose(art, size, mask_scale * size)
 
-    out = lambda name: os.path.join(ROOT, name)
-    any_icon(2250).save(out('gsl-main.png'), optimize=True)
+    def output_path(name):
+        """Where an output file goes: the project root."""
+        return os.path.join(ROOT, name)
+
+    any_icon(2250).save(output_path('gsl-main.png'), optimize=True)
     for size in (512, 192, 180):
-        any_icon(size).save(out(f'gsl-{size}.png'), optimize=True)
+        any_icon(size).save(output_path(f'gsl-{size}.png'), optimize=True)
     for size in (512, 192):
-        mask_icon(size).save(out(f'gsl-{size}-maskable.png'), optimize=True)
-    any_icon(256).save(out('favicon.ico'),
+        mask_icon(size).save(output_path(f'gsl-{size}-maskable.png'), optimize=True)
+    any_icon(256).save(output_path('favicon.ico'),
                        sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
-    print(f'artwork {art.width}x{art.height} at {K}x; '
+    print(f'artwork {art.width}x{art.height} at {SUPERSAMPLE}x; '
           f'any fits a {ANY_RADIUS:.0%} circle, maskable a {SAFE_RADIUS:.0%} one')
 
 
