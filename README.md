@@ -76,7 +76,7 @@ With GFTV Shortlinks, community members know that any `gftv.asia/...` link was c
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) v18 or later
+- [Node.js](https://nodejs.org/) v22.15 or later (the tests need it)
 - A [Supabase](https://supabase.com) project with the required tables and RPC functions
 - A [Vercel](https://vercel.com) account (for deployment) or the [Vercel CLI](https://vercel.com/docs/cli) for local development
 
@@ -95,6 +95,22 @@ vercel dev
 ```
 
 The app will be available at `http://localhost:3000`. API routes under `/api` are served as Vercel serverless functions.
+
+### Running the tests
+
+```bash
+npm install
+npm test            # API handler tests, against a fake Supabase
+npm run test:e2e    # Playwright baseline: offline, with a faked API and a frozen clock
+```
+
+- On a new machine, run `npx playwright install chromium` once first.
+- Run the tests with `npm test`, not a bare `node --test`.
+- Screenshots depend on the OS. The committed ones end in `-darwin` (made on macOS); on Windows
+  they show as missing until baselines are made there.
+- Run `npx playwright test --update-snapshots` only when a change is meant to alter the UI, and
+  review the PNG diffs before committing.
+- `tests/` and `playwright.config.js` are listed in `.vercelignore`, so Vercel doesn't publish them.
 
 ### Environment Variables
 
