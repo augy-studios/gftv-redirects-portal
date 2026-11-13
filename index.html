@@ -6,28 +6,46 @@
     <script>
         (function () {
             var COLOR_THEMES = ['classic', 'hellotheme'];
-            var legacy = localStorage.getItem('gftv_theme');
-            if (legacy !== null && !localStorage.getItem('gftv-gftvlinks.colorTheme')) {
-                localStorage.setItem('gftv-gftvlinks.colorTheme', COLOR_THEMES.indexOf(legacy) !== -1 ? legacy : 'classic');
+            var legacyTheme = localStorage.getItem('gftv_theme');
+            if (legacyTheme !== null && !localStorage.getItem('gftv-gftvlinks.colorTheme')) {
+                // Carry an old single-axis theme over to the colour theme, if it is a known one.
+                var migratedTheme = 'classic';
+                if (COLOR_THEMES.indexOf(legacyTheme) !== -1) {
+                    migratedTheme = legacyTheme;
+                }
+                localStorage.setItem('gftv-gftvlinks.colorTheme', migratedTheme);
                 localStorage.setItem('gftv-gftvlinks.mode', 'light');
             }
             var colorTheme = localStorage.getItem('gftv-gftvlinks.colorTheme');
             if (COLOR_THEMES.indexOf(colorTheme) === -1) colorTheme = 'classic';
             var preference = localStorage.getItem('gftv-gftvlinks.mode');
-            var mode = preference === 'dark' ? 'dark' : 'light';
+            var mode = 'light';
+            if (preference === 'dark') {
+                mode = 'dark';
+            }
 
             // Time based mode. Resolved here rather than in script.js because
             // script.js runs after first paint, and an evening reader would
             // otherwise watch a white page turn dark. Keep the two hours in
             // step with LIGHT_FROM_HOUR and LIGHT_UNTIL_HOUR in script.js.
             if (preference === 'time') {
-                var h = new Date().getHours();
-                mode = h >= 9 && h < 18 ? 'light' : 'dark';
+                var currentHour = new Date().getHours();
+                if (currentHour >= 9 && currentHour < 18) {
+                    mode = 'light';
+                } else {
+                    mode = 'dark';
+                }
             }
 
             document.documentElement.setAttribute('data-color-theme', colorTheme);
             document.documentElement.setAttribute('data-mode', mode);
-            document.documentElement.setAttribute('data-mode-preference', preference === 'dark' || preference === 'time' ? preference : 'light');
+
+            // Only 'dark' and 'time' are kept as they are; anything else shows as 'light'.
+            var modePreference = 'light';
+            if (preference === 'dark' || preference === 'time') {
+                modePreference = preference;
+            }
+            document.documentElement.setAttribute('data-mode-preference', modePreference);
         })();
     </script>
 
@@ -120,25 +138,27 @@
         // so a reader who opened the panel does not see the layout jump as it
         // reopens. Expansion is remembered; the bar itself never goes away.
         (function () {
-            var KEY = 'gftv-gftvlinks.officialBar';
-            var bar = document.getElementById('officialBar');
-            var toggle = document.getElementById('officialBarToggle');
+            var STORAGE_KEY = 'gftv-gftvlinks.officialBar';
+            var officialBar = document.getElementById('officialBar');
+            var toggleButton = document.getElementById('officialBarToggle');
             var panel = document.getElementById('officialBarPanel');
             var hideTimer = null;
 
-            function setOpen(open, animate) {
+            // Opens or closes the panel. `animate` is false on the first restore,
+            // so nothing plays while the page is still loading.
+            function setOpen(isOpen, animate) {
                 if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-                toggle.setAttribute('aria-expanded', String(open));
-                if (open) {
+                toggleButton.setAttribute('aria-expanded', String(isOpen));
+                if (isOpen) {
                     panel.hidden = false;
                     if (animate) {
                         // Next frame, so the 0fr to 1fr transition has a start state.
-                        requestAnimationFrame(function () { bar.classList.add('open'); });
+                        requestAnimationFrame(function () { officialBar.classList.add('open'); });
                     } else {
-                        bar.classList.add('open');
+                        officialBar.classList.add('open');
                     }
                 } else {
-                    bar.classList.remove('open');
+                    officialBar.classList.remove('open');
                     if (animate) {
                         // Hidden after the collapse plays, matching the CSS duration.
                         hideTimer = setTimeout(function () { panel.hidden = true; }, 220);
@@ -146,15 +166,19 @@
                         panel.hidden = true;
                     }
                 }
-                try { localStorage.setItem(KEY, open ? 'open' : 'closed'); } catch (e) {}
+                var savedState = 'closed';
+                if (isOpen) {
+                    savedState = 'open';
+                }
+                try { localStorage.setItem(STORAGE_KEY, savedState); } catch (error) {}
             }
 
             var remembered = null;
-            try { remembered = localStorage.getItem(KEY); } catch (e) {}
+            try { remembered = localStorage.getItem(STORAGE_KEY); } catch (error) {}
             if (remembered === 'open') setOpen(true, false);
 
-            toggle.addEventListener('click', function () {
-                setOpen(toggle.getAttribute('aria-expanded') !== 'true', true);
+            toggleButton.addEventListener('click', function () {
+                setOpen(toggleButton.getAttribute('aria-expanded') !== 'true', true);
             });
         })();
     </script>
@@ -163,7 +187,7 @@
     <header class="site-header">
     <!-- ===== NAVBAR ===== -->
     <nav id="navbar">
-        <a class="nav-brand" href="/" onclick="event.preventDefault(); nav(window._appState?.user ? (window._appState.user.is_editor || window._appState.user.is_admin ? 'dashboard' : 'directory') : 'home')">
+        <a class="nav-brand" href="/" onclick="event.preventDefault(); nav(getBrandLogoPage())">
             <span class="brand-dot"></span>
             GFTV Link Shortener
         </a>
@@ -1256,18 +1280,36 @@
     </div>
 
     <script>
+        // Picks the page the brand logo goes to: the dashboard for editors and
+        // admins, the directory for other signed-in users, home for everyone else.
+        // Nothing sets window._appState today, so the logo always goes home.
+        function getBrandLogoPage() {
+            const user = window._appState?.user;
+            if (!user) {
+                return 'home';
+            }
+            if (user.is_editor || user.is_admin) {
+                return 'dashboard';
+            }
+            return 'directory';
+        }
+
         // Tab switcher for profile page
-        function switchProfileTab(tab, btn) {
-            ['edit', 'password', '2fa', 'danger'].forEach(t => {
-                document.getElementById('profile-tab-' + t).style.display = t === tab ? 'block' : 'none';
+        function switchProfileTab(tab, clickedButton) {
+            ['edit', 'password', '2fa', 'danger'].forEach(tabName => {
+                let display = 'none';
+                if (tabName === tab) {
+                    display = 'block';
+                }
+                document.getElementById('profile-tab-' + tabName).style.display = display;
             });
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(tabButton => tabButton.classList.remove('active'));
+            clickedButton.classList.add('active');
 
             // Sync username display field
             if (tab === 'edit' && window.state?.user) {
-                const f = document.getElementById('profile-username-display');
-                if (f) f.value = '@' + window.state.user.username;
+                const usernameField = document.getElementById('profile-username-display');
+                if (usernameField) usernameField.value = '@' + window.state.user.username;
             }
 
             // Load trusted devices when danger tab is opened
@@ -1279,8 +1321,8 @@
         // Expose state to window for tab switcher access
         Object.defineProperty(window, 'state', {
             get: () => window._appState,
-            set: (v) => {
-                window._appState = v;
+            set: (newState) => {
+                window._appState = newState;
             }
         });
     </script>

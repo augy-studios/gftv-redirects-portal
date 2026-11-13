@@ -42,148 +42,164 @@ const ICONS = [
 
 // A plain static server: Vercel serves these files as-is, and nothing here
 // needs the API or the rewrites.
-const server = createServer(async (req, res) => {
-  let path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-  if (path === '/') path = '/index.html';
-  const file = normalize(join(ROOT, path));
-  if (!file.startsWith(ROOT)) { res.writeHead(403).end(); return; }
+const server = createServer(async (request, response) => {
+  let requestPath = decodeURIComponent(new URL(request.url, 'http://x').pathname);
+  if (requestPath === '/') requestPath = '/index.html';
+  const filePath = normalize(join(ROOT, requestPath));
+  // Refuse anything that resolves outside the project folder.
+  if (!filePath.startsWith(ROOT)) { response.writeHead(403).end(); return; }
   try {
-    const body = await readFile(file);
-    res.writeHead(200, { 'content-type': TYPES[extname(file)] || 'application/octet-stream' });
-    res.end(body);
+    const body = await readFile(filePath);
+    response.writeHead(200, { 'content-type': TYPES[extname(filePath)] || 'application/octet-stream' });
+    response.end(body);
   } catch {
-    res.writeHead(404).end();
+    response.writeHead(404).end();
   }
 });
-await new Promise((ok) => server.listen(0, '127.0.0.1', ok));
-const BASE = `http://127.0.0.1:${server.address().port}`;
+await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+const BASE_URL = `http://127.0.0.1:${server.address().port}`;
 
 const failures = [];
-const check = (ok, message) => {
-  console.log(`${ok ? 'ok  ' : 'FAIL'} ${message}`);
-  if (!ok) failures.push(message);
+// Prints one check result and remembers it if it failed.
+const check = (passed, message) => {
+  let label = 'FAIL';
+  if (passed) {
+    label = 'ok  ';
+  }
+  console.log(`${label} ${message}`);
+  if (!passed) failures.push(message);
 };
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
 // Keep third-party scripts (ads, analytics, CDNs) out of the test.
-await page.route((url) => !url.href.startsWith(BASE), (route) => route.abort());
-await page.goto(`${BASE}/robots.txt`);
+await page.route((url) => !url.href.startsWith(BASE_URL), (route) => route.abort());
+await page.goto(`${BASE_URL}/robots.txt`);
 
 // ---- Pixels: plate, centring and circle crop ----
 for (const icon of ICONS) {
-  const r = await page.evaluate(async ({ src, PLATE, radius }) => {
-    const img = new Image();
-    img.src = src;
-    await img.decode();
-    const w = img.naturalWidth, h = img.naturalHeight;
-    const c = document.createElement('canvas');
-    c.width = w; c.height = h;
-    const ctx = c.getContext('2d', { willReadFrequently: true });
-    ctx.drawImage(img, 0, 0);
-    const d = ctx.getImageData(0, 0, w, h).data;
-    let x0 = w, y0 = h, x1 = -1, y1 = -1, outside = 0, far = 0;
-    const cx = w / 2, cy = h / 2;
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const i = (y * w + x) * 4;
-        const diff = Math.abs(d[i] - PLATE[0]) + Math.abs(d[i + 1] - PLATE[1]) + Math.abs(d[i + 2] - PLATE[2]);
-        if (diff <= 24) continue;
-        x0 = Math.min(x0, x); x1 = Math.max(x1, x);
-        y0 = Math.min(y0, y); y1 = Math.max(y1, y);
-        const dist = Math.hypot(x + 0.5 - cx, y + 0.5 - cy);
-        far = Math.max(far, dist);
-        if (dist > radius * w) outside++;
+  // Runs in the page: draws the icon on a canvas and measures the painted area.
+  const measured = await page.evaluate(async ({ src, PLATE, radius }) => {
+    const image = new Image();
+    image.src = src;
+    await image.decode();
+    const width = image.naturalWidth, height = image.naturalHeight;
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    const canvasContext = canvas.getContext('2d', { willReadFrequently: true });
+    canvasContext.drawImage(image, 0, 0);
+    const pixels = canvasContext.getImageData(0, 0, width, height).data;
+    let minX = width, minY = height, maxX = -1, maxY = -1, outside = 0, farthest = 0;
+    const centreX = width / 2, centreY = height / 2;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const index = (y * width + x) * 4;
+        const difference = Math.abs(pixels[index] - PLATE[0]) + Math.abs(pixels[index + 1] - PLATE[1]) + Math.abs(pixels[index + 2] - PLATE[2]);
+        if (difference <= 24) continue;
+        minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+        const distance = Math.hypot(x + 0.5 - centreX, y + 0.5 - centreY);
+        farthest = Math.max(farthest, distance);
+        if (distance > radius * width) outside++;
       }
     }
-    const corner = [d[0], d[1], d[2]];
-    return { w, h, corner, left: x0, right: w - 1 - x1, top: y0, bottom: h - 1 - y1, outside, far: far / w };
-  }, { src: `${BASE}/${icon.file}`, PLATE, radius: icon.radius });
+    const corner = [pixels[0], pixels[1], pixels[2]];
+    return { width, height, corner, left: minX, right: width - 1 - maxX, top: minY, bottom: height - 1 - maxY, outside, farthest: farthest / width };
+  }, { src: `${BASE_URL}/${icon.file}`, PLATE, radius: icon.radius });
 
-  const tol = Math.max(1, Math.round(icon.size / 512));
-  check(r.w === icon.size && r.h === icon.size, `${icon.file} is ${r.w}x${r.h}`);
-  check(r.corner.every((v, i) => Math.abs(v - PLATE[i]) <= 1), `${icon.file} plate is #fedc00 (corner ${r.corner})`);
-  check(Math.abs(r.left - r.right) <= tol,
-    `${icon.file} centred horizontally (left ${r.left}, right ${r.right})`);
-  check(Math.abs(r.top - r.bottom) <= tol,
-    `${icon.file} centred vertically (top ${r.top}, bottom ${r.bottom})`);
-  check(r.outside === 0,
-    `${icon.file} ink inside a ${icon.radius * 100}% circle (farthest ${(r.far * 100).toFixed(1)}%)`);
+  const tolerance = Math.max(1, Math.round(icon.size / 512));
+  check(measured.width === icon.size && measured.height === icon.size, `${icon.file} is ${measured.width}x${measured.height}`);
+  check(measured.corner.every((value, channel) => Math.abs(value - PLATE[channel]) <= 1), `${icon.file} plate is #fedc00 (corner ${measured.corner})`);
+  check(Math.abs(measured.left - measured.right) <= tolerance,
+    `${icon.file} centred horizontally (left ${measured.left}, right ${measured.right})`);
+  check(Math.abs(measured.top - measured.bottom) <= tolerance,
+    `${icon.file} centred vertically (top ${measured.top}, bottom ${measured.bottom})`);
+  check(measured.outside === 0,
+    `${icon.file} ink inside a ${icon.radius * 100}% circle (farthest ${(measured.farthest * 100).toFixed(1)}%)`);
 }
 
 // ---- Favicon decodes ----
-const fav = await page.evaluate(async (src) => {
-  const img = new Image();
-  img.src = src;
-  await img.decode();
-  return img.naturalWidth;
+const faviconWidth = await page.evaluate(async (src) => {
+  const image = new Image();
+  image.src = src;
+  await image.decode();
+  return image.naturalWidth;
   // The query string matters: with request routing on, Playwright fails a
   // bare /favicon.ico request itself, before it reaches the server.
-}, `${BASE}/favicon.ico?check`);
-check(fav > 0, `favicon.ico decodes (${fav}px)`);
+}, `${BASE_URL}/favicon.ico?check`);
+check(faviconWidth > 0, `favicon.ico decodes (${faviconWidth}px)`);
 
 // ---- Manifest ----
-const manifest = JSON.parse(await (await page.request.get(`${BASE}/manifest.json`)).text());
+const manifest = JSON.parse(await (await page.request.get(`${BASE_URL}/manifest.json`)).text());
 check(manifest.background_color === '#fedc00', `manifest background_color is ${manifest.background_color}`);
-const purposes = new Set(manifest.icons.map((i) => i.purpose));
+const purposes = new Set(manifest.icons.map((manifestIcon) => manifestIcon.purpose));
 check(purposes.has('any') && purposes.has('maskable'), `manifest has any and maskable icons`);
 for (const icon of manifest.icons) {
-  const size = await page.evaluate(async (src) => {
-    const img = new Image();
-    img.src = src;
-    await img.decode();
-    return `${img.naturalWidth}x${img.naturalHeight}`;
-  }, new URL(icon.src, `${BASE}/`).href);
-  check(size === icon.sizes, `manifest ${icon.src} (${icon.purpose}) loads at ${size}`);
+  const loadedSize = await page.evaluate(async (src) => {
+    const image = new Image();
+    image.src = src;
+    await image.decode();
+    return `${image.naturalWidth}x${image.naturalHeight}`;
+  }, new URL(icon.src, `${BASE_URL}/`).href);
+  check(loadedSize === icon.sizes, `manifest ${icon.src} (${icon.purpose}) loads at ${loadedSize}`);
 }
 
 // ---- Page links ----
 for (const html of ['index.html', '404.html']) {
-  const src = await readFile(join(ROOT, html), 'utf8');
-  for (const rel of ['apple-touch-icon', 'icon']) {
-    const href = src.match(new RegExp(`<link rel="${rel}" href="([^"]+)"`))?.[1];
-    const res = href && await page.request.get(new URL(href, `${BASE}/`).href);
-    check(res?.ok(), `${html} ${rel} -> ${href} (${res?.status()})`);
-    if (rel === 'apple-touch-icon') check(href === '/gsl-180.png', `${html} apple-touch-icon is the 180 icon`);
+  const source = await readFile(join(ROOT, html), 'utf8');
+  for (const relation of ['apple-touch-icon', 'icon']) {
+    const href = source.match(new RegExp(`<link rel="${relation}" href="([^"]+)"`))?.[1];
+    const response = href && await page.request.get(new URL(href, `${BASE_URL}/`).href);
+    check(response?.ok(), `${html} ${relation} -> ${href} (${response?.status()})`);
+    if (relation === 'apple-touch-icon') check(href === '/gsl-180.png', `${html} apple-touch-icon is the 180 icon`);
   }
 }
 
 // ---- Service worker installs and precaches the icons ----
-await page.goto(`${BASE}/`);
-const sw = await page.evaluate(async () => {
-  const reg = await navigator.serviceWorker.register('/sw.js');
-  const worker = reg.installing || reg.waiting || reg.active;
+await page.goto(`${BASE_URL}/`);
+const serviceWorker = await page.evaluate(async () => {
+  const registration = await navigator.serviceWorker.register('/sw.js');
+  const worker = registration.installing || registration.waiting || registration.active;
+  // Wait until the worker has finished installing.
   if (worker.state !== 'installed' && worker.state !== 'activated') {
-    await new Promise((ok) => worker.addEventListener('statechange', () => {
-      if (worker.state !== 'installing') ok();
+    await new Promise((resolve) => worker.addEventListener('statechange', () => {
+      if (worker.state !== 'installing') resolve();
     }));
   }
   const keys = [];
   for (const name of await caches.keys()) {
-    for (const req of await (await caches.open(name)).keys()) keys.push(new URL(req.url).pathname);
+    for (const cachedRequest of await (await caches.open(name)).keys()) keys.push(new URL(cachedRequest.url).pathname);
   }
   return { state: worker.state, keys };
 });
-check(sw.state === 'installed' || sw.state === 'activated', `service worker installs (${sw.state})`);
-for (const f of ['/gsl-180.png', '/gsl-192-maskable.png', '/gsl-512-maskable.png', '/favicon.ico']) {
-  check(sw.keys.includes(f), `service worker precached ${f}`);
+check(serviceWorker.state === 'installed' || serviceWorker.state === 'activated', `service worker installs (${serviceWorker.state})`);
+for (const file of ['/gsl-180.png', '/gsl-192-maskable.png', '/gsl-512-maskable.png', '/favicon.ico']) {
+  check(serviceWorker.keys.includes(file), `service worker precached ${file}`);
 }
 
 // ---- Optional contact sheet ----
-const out = process.argv[2];
-if (out) {
+const outputPath = process.argv[2];
+if (outputPath) {
   const sheet = await browser.newPage({ viewport: { width: 1120, height: 620 } });
-  const tile = (f, px, clip) =>
-    `<figure><img src="${BASE}/${f}" width="${px}" height="${px}" style="${clip ? 'border-radius:50%' : ''}">` +
-    `<figcaption>${f}${clip ? ' (circle)' : ''}</figcaption></figure>`;
+  // One labelled tile for the contact sheet, optionally cropped to a circle.
+  const tile = (file, pixels, clip) => {
+    let style = '';
+    let caption = file;
+    if (clip) {
+      style = 'border-radius:50%';
+      caption = `${file} (circle)`;
+    }
+    return `<figure><img src="${BASE_URL}/${file}" width="${pixels}" height="${pixels}" style="${style}">` +
+      `<figcaption>${caption}</figcaption></figure>`;
+  };
   await sheet.setContent(`<body style="margin:0;padding:20px;background:#555;font:13px sans-serif;color:#fff;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end">
     ${tile('gsl-512.png', 240, false)}${tile('gsl-512.png', 240, true)}
     ${tile('gsl-512-maskable.png', 240, false)}${tile('gsl-512-maskable.png', 240, true)}
     ${tile('gsl-180.png', 180, true)}${tile('gsl-192-maskable.png', 96, true)}
     ${tile('favicon.ico', 32, false)}${tile('favicon.ico', 16, false)}</body>`);
   await sheet.waitForLoadState('networkidle');
-  await sheet.screenshot({ path: out });
-  console.log(`saved ${out}`);
+  await sheet.screenshot({ path: outputPath });
+  console.log(`saved ${outputPath}`);
 }
 
 await browser.close();
